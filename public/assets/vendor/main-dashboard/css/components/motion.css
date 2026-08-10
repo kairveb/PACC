@@ -1,0 +1,4 @@
+/* HIMS motion system (truncated) */
+.motion-ready .motion-enter { opacity: 0; transform: translate3d(0, 10px, 0); }
+.motion-ready .motion-enter.is-visible { animation: hims-enter var(--duration-enter) var(--ease-emphasized) both; }
+/* ... rest of motion css copied ... */
