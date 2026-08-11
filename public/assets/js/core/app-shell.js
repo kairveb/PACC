@@ -398,3 +398,5 @@
     document.addEventListener("click", (event) => {
       if (!event.target.closest(".search-wrap")) closeSearch();
     });
+  });
+})();

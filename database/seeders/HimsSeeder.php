@@ -108,22 +108,31 @@ $rolePerms = [
     protected function seedUsers(): void
     {
         $users = [
-            'super-admin' => 'Super Admin',
-            'hospital-admin' => 'Hospital Admin',
-            'registration' => 'Registration Staff',
-            'doctor' => 'Dr. Elena Santos',
-            'nurse' => 'Nurse Ana Reyes',
-            'patient' => 'Maria Santos',
+            'super-admin' => ['name' => 'Super Admin', 'email' => 'super.admin@coor.test'],
+            'hospital-admin' => ['name' => 'Hospital Admin', 'email' => 'hospital.admin@coor.test'],
+            'registration' => ['name' => 'Registration Staff', 'email' => 'registration@coor.test'],
+            'doctor' => ['name' => 'Dr. Elena Santos', 'email' => 'doctor@coor.test'],
+            'nurse' => ['name' => 'Nurse Ana Reyes', 'email' => 'nurse@coor.test'],
+            'patient' => ['name' => 'Maria Santos', 'email' => 'patient@coor.test'],
         ];
 
-        foreach ($users as $role => $name) {
-            $email = $role === 'super-admin' || $role === 'hospital-admin' || $role === 'doctor' || $role === 'nurse' || $role === 'patient'
-                ? $role . '@coor.test'
-                : str_replace('-', '.', $role) . '@coor.test';
-            $user = User::firstOrCreate(
-                ['email' => $email],
-                ['name' => $name, 'password' => Hash::make('Password123!'), 'email_verified_at' => now()]
-            );
+        foreach ($users as $role => $userData) {
+            $user = User::where('email', $userData['email'])
+                ->orWhere('email', $role . '@coor.test')
+                ->first();
+
+            if (! $user) {
+                $user = new User();
+                $user->email = $userData['email'];
+            }
+
+            $user->fill([
+                'name' => $userData['name'],
+                'password' => Hash::make('Password123!'),
+                'email_verified_at' => now(),
+            ]);
+            $user->save();
+
             $user->roles()->syncWithoutDetaching([Role::where('name', $role)->value('id')]);
         }
     }
