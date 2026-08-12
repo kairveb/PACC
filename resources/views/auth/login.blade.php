@@ -32,10 +32,6 @@
                 <form method="POST" action="{{ route('login') }}" id="login-form" novalidate>
                     @csrf
                     <div class="form-field">
-                        <label for="login-name">Display name</label>
-                        <input id="login-name" name="name" type="text" autocomplete="name" placeholder="Enter your display name" value="{{ old('name') }}">
-                    </div>
-                    <div class="form-field">
                         <label for="login-email">Email address</label>
                         <input id="login-email" name="email" type="email" autocomplete="email" placeholder="name@hospital.org" required value="{{ old('email') }}">
                         @error('email')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -48,17 +44,6 @@
                         </div>
                         <small id="password-note">Your password is used only for this frontend preview and is never stored.</small>
                         @error('password')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
-                    </div>
-                    <div class="form-field">
-                        <label for="login-role">Role</label>
-                        <select id="login-role" name="role">
-                            <option>Super Admin</option>
-                            <option>Hospital Admin</option>
-                            <option>Doctor</option>
-                            <option>Nurse</option>
-                            <option>Registration Staff</option>
-                            <option>Patient</option>
-                        </select>
                     </div>
                     <label class="remember-field"><input id="remember-email" name="remember_email" type="checkbox">Remember email on this device</label>
                     <p class="form-error" id="login-error" role="alert" hidden></p>

@@ -124,7 +124,7 @@
                     hisToast('Telehealth consultation closeout saved.', 'success');
                 }
 
-                window.location.href = '{{ route('telehealth.index') }}';
+                window.location.href = "{{ route('telehealth.index') }}";
             } catch (error) {
                 if (window.hisToast) {
                     hisToast(error.message, 'danger');

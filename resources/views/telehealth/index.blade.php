@@ -50,18 +50,18 @@
             </div>
         </div>
         <div class="space-y-4 p-5">
-            <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
-                <div>
+            <div class="grid gap-4 md:grid-cols-2 md:items-start">
+                <div class="space-y-3">
                     <label for="telehealthPatientName" class="mb-1 block text-sm font-medium text-slate-700">Patient</label>
                     <input list="telehealthPatientList" id="telehealthPatientName" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Search registered patient or enter name">
                     <datalist id="telehealthPatientList"></datalist>
+                    <p class="text-sm text-slate-500">Leave empty to start an unassigned telehealth room.</p>
                 </div>
-                <div class="text-sm text-slate-500">Leave empty to start an unassigned telehealth room.</div>
-            </div>
-            <div class="flex flex-wrap gap-3">
-                <button type="button" id="launchTelehealthBtn" class="rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Launch video call</button>
-                <button type="button" id="generatePrescriptionBtn" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Generate prescription</button>
-                <button type="button" id="sendReminderBtn" class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Send reminder</button>
+                <div class="flex flex-wrap items-start justify-end gap-3">
+                    <button type="button" id="launchTelehealthBtn" class="rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Launch video call</button>
+                    <button type="button" id="generatePrescriptionBtn" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Generate prescription</button>
+                    <button type="button" id="sendReminderBtn" class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Send reminder</button>
+                </div>
             </div>
         </div>
     </div>
@@ -232,3 +232,4 @@
     })();
 </script>
 @endpush
+@endsection
