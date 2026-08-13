@@ -17,6 +17,23 @@ class ErQueue extends Model
     public const STATUS_IN_TREATMENT = 'IN_TREATMENT';
     public const STATUS_DONE = 'DONE';
 
+    public static function priorityRank(string $priority): int
+    {
+        return match (strtolower(trim($priority))) {
+            'level 1', 'emergency', 'red' => 1,
+            'level 2', 'urgent', 'yellow' => 2,
+            'level 3', 'prompt', 'orange' => 3,
+            'level 4', 'non-urgent', 'green' => 4,
+            'level 5', 'routine' => 5,
+            default => 99,
+        };
+    }
+
+    public function getPriorityRankAttribute(): int
+    {
+        return self::priorityRank((string) ($this->priority ?? ''));
+    }
+
     public function erVisit(): BelongsTo
     {
         return $this->belongsTo(ErVisit::class);

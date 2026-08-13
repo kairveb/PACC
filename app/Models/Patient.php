@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Patient extends Model
 {
@@ -65,6 +66,11 @@ class Patient extends Model
         return $this->hasMany(Vital::class);
     }
 
+    public function triageAssessments(): HasMany
+    {
+        return $this->hasMany(TriageAssessment::class);
+    }
+
     public function clinicalDocuments(): HasMany
     {
         return $this->hasMany(ClinicalDocument::class);
@@ -93,6 +99,23 @@ class Patient extends Model
             $this->last_name,
             $this->suffix,
         ])));
+    }
+
+    public function ensureLookupCode(): string
+    {
+        if (! $this->lookup_code) {
+            $this->lookup_code = strtoupper(Str::random(8));
+        }
+
+        return $this->lookup_code;
+    }
+
+    public function markPendingArrival(): void
+    {
+        $this->forceFill([
+            'lookup_code' => $this->ensureLookupCode(),
+            'pre_registration_status' => 'pending_arrival',
+        ])->save();
     }
 
     public function getAgeAttribute(): int

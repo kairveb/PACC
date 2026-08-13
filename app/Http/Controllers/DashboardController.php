@@ -37,6 +37,7 @@ class DashboardController extends Controller
                 ->get(),
             'followUpDue' => $followUpDue,
             'erQueue' => \App\Models\ErQueue::with(['erVisit.patient'])
+                ->orderByRaw("FIELD(priority, 'Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5')")
                 ->orderBy('queued_at')
                 ->limit(10)
                 ->get(),
@@ -77,6 +78,7 @@ class DashboardController extends Controller
         if ($user->hasRole('nurse')) {
             $data['triageQueue'] = \App\Models\ErQueue::with(['erVisit.patient'])
                 ->where('status', \App\Models\ErQueue::STATUS_WAITING)
+                ->orderByRaw("FIELD(priority, 'Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5')")
                 ->orderBy('queued_at')
                 ->limit(10)
                 ->get();

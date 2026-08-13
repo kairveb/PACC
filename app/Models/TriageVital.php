@@ -13,7 +13,13 @@ class TriageVital extends Model
         'temperature' => 'decimal:1',
         'spo2' => 'decimal:2',
         'weight' => 'decimal:2',
+        'recorded_at' => 'datetime',
     ];
+
+    public function patient(): BelongsTo
+    {
+        return $this->belongsTo(Patient::class);
+    }
 
     public function triageAssessment(): BelongsTo
     {

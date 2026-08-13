@@ -57,6 +57,7 @@ class PatientApiController extends Controller
             'allergies' => ['nullable', 'string'],
             'address' => ['nullable', 'array'],
             'address.line1' => ['nullable', 'string'],
+            'address.barangay' => ['nullable', 'string'],
             'address.city' => ['nullable', 'string'],
             'address.province' => ['nullable', 'string'],
             'address.postal_code' => ['nullable', 'string'],

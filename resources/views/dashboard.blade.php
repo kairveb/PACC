@@ -132,7 +132,7 @@
                                     <td>{{ $apt->provider->full_name ?? '—' }}</td>
                                     <td>{{ $apt->starts_at->format('g:i A') }}</td>
                                     <td>{{ $apt->appointmentType->name ?? '—' }}</td>
-                                    <td><span class="status-pill {{ $apt->status === 'COMPLETED' ? 'success' : ($apt->status === 'CANCELLED' ? 'danger' : 'warning') }}">{{ $apt->status }}</span></td>
+                                    <td>@include('partials.status-badge', ['label' => $apt->status, 'variant' => App\Support\QueueStatus::appointmentVariant($apt->status)])</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="5" class="py-6 text-center text-sm text-slate-500">No recent appointments.</td></tr>
@@ -186,9 +186,15 @@
                     </div>
                     <div class="space-y-3">
                         @forelse ($erQueue as $q)
+                            @php
+                                $dashboardStatusClass = App\Support\QueueStatus::variant($q->status ?? null);
+                            @endphp
                             <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
                                 <div class="font-medium text-slate-900">{{ $q->erVisit->patient->full_name ?? '—' }}</div>
-                                <div class="mt-1 text-sm text-slate-600">{{ $q->priority }} · {{ $q->status }}</div>
+                                <div class="mt-2 flex items-center justify-between gap-3 text-sm">
+                                    <span class="font-medium text-slate-700">{{ $q->priority }}</span>
+                                    @include('partials.status-badge', ['label' => $q->status, 'variant' => $dashboardStatusClass])
+                                </div>
                             </div>
                         @empty
                             <div class="rounded-2xl border border-dashed border-slate-200 p-4 text-center text-sm text-slate-500">ER queue is empty.</div>
@@ -257,7 +263,7 @@
                                     <div class="font-medium text-slate-900">{{ $apt->patient->full_name ?? '—' }}</div>
                                     <div class="text-sm text-slate-600">{{ $apt->starts_at->format('g:i A') }} · {{ $apt->appointmentType->name ?? 'Visit' }}</div>
                                 </div>
-                                <span class="status-pill {{ $apt->status === 'COMPLETED' ? 'success' : 'warning' }}">{{ $apt->status }}</span>
+                                @include('partials.status-badge', ['label' => $apt->status, 'variant' => App\Support\QueueStatus::appointmentVariant($apt->status)])
                             </div>
                         </div>
                     @empty

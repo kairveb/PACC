@@ -61,7 +61,7 @@
                             <td>{{ $apt->starts_at->format('M d, Y g:i A') }}</td>
                             <td>{{ $apt->appointmentType->name ?? '—' }}</td>
                             <td>
-                                <span class="status-pill {{ in_array($apt->status, ['COMPLETED']) ? 'success' : (in_array($apt->status, ['CANCELLED', 'NO-SHOW']) ? 'danger' : (in_array($apt->status, ['PENDING']) ? 'warning' : 'info')) }}">{{ $apt->status }}</span>
+                                @include('partials.status-badge', ['label' => $apt->status, 'variant' => App\Support\QueueStatus::appointmentVariant($apt->status)])
                             </td>
                             <td>
                                 <a href="{{ route('appointments.show', $apt) }}" class="text-sm font-semibold text-teal-600 hover:text-teal-700">View</a>

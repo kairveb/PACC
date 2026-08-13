@@ -38,6 +38,9 @@
                     <p class="nav-title">Overview</p>
                     <ul class="nav-list">
                         <li><a class="nav-link{{ request()->routeIs('dashboard') ? ' active' : '' }}" href="{{ route('dashboard') }}" aria-label="Dashboard" @if(request()->routeIs('dashboard')) aria-current="page" @endif><i class="ph-fill ph-squares-four" aria-hidden="true"></i><span class="nav-label">Dashboard</span></a></li>
+                        @if (auth()->user()->hasRole('patient'))
+                            <li><a class="nav-link{{ request()->routeIs('patients.profile') ? ' active' : '' }}" href="{{ route('patients.profile') }}" aria-label="Patient Portal" @if(request()->routeIs('patients.profile')) aria-current="page" @endif><i class="ph-fill ph-user-circle" aria-hidden="true"></i><span class="nav-label">Patient Portal</span></a></li>
+                        @endif
                     </ul>
 
                     <p class="nav-title">Hospital Systems</p>
@@ -63,6 +66,7 @@
                                 @endcan
                                 @can('view-encounters')
                                     <li><a href="{{ route('outpatient.index') }}" class="{{ request()->routeIs('outpatient.index', 'encounters.*') ? 'active' : '' }}">Outpatient</a></li>
+                                    <li><a href="{{ route('doctors.queue') }}" class="{{ request()->routeIs('doctors.queue') ? 'active' : '' }}">Doctor Queue</a></li>
                                 @endcan
                                 @can('view-telehealth')
                                     <li><a href="{{ route('telehealth.index') }}" class="{{ request()->routeIs('telehealth.*') ? 'active' : '' }}">Telehealth</a></li>

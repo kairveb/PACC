@@ -9,6 +9,72 @@
         <p class="text-sm text-slate-500 mt-1">Smart Patient Registration System (SPRS)</p>
     </div>
 
+    <div class="rounded-2xl border border-sky-200 bg-sky-50 p-4" x-data="{
+        q: '',
+        results: [],
+        async search() {
+            if (!this.q.trim()) { this.results = []; return; }
+            const url = `{{ route('patients.lookup') }}?q=${encodeURIComponent(this.q)}`;
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            const data = await res.json();
+            this.results = data.data || [];
+        },
+        fill(item) {
+            const map = {
+                first_name: item.first_name || '',
+                middle_name: item.middle_name || '',
+                last_name: item.last_name || '',
+                date_of_birth: item.date_of_birth || '',
+                sex: item.sex || '',
+                phone: item.phone || '',
+                email: item.email || '',
+                address_line1: item.address?.line1 || '',
+                address_city: item.address?.city || '',
+                address_barangay: item.address?.barangay || '',
+                address_province: item.address?.province || '',
+                address_postal: item.address?.postal_code || '',
+                emergency_name: item.emergency_contact?.name || '',
+                emergency_relationship: item.emergency_contact?.relationship || '',
+                emergency_phone: item.emergency_contact?.phone || '',
+            };
+
+            Object.entries(map).forEach(([name, value]) => {
+                const el = document.querySelector(`[name='${name}']`);
+                if (el) el.value = value;
+            });
+
+            this.q = '';
+            this.results = [];
+        }
+    }">
+        <div class="mb-2 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-slate-800">Fast lookup: pre-registered patient</h2>
+            <span class="text-xs font-medium uppercase tracking-[0.2em] text-sky-700">pending arrival</span>
+        </div>
+
+        <input
+            type="text"
+            x-model="q"
+            @input.debounce.300ms="search()"
+            placeholder="Search by patient name, email, phone, or reference code"
+            class="w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+        >
+
+        <div x-show="results.length" class="mt-3 space-y-2">
+            <template x-for="item in results" :key="item.id">
+                <button type="button"
+                        @click="fill(item)"
+                        class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-3 text-left hover:border-sky-400">
+                    <div>
+                        <div class="font-medium text-slate-900" x-text="`${item.first_name} ${item.last_name}`"></div>
+                        <div class="text-xs text-slate-500" x-text="`Ref: ${item.lookup_code || '—'} · DOB: ${item.date_of_birth || '—'}`"></div>
+                    </div>
+                    <span class="text-xs font-semibold uppercase text-sky-700">Load</span>
+                </button>
+            </template>
+        </div>
+    </div>
+
     @if (session('duplicate_warning'))
         <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <div class="flex items-start gap-3">
@@ -103,40 +169,17 @@
                 <label class="block text-sm font-medium text-slate-700 mb-1">Street Address</label>
                 <input type="text" name="address_line1" value="{{ old('address_line1') }}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg" placeholder="House number, street, subdivision">
             </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">City</label>
-                <div class="relative" x-data="{ query: '{{ old('address_city', '') }}', open: false, options: ['Caloocan','Las Piñas','Makati','Malabon','Mandaluyong','Manila','Marikina','Muntinlupa','Navotas','Parañaque','Pasay','Pasig','Quezon City','San Juan','Taguig','Valenzuela','Baguio','Cebu City','Davao City','Iloilo City','Bacolod','Batangas City','Cagayan de Oro','Dumaguete','General Santos','Lipa','Olongapo','Puerto Princesa','Tacloban','Zamboanga City'], filteredOptions() { const q = this.query.toLowerCase().trim(); if (!q) { return this.options.slice(0, 8); } return this.options.filter(item => item.toLowerCase().includes(q)).slice(0, 8); } }" @click.away="open = false">
-                    <input type="text" name="address_city" x-model="query" @focus="open = true" @input="open = true" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100" placeholder="Type a city">
-                    <div x-show="open && filteredOptions().length" x-transition class="absolute z-20 mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-lg">
-                        <ul class="max-h-48 overflow-auto py-1">
-                            <template x-for="item in filteredOptions()" :key="item">
-                                <li>
-                                    <button type="button" class="flex w-full items-center px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100" @click="query = item; open = false">
-                                        <span x-text="item"></span>
-                                    </button>
-                                </li>
-                            </template>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Province</label>
-                <div class="relative" x-data="{ query: '{{ old('address_province', '') }}', open: false, options: ['Ilocos Norte','Ilocos Sur','La Union','Pangasinan','Batanes','Cagayan','Isabela','Nueva Vizcaya','Quirino','Bataan','Bulacan','Nueva Ecija','Pampanga','Tarlac','Zambales','Batangas','Cavite','Laguna','Quezon','Rizal','Marinduque','Occidental Mindoro','Oriental Mindoro','Palawan','Romblon','Albay','Camarines Norte','Camarines Sur','Catanduanes','Masbate','Sorsogon','Aklan','Antique','Capiz','Guimaras','Iloilo','Negros Occidental','Negros Oriental','Bohol','Cebu','Eastern Samar','Leyte','Northern Samar','Samar','Southern Leyte','Biliran','Zamboanga del Norte','Zamboanga del Sur','Zamboanga Sibugay','Bukidnon','Camiguin','Lanao del Norte','Misamis Occidental','Misamis Oriental','Davao de Oro','Davao del Norte','Davao del Sur','Davao Occidental','Davao Oriental','Cotabato','Sarangani','South Cotabato','Sultan Kudarat','North Cotabato','Basilan','Lanao del Sur','Maguindanao','Sulu','Tawi-Tawi','Abra','Apayao','Benguet','Ifugao','Kalinga','Mountain Province','Metro Manila'], filteredOptions() { const q = this.query.toLowerCase().trim(); if (!q) { return this.options.slice(0, 8); } return this.options.filter(item => item.toLowerCase().includes(q)).slice(0, 8); } }" @click.away="open = false">
-                    <input type="text" name="address_province" x-model="query" @focus="open = true" @input="open = true" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100" placeholder="Type a province">
-                    <div x-show="open && filteredOptions().length" x-transition class="absolute z-20 mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-lg">
-                        <ul class="max-h-48 overflow-auto py-1">
-                            <template x-for="item in filteredOptions()" :key="item">
-                                <li>
-                                    <button type="button" class="flex w-full items-center px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100" @click="query = item; open = false">
-                                        <span x-text="item"></span>
-                                    </button>
-                                </li>
-                            </template>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+        </div>
+
+        <div class="mt-4">
+            <x-philippine-address-fields
+                :province-name="'address_province'"
+                :city-name="'address_city'"
+                :barangay-name="'address_barangay'"
+                :province-value="old('address_province')"
+                :city-value="old('address_city')"
+                :barangay-value="old('address_barangay')"
+            />
         </div>
 
         <h2 class="font-semibold text-slate-800 mt-8 mb-4 pb-2 border-b border-slate-100">4. Emergency Contact</h2>

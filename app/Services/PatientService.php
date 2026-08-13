@@ -51,6 +51,7 @@ return DB::transaction(function () use ($data, $userId) {
                     'patient_id' => $patient->id,
                     'line1' => $data['address']['line1'] ?? '',
                     'line2' => $data['address']['line2'] ?? null,
+                    'barangay' => $data['address']['barangay'] ?? null,
                     'city' => $data['address']['city'] ?? null,
                     'province' => $data['address']['province'] ?? null,
                     'postal_code' => $data['address']['postal_code'] ?? null,

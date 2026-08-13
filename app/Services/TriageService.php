@@ -133,39 +133,16 @@ class TriageService
 
     public function score(array $data): array
     {
-        $complaint = trim(strtolower($data['chief_complaint'] ?? ''));
-        $visual = $data['visual'] ?? [];
-        $symptoms = $data['symptoms'] ?? [];
-        $pain = (int) ($data['pain_score'] ?? 0);
-        $reasons = [];
-
-        $level = 5;
-
-        if ($this->isImmediateThreat($data, $complaint, $visual, $symptoms)) {
-            $level = 1;
-            $reasons[] = 'Immediate life-threatening condition identified during triage.';
-        } elseif ($this->isHighRisk($data, $complaint, $visual, $pain, $symptoms)) {
-            $level = 2;
-            $reasons[] = 'High-risk or severe distress indicator detected.';
-        } else {
-            $resourceCount = $this->estimateResourceCount($data, $complaint, $visual, $symptoms);
-            if ($resourceCount >= 2) {
-                $level = 3;
-                $reasons[] = 'Stable patient likely needs multiple resources.';
-            } elseif ($resourceCount === 1) {
-                $level = 4;
-                $reasons[] = 'Stable patient likely needs a single simple resource.';
-            } else {
-                $level = 5;
-                $reasons[] = 'Stable patient with no complex resources anticipated.';
-            }
-        }
+        $ai = app(AiTriageService::class)->analyze($data);
 
         return [
-            'level' => $level,
-            'score' => $level,
-            'confidence' => min(99, 75 + (5 - $level) * 5),
-            'reasons' => $reasons,
+            'level' => $ai['level'],
+            'score' => $ai['score'],
+            'priority' => $ai['priority'],
+            'color' => $ai['color'],
+            'confidence' => $ai['confidence'],
+            'recommendation' => $ai['recommendation'],
+            'reasons' => $ai['reasons'],
         ];
     }
 
@@ -282,12 +259,15 @@ class TriageService
     protected function createAssessment(ErVisit $visit, array $data): TriageAssessment
     {
         return TriageAssessment::create([
+            'patient_id' => $visit->patient_id,
             'er_visit_id' => $visit->id,
             'triage_nurse_id' => auth()->id(),
             'triaged_at' => now(),
             'chief_complaint' => $data['chief_complaint'] ?? $visit->chief_complaint,
             'pain_score' => $data['pain_score'] ?? null,
             'priority' => $data['priority'],
+            'priority_score' => $this->normalizePriorityScore($data['priority']),
+            'triage_color' => $this->normalizePriorityColor($data['priority']),
             'notes' => $data['notes'] ?? null,
             'status' => 'COMPLETE',
         ]);
@@ -299,7 +279,11 @@ class TriageService
             return;
         }
 
-        TriageVital::create(array_merge(['triage_assessment_id' => $assessment->id], $vitals));
+        TriageVital::create(array_merge([
+            'triage_assessment_id' => $assessment->id,
+            'patient_id' => $assessment->patient_id,
+            'recorded_at' => now(),
+        ], $vitals));
     }
 
     protected function markVisitTriaged(ErVisit $visit): void
@@ -339,5 +323,27 @@ class TriageService
     protected function markVisitInTreatment(ErVisit $visit): void
     {
         $visit->update(['status' => ErVisit::STATUS_IN_TREATMENT]);
+    }
+
+    protected function normalizePriorityScore(string $priority): int
+    {
+        return match (strtolower(trim($priority))) {
+            'level 1', 'emergency', 'red' => 1,
+            'level 2', 'urgent', 'yellow' => 2,
+            'level 3', 'prompt', 'orange' => 3,
+            'level 4', 'non-urgent', 'green' => 4,
+            'level 5', 'routine' => 5,
+            default => 5,
+        };
+    }
+
+    protected function normalizePriorityColor(string $priority): string
+    {
+        return match (strtolower(trim($priority))) {
+            'level 1', 'emergency', 'red' => 'red',
+            'level 2', 'urgent', 'yellow' => 'yellow',
+            'level 3', 'prompt', 'orange' => 'orange',
+            default => 'green',
+        };
     }
 }

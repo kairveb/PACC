@@ -1,223 +1,295 @@
 # HIMS — Hospital Information Management System
-## Module Features & System Architecture Documentation
+## Module Features and Current System Architecture
 
 **System Acronym:** HIMS (Hospital Information Management System)  
-**Version:** 2026.08  
-**Tech Stack:** Laravel 11 (Backend API/Web) + Blade + Vanilla JS (Frontend)  
-**Database:** MySQL 8.4.3 (Laragon)  
-**Runtime:** PHP 8.3.33
+**Version:** 2026.08.13  
+**Current Status:** Functional implementation of the core hospital management modules  
+**Technology Stack:** Laravel 11, Blade, Vanilla JavaScript, Tailwind CSS, MySQL  
+**Database:** MySQL 8.x (Laragon environment)  
+**Runtime:** PHP 8.3.x
 
 ---
 
-## System Overview
+## 1. Executive Summary
 
-HIMS is a modular, role-secure hospital management system covering the full patient lifecycle from registration through discharge. The product connects registration, scheduling, outpatient encounters, emergency triage, telehealth, and inpatient/bed management around one centralized patient identity and audit trail.
+The HIMS platform implemented in this workspace constitutes an operational hospital information system for patient access, care coordination, emergency management, and inpatient services. The system is structured around a centralized patient identity and integrates multiple functional domains, including patient registration, appointment scheduling, outpatient encounter management, telehealth services, emergency triage, and inpatient bed management.
 
-### Core Database Tables: ~51 Total
-- Patient & Demographics (5+ tables): `patients`, `patient_addresses`, `patient_identifiers`, `patient_consents`, `emergency_contacts`
-- Appointments & Scheduling (5+ tables): `appointments`, `appointment_types`, `appointment_slots`, `appointment_status_histories`, `provider_schedules`, `waitlists`
-- Clinical & Encounters (4+ tables): `encounters`, `encounter_notes`, `vitals`, `clinical_documents`
-- Emergency & Triage (4+ tables): `er_visits`, `er_queue`, `triage_assessments`, `triage_vitals`
-- Inpatient Management (6+ tables): `wards`, `rooms`, `beds`, `bed_assignments`, `bed_reservations`, `admissions`, `discharges`, `patient_transfers`
-- Providers & Departments (4+ tables): `providers`, `provider_specialties`, `specialties`, `departments`
-- Telehealth (2 tables): `telehealth_sessions`, `telehealth_participants`
-- Authorization (users & RBAC): `users`, `roles`, `permissions`, `permission_role`, `role_user`
-- Audit & Logs (3 tables): `audit_logs`, `api_logs`, `integration_logs`
-- Infrastructure & Jobs (several): `migrations`, `jobs`, `cache`, `cache_locks`, `sessions`, `notifications`, `personal_access_tokens`, `password_resets`
+The architecture is based on a modular service-oriented design implemented using Laravel, with a role-based web interface and a versioned REST API. The system is designed to support multi-role access across administrative, clinical, and patient workflows while preserving operational controls such as authorization enforcement, auditability, and structured reporting.
 
 ---
 
-## Role-Based Access Control (RBAC)
+## 2. System Scope and Functional Modules
 
-HIMS uses permission-based RBAC implemented with roles and permission mappings. Roles are enforced in routes and controllers via middleware and policies.
+The current implementation is aligned to five principal operational modules:
 
-### Roles & Responsibilities
-- **Super Admin:** full system administration, user/role management, audit exports
-- **Hospital Admin:** hospital configuration, reporting, user and facility oversight
-- **Registration / Front Desk:** patient registration, appointment booking and check-in
-- **Doctor:** clinical access for encounters, prescriptions, telehealth consultations
-- **Nurse:** triage, vitals recording, bed/ward management, nursing workflows
-- **Patient:** self-service for own appointments, telehealth joining, basic profile
+- SPRS — Smart Patient Registration System
+- ASS — Appointment and Scheduling System
+- TOCS — Telehealth and Outpatient Care System
+- EERTS — Emergency and ER Triage System
+- IBMS — Inpatient and Bed Management System
 
-### Representative Permissions
+These modules are integrated through a shared patient record and a common clinical workflow model, enabling continuity from registration to consultation, triage, admission, transfer, and discharge.
+
+---
+
+## 3. Current Implementation Status
+
+### 3.1 Core functionality implemented
+- Patient registration, MRN generation, search, lookup, verification, and consolidated patient records
+- Appointment creation, scheduling, waitlist management, slot generation, and status transitions
+- Encounter creation, documentation, vitals capture, and clinical notes
+- Emergency visit intake, queue management, triage assessment, and clinical prioritization
+- Telehealth session management, participant tracking, reminders, prescription handling, and closeout procedures
+- Ward, room, and bed inventory management, reservation, assignment, transfer, and discharge workflows
+- Operational dashboards, audit logging, notifications, and reporting mechanisms
+- Role-based access control enforced through middleware and authorization policies
+- Versioned REST API under `/api/v1` using Sanctum authentication
+
+### 3.2 Areas outside the present core implementation scope
+- Billing and claims management
+- E-prescription lifecycle management
+- HL7/FHIR interoperability for laboratory and imaging systems
+- Patient portal self-service beyond basic profile and appointment visibility
+- Advanced analytics functionality beyond the current reporting layer
+- Real-time multi-user collaborative clinical tooling beyond the implemented operational workflows
+
+---
+
+## 4. Role-Based Access Control (RBAC)
+
+The system implements permission-based RBAC through role assignments, authorization middleware, and policy enforcement. This supports a multi-role care model in which access is constrained according to operational responsibility rather than unrestricted administrative access.
+
+### 4.1 Current roles
+- **Super Admin** — full administrative control, user management, audit visibility, and reporting access
+- **Hospital Admin** — operational oversight, reporting, configuration, and administrative review
+- **Registration / Front Desk** — patient registration, lookup, and appointment processing
+- **Doctor** — encounter review, outpatient management, ER queue oversight, and telehealth consultation workflows
+- **Nurse** — triage operations, ER queue management, admission workflows, and bed coordination
+- **Patient** — profile access, appointment visibility, notification access, and telehealth participation
+
+### 4.2 Representative permissions
 - `manage-users`, `manage-roles`
-- `view-patients`, `create-patients`, `update-patients`, `verify-patients`
-- `view-appointments`, `create-appointments`, `update-appointments`, `cancel-appointments`
-- `view-encounters`, `create-encounters`, `update-encounters`
-- `view-er`, `create-er-visits`, `triage-patients`, `triage-score`
+- `view-patients`, `create-patients`, `update-patients`, `delete-patients`
+- `view-appointments`, `create-appointments`, `update-appointments`, `cancel-appointments`, `delete-appointments`
+- `view-encounters`, `create-encounters`
+- `view-er`, `create-er-visits`, `triage-patients`
 - `view-beds`, `manage-beds`, `view-admissions`, `manage-admissions`
-- `view-reports`, `view-audit-logs`
 - `view-telehealth`, `start-telehealth`, `join-telehealth`
+- `view-reports`, `view-audit-logs`
+
+The permission model is reflected in the current route middleware definitions in the Laravel API and web routing layers.
 
 ---
 
-## 1. Patient Management Module
+## 5. Functional Architecture by Module
 
-**Route Prefix:** `/api/v1/patients`, web controllers under `routes/web.php`  
-**Primary Tables:** `patients`, `patient_addresses`, `patient_identifiers`, `patient_consents`, `emergency_contacts`  
-**Access Control:** Registration (create), Doctors/Nurses (view), Admins (manage/delete)
+## 5.1 Patient Management Module
 
-### Core Features
-- Patient registration with unique MRN generation and duplicate detection (`POST /api/v1/patients`)
-- Search & filter by name, MRN, phone, and date ranges (`GET /api/v1/patients` and search routes)
-- Patient 360 detail including addresses, contacts, consents, appointments and audit trail (`GET /api/v1/patients/{id}`)
-- Patient verification workflow for appointment eligibility (`POST /patients/{patient}/verify` on web routes)
-- Emergency contact and multiple address support with optional geocoding
-- Consent recording for procedures and data sharing
+**Current route scope:** `/api/v1/patients` and the corresponding web patient management routes  
+**Primary tables:** `patients`, `patient_addresses`, `patient_identifiers`, `patient_consents`, `emergency_contacts`
 
-### Data Highlights
-- `mrn` unique, `verified` flag for appointment eligibility, `user_id` to link patient accounts for self-service
+### Functional capabilities
+- Patient registration with unique MRN generation and duplicate-detection logic
+- Search and lookup by patient name, MRN, and contact-related identifiers
+- Consolidated patient record view presenting demographic, appointment, encounter, ER, and admission context
+- Verification workflow for appointment eligibility
+- Support for emergency contact records and multi-address patient data
+- Consent and clinical metadata support within the patient record model
 
----
-
-## 2. Appointment & Scheduling Module
-
-**Route Prefix:** `/api/v1/appointments`, web routes under `routes/web.php`  
-**Primary Tables:** `appointments`, `appointment_types`, `appointment_slots`, `appointment_status_histories`, `provider_schedules`, `waitlists`
-
-### Core Features
-- Book, list, and view appointments with provider, department, type (telehealth/in-person) (`POST /api/v1/appointments`, `GET /api/v1/appointments`)
-- Provider schedule and slot generation (slot APIs under `provider-schedules` and `appointments/slots/json`)
-- Double-booking prevention enforced at schedule/slot level and in controllers
-- Check-in, cancel, reschedule, and mark no-show flows (`/check-in`, `/cancel`, `/reschedule`, `/no-show` endpoints)
-- Waitlist support for full schedules
-- Appointment status history tracking via `appointment_status_histories`
-
-### Model Notes
-- Appointments are timeboxed (`starts_at` / `ends_at`), linked to `patient_id`, `provider_id`, `department_id`, and `appointment_type_id`.
+### Assessment
+This module is a foundational component of the current system and is fully integrated into both the web application and API services.
 
 ---
 
-## 3. Encounter & Clinical Documentation Module
+## 5.2 Appointment and Scheduling Module
 
-**Route Prefix:** `/api/v1/encounters`  
-**Primary Tables:** `encounters`, `encounter_notes`, `vitals`, `clinical_documents`
+**Current route scope:** `/api/v1/appointments`, `/api/v1/schedules`, `/api/v1/provider-schedules`, `/api/v1/waitlists`  
+**Primary tables:** `appointments`, `appointment_types`, `appointment_slots`, `appointment_status_histories`, `provider_schedules`, `waitlists`
 
-### Core Features
-- Create and manage encounters for appointments or walk-ins (`POST /api/v1/encounters`)
-- Record vitals (BP, HR, RR, SpO₂, temperature, weight) linked to encounters or triage
-- Provider notes, assessment, plan, and follow-up scheduling (`encounter_notes`)
-- Attach clinical documents (images, lab results) and store metadata in `clinical_documents`
-- Encounter lifecycle status (OPEN → COMPLETED) with timestamps
+### Functional capabilities
+- Appointment creation, listing, and patient/provider/department association
+- Provider schedule generation and slot availability management
+- Waitlist handling for full or unavailable schedules
+- Check-in, cancellation, rescheduling, and no-show workflows
+- Appointment status tracking and role-based operational handling
+- Prevention of double-booking at the scheduling and booking logic layer
 
----
-
-## 4. Emergency Department & Triage Module
-
-**Route Prefix:** `/api/v1/emergency`, `/api/v1/triage`  
-**Primary Tables:** `er_visits`, `er_queue`, `triage_assessments`, `triage_vitals`
-
-### Core Features
-- ER visit intake with arrival method and immediate triage (`POST /api/v1/emergency/visits`)
-- Triage assessment capture with vitals and ESI-based acuity scoring (`POST /api/v1/triage/score`)
-- ER queue sorted by acuity with nurse-facing queue management (`GET /api/v1/emergency/queue`)
-- Reassessment and triage-level updates (`PATCH /api/v1/triage-assessments/{id}`)
-- Integration with bed assignment to move critical patients to inpatient/isolation beds
+### Assessment
+This module is operational and integrated into the system’s patient access and workflow logic.
 
 ---
 
-## 5. Telehealth & Remote Care Module
+## 5.3 Encounter and Clinical Documentation Module
 
-**Route Prefix:** `/api/v1/telehealth`  
-**Primary Tables:** `telehealth_sessions`, `telehealth_participants`
+**Current route scope:** `/api/v1/encounters`, patient clinical document endpoints, and encounter note endpoints  
+**Primary tables:** `encounters`, `encounter_notes`, `vitals`, `clinical_documents`
 
-### Core Features
-- Telehealth-capable appointment type and scheduling
-- Create, start, join, and end telehealth sessions with participant tracking (`POST /api/v1/telehealth`, `/start`, `/end`, `/participants` endpoints)
-- Session metadata and optional recording URL storage
-- Zoom integration configurable via environment feature flags
+### Functional capabilities
+- Encounter creation for scheduled and walk-in patient visits
+- Capture of clinical vitals associated with encounter and triage activities
+- Documentation of provider notes, assessments, treatment planning, and follow-up details
+- Attachment and retrieval of clinical documents and diagnostic files
+- Workflow support for encounter lifecycle management
 
----
-
-## 6. Inpatient & Bed Management Module
-
-**Route Prefix:** `/api/v1/beds`, `/api/v1/admissions`  
-**Primary Tables:** `wards`, `rooms`, `beds`, `bed_assignments`, `bed_reservations`, `admissions`, `discharges`, `patient_transfers`
-
-### Core Features
-- Ward/room inventory and bed status dashboard (`GET /api/v1/wards`, `GET /api/v1/beds`)
-- Transactional bed assignment & reservation (`POST /api/v1/beds/{id}/assign`, `/reserve`, `/release`)
-- Admission intake, approval, admit, transfer, and discharge flows (`/admissions` endpoints)
-- Bed status lifecycle management (AVAILABLE → OCCUPIED → CLEANING → AVAILABLE)
-- Occupancy and utilization reporting per ward/date
+### Assessment
+The encounter module provides the core clinical documentation layer required for outpatient and inpatient care continuity.
 
 ---
 
-## 7. Provider & Department Management
+## 5.4 Emergency Department and Triage Module
 
-**Route Prefix:** `/api/v1/providers`, `/api/v1/provider-schedules`  
-**Primary Tables:** `providers`, `provider_specialties`, `specialties`, `departments`, `provider_schedules`
+**Current route scope:** `/api/v1/emergency`, `/api/v1/triage`  
+**Primary tables:** `er_visits`, `er_queue`, `triage_assessments`, `triage_vitals`
 
-### Core Features
-- Provider registry with license and department assignment
-- Specialty assignment and multi-specialty support
-- Schedule setup with daily windows, breaks, and slot generation
-- Availability endpoints used by appointment booking flows
+### Functional capabilities
+- ER intake and arrival capture
+- Queue-based patient tracking with status updates
+- Triage assessment, acuity evaluation, and priority classification
+- Nurse-facing queue review and provider-facing queue progression
+- Coordination with admission and inpatient bed allocation pathways
 
----
-
-## 8. Audit, Logs & Compliance
-
-**Tables:** `audit_logs`, `api_logs`, `integration_logs`  
-**Access Control:** Admins only
-
-### Features
-- API request logging via middleware (user, endpoint, payload summary, response code)
-- Change history logging for sensitive resources via `audit_logs`
-- Integration logging for outbound services
-- Exportable audit data for compliance workflows (report endpoints exist but can be extended)
+### Assessment
+This is one of the most operationally complete modules in the system and is directly supported by both the web interface and API layer.
 
 ---
 
-## 9. System Infrastructure & Architecture
+## 5.5 Telehealth and Remote Care Module
 
-### API Architecture
-- Framework: Laravel 11 with versioned API under `/api/v1`  
-- Auth: Session-based web auth + Laravel Sanctum for API tokens  
-- Authorization: Policy + permission middleware  
-- Response format: JSON envelope with predictable `data` payloads
+**Current route scope:** `/api/v1/telehealth` and participant-related endpoints  
+**Primary tables:** `telehealth_sessions`, `telehealth_participants`
 
-### Database
-- MySQL 8.4.3 (Laragon) with InnoDB, foreign keys, and indexed MRN/appointment timestamps  
-- Soft deletes used where auditability is required
+### Functional capabilities
+- Telehealth consultation session management
+- Participant tracking for remote care visits
+- Session lifecycle actions including start, reminder, prescription, closeout, and end
+- Optional Zoom integration support through feature flags
+- Integration with appointment and encounter workflows
 
-### Frontend
-- Laravel Blade server-rendered views with minimal Vanilla JS  
-- Tailwind CSS is present in the repo and used for styling
-
-### Middleware & Policies
-- Authentication, verification, MFA enforcement, and permission checks are implemented in middleware and policies (e.g., `PatientPolicy`, `AppointmentPolicy`).
+### Assessment
+The telehealth module is implemented as a functional remote-care component of the broader patient workflow model.
 
 ---
 
-## 10. Tests, Commands & Dev Notes
+## 5.6 Inpatient and Bed Management Module
 
-### Tests
-- PHPUnit feature tests cover core flows (RBAC, appointments, admissions)  
-- `php artisan test --filter=RbacMatrixTest` for RBAC-specific checks
+**Current route scope:** `/api/v1/wards`, `/api/v1/rooms`, `/api/v1/beds`, `/api/v1/admissions`  
+**Primary tables:** `wards`, `rooms`, `beds`, `bed_assignments`, `bed_reservations`, `admissions`, `discharges`, `patient_transfers`
 
-### Common Artisan Commands
-```
+### Functional capabilities
+- Inventory and status management for wards, rooms, and beds
+- Bed availability filtering, reservation, assignment, and release actions
+- Admission intake and approval workflow
+- Transfer and discharge handling
+- Inpatient operational visibility and ward-focused workflow support
+
+### Assessment
+This module represents a fully implemented inpatient operational workflow and is not limited to presentation-only functionality.
+
+---
+
+## 5.7 Provider and Department Management
+
+**Current route scope:** `/api/v1/providers`, `/api/v1/departments`, `/api/v1/schedules`  
+**Primary tables:** `providers`, `provider_specialties`, `specialties`, `departments`, `provider_schedules`
+
+### Functional capabilities
+- Provider registry and department assignment management
+- Schedule creation and slot generation
+- Availability support for appointment booking logic
+- Provider and department retrieval endpoints for system coordination
+
+### Assessment
+This component is integrated with the scheduling and appointment workflow and supports care-delivery coordination across departments.
+
+---
+
+## 5.8 Reporting, Audit, Logs, and Notifications
+
+**Current route scope:** reporting views, audit-log interfaces, and notification APIs  
+**Primary tables:** `audit_logs`, `api_logs`, `integration_logs`, `notifications`
+
+### Functional capabilities
+- Operational dashboard data and summary metrics
+- Functional reporting for patients, appointments, encounters, ER visits, beds, and telehealth
+- Administrative access to audit records
+- Notification management and read-status updates
+- Structured system activity tracking for governance and operational oversight
+
+### Assessment
+These support layers form the monitoring and accountability framework for ongoing system operations.
+
+---
+
+## 6. System Architecture
+
+### 6.1 API architecture
+- Laravel 11 application structure with versioned API endpoints under `/api/v1`
+- Sanctum-based authentication for API access
+- Session-based authentication for the web application
+- Policy-based and middleware-based authorization mechanisms
+- JSON response structures for application integration and frontend consumption
+
+### 6.2 Data model and persistence
+- MySQL relational schema supporting patient, provider, scheduling, clinical, ER, telehealth, and inpatient records
+- Foreign-key-based entity relationships and transactional workflow patterns
+- Audit-friendly recordkeeping through logging and status-tracking entities
+
+### 6.3 Frontend architecture
+- Blade-based server-rendered views with Tailwind CSS styling
+- Minimal JavaScript usage combined with structured dashboard interfaces
+- Role-specific operational views for clinical, administrative, and patient interaction flows
+
+---
+
+## 7. Current Operational Reality
+
+The current codebase reflects a working hospital coordination platform covering the core operational processes required for patient-centric care management. The implemented architecture provides a practical foundation for a healthcare information system with integrated patient administration, scheduling, clinical documentation, emergency management, telehealth services, and inpatient logistics.
+
+The system therefore represents an operational platform for core healthcare coordination rather than a conceptual specification alone. However, it remains a modular healthcare management solution rather than a full enterprise hospital system encompassing advanced billing, claims, interoperability, and extensive patient self-service functionalities.
+
+### Core operational domains currently in place ✅
+- Patient registration and identity management
+- Appointment scheduling and provider coordination
+- Clinical encounter documentation
+- ER intake and triage operations
+- Telehealth consultation workflow
+- Admission, transfer, and bed management
+- Reporting and audit mechanisms
+
+### Remaining future expansion areas 🚧
+- Billing and insurance claims processing
+- E-prescription workflows
+- HL7/FHIR interoperability integration for lab and imaging systems
+- Advanced patient portal functionality
+- Expanded analytics and forecasting capabilities
+
+---
+
+## 8. Development and Local Environment
+
+### Commands currently used
+```bash
 php artisan migrate
-php artisan migrate:fresh --seed
-php artisan db:seed --class=HimsSeeder
+php artisan test --stop-on-failure
+php artisan db:seed
 php artisan key:generate
 ```
 
-### Local Environment
-- PHP 8.3.33 (Laragon pack), MySQL 8.4.3, project accessible at `http://coor.test` locally
+### Local environment
+- Project directory: `C:\laragon\www\coor`
+- Local URL: `http://coor.test`
+- Database: `coor`
+- Runtime: PHP 8.3.x with MySQL 8.x
 
 ---
 
-## Implementation Notes & Roadmap
+## 9. Final System Summary
 
-### Implemented (Core) ✅
-- Single patient index with MRN generation, appointment scheduling, telehealth framework, ER triage, bed management, and role-based control.
+As of 2026-08-13, the HIMS application in this workspace demonstrates a functioning healthcare information system that has progressed beyond prototype status into a working implementation across the principal operational domains of patient management, scheduling, emergency processing, telehealth coordination, and inpatient bed management. The project establishes a viable foundation for healthcare operations and demonstrates the technical integration of modern web application architecture with healthcare workflow processes.
 
-### Planned Enhancements 🚀
-- Billing & claims, E-prescription, Lab & imaging integration (HL7/FHIR), patient portal, advanced analytics, mobile app, real-time notifications, and stronger rate-limiting for API traffic.
+The principal remaining gap relative to a full enterprise hospital platform is in advanced financial, interoperability, and patient-engagement capabilities. These areas remain future enhancement opportunities rather than deficiencies in the current core clinical and operational architecture.
 
 ---
 
-Document Version: 2026.08  
-Generated: 2026-08-10
+Document Version: 2026.08.13  
+Updated: 2026-08-13

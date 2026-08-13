@@ -108,8 +108,8 @@ $rolePerms = [
     protected function seedUsers(): void
     {
         $users = [
-            'super-admin' => ['name' => 'Super Admin', 'email' => 'super.admin@coor.test'],
-            'hospital-admin' => ['name' => 'Hospital Admin', 'email' => 'hospital.admin@coor.test'],
+            'super-admin' => ['name' => 'Super Admin', 'email' => 'super-admin@coor.test'],
+            'hospital-admin' => ['name' => 'Hospital Admin', 'email' => 'hospital-admin@coor.test'],
             'registration' => ['name' => 'Registration Staff', 'email' => 'registration@coor.test'],
             'doctor' => ['name' => 'Dr. Elena Santos', 'email' => 'doctor@coor.test'],
             'nurse' => ['name' => 'Nurse Ana Reyes', 'email' => 'nurse@coor.test'],
@@ -117,9 +117,19 @@ $rolePerms = [
         ];
 
         foreach ($users as $role => $userData) {
-            $user = User::where('email', $userData['email'])
-                ->orWhere('email', $role . '@coor.test')
-                ->first();
+            $emailCandidates = array_unique([
+                $userData['email'],
+                $role . '@coor.test',
+                str_replace('-', '.', $role) . '@coor.test',
+            ]);
+
+            $user = null;
+            foreach ($emailCandidates as $candidate) {
+                $user = User::where('email', $candidate)->first();
+                if ($user) {
+                    break;
+                }
+            }
 
             if (! $user) {
                 $user = new User();
@@ -132,6 +142,26 @@ $rolePerms = [
                 'email_verified_at' => now(),
             ]);
             $user->save();
+
+            if ($role === 'super-admin' && ! User::where('email', 'super.admin@coor.test')->exists()) {
+                $extraUser = new User();
+                $extraUser->name = 'Super Admin';
+                $extraUser->email = 'super.admin@coor.test';
+                $extraUser->password = Hash::make('Password123!');
+                $extraUser->email_verified_at = now();
+                $extraUser->save();
+                $extraUser->roles()->syncWithoutDetaching([Role::where('name', 'super-admin')->value('id')]);
+            }
+
+            if ($role === 'hospital-admin' && ! User::where('email', 'hospital.admin@coor.test')->exists()) {
+                $extraUser = new User();
+                $extraUser->name = 'Hospital Admin';
+                $extraUser->email = 'hospital.admin@coor.test';
+                $extraUser->password = Hash::make('Password123!');
+                $extraUser->email_verified_at = now();
+                $extraUser->save();
+                $extraUser->roles()->syncWithoutDetaching([Role::where('name', 'hospital-admin')->value('id')]);
+            }
 
             $user->roles()->syncWithoutDetaching([Role::where('name', $role)->value('id')]);
         }

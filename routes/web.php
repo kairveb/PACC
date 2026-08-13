@@ -3,6 +3,7 @@
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DoctorQueueController;
 use App\Http\Controllers\EmergencyController;
 use App\Http\Controllers\EncounterController;
 use App\Http\Controllers\InpatientController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TelehealthController;
+use App\Http\Controllers\TriageAssessmentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -19,6 +21,10 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    Route::get('patients/profile', [PatientController::class, 'profile'])->name('patients.profile');
+    Route::post('patients/profile', [PatientController::class, 'saveProfile'])->name('patients.profile.save');
+    Route::get('patients/lookup', [PatientController::class, 'lookup'])->name('patients.lookup');
 
     // Patients
     Route::middleware('can:view-patients')->group(function () {
@@ -61,6 +67,18 @@ Route::middleware('can:cancel-appointments')->group(function () {
         Route::get('emergency/{visit}', [EmergencyController::class, 'show'])->name('emergency.show');
         Route::post('emergency/{visit}/triage', [EmergencyController::class, 'triage'])->name('emergency.triage');
         Route::post('emergency/queue/{queue}/status', [EmergencyController::class, 'queueStatus'])->name('emergency.queue-status');
+    });
+
+    Route::middleware('can:triage-patients')->group(function () {
+        Route::get('triage/create', [TriageAssessmentController::class, 'create'])->name('triage.create');
+        Route::post('triage', [TriageAssessmentController::class, 'store'])->name('triage.store');
+        Route::get('triage/{triageAssessment}/er-intake', [EmergencyController::class, 'createFromTriage'])->name('triage.er-intake');
+    });
+
+    Route::middleware('can:view-encounters')->group(function () {
+        Route::get('doctors/queue', [DoctorQueueController::class, 'index'])->name('doctors.queue');
+        Route::get('doctors/queue/{triageAssessment}', [DoctorQueueController::class, 'show'])->name('doctors.queue.show');
+        Route::post('doctors/queue/{triageAssessment}/status', [DoctorQueueController::class, 'updateStatus'])->name('doctors.queue.status');
     });
 
     // Inpatient / Beds / Admissions

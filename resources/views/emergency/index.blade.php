@@ -65,15 +65,26 @@
                 </thead>
                 <tbody>
                     @forelse ($queue as $q)
+                        @php
+                            $queueStatusClass = App\Support\QueueStatus::variant($q->status ?? null);
+                        @endphp
                         <tr>
                             <td class="font-medium text-slate-900">{{ $q->erVisit->patient->full_name ?? '—' }}</td>
                             <td>{{ $q->erVisit->arrived_at->format('g:i A') }}</td>
                             <td>{{ $q->queued_at->diffInMinutes(now()) }} min</td>
                             <td>
-                                <span class="status-pill {{ $q->priority === 'Level 1' ? 'danger' : ($q->priority === 'Level 2' ? 'warning' : ($q->priority === 'Level 3' ? 'warning' : ($q->priority === 'Level 4' ? 'info' : 'success'))) }}">{{ $q->priority }}</span>
+                                @php
+                                    $erPriorityVariant = match ($q->priority) {
+                                        'Level 1' => 'danger',
+                                        'Level 2', 'Level 3' => 'warning',
+                                        'Level 4' => 'info',
+                                        default => 'success',
+                                    };
+                                @endphp
+                                <span class="status-pill {{ $erPriorityVariant }}">{{ $q->priority }}</span>
                             </td>
                             <td class="max-w-xs truncate">{{ $q->erVisit->chief_complaint }}</td>
-                            <td><span class="status-pill info">{{ $q->status }}</span></td>
+                            <td>@include('partials.status-badge', ['label' => $q->status, 'variant' => $queueStatusClass])</td>
                             <td>
                                 <a href="{{ route('emergency.show', $q->erVisit) }}" class="text-sm font-semibold text-teal-600 hover:text-teal-700">Manage</a>
                             </td>
@@ -104,11 +115,14 @@
                 </thead>
                 <tbody>
                     @forelse ($visits as $visit)
+                        @php
+                            $visitStatusClass = App\Support\QueueStatus::variant($visit->status ?? null);
+                        @endphp
                         <tr>
                             <td class="font-mono text-xs">{{ $visit->visit_number }}</td>
                             <td class="font-medium text-slate-900">{{ $visit->patient->full_name ?? '—' }}</td>
                             <td>{{ $visit->arrived_at->format('M d, g:i A') }}</td>
-                            <td><span class="status-pill info">{{ $visit->status }}</span></td>
+                            <td>@include('partials.status-badge', ['label' => $visit->status, 'variant' => $visitStatusClass])</td>
                             <td><a href="{{ route('emergency.show', $visit) }}" class="text-sm font-semibold text-teal-600 hover:text-teal-700">View</a></td>
                         </tr>
                     @empty
