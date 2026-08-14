@@ -13,12 +13,23 @@ class ZoomService
 
     public function __construct()
     {
-        $this->enabled = filter_var(config('services.zoom.enabled', false), FILTER_VALIDATE_BOOL);
+        $this->enabled = $this->resolveEnabledState();
     }
 
     public function enabled(): bool
     {
         return $this->enabled;
+    }
+
+    protected function resolveEnabledState(): bool
+    {
+        if (! filter_var(config('services.zoom.enabled', false), FILTER_VALIDATE_BOOL)) {
+            return false;
+        }
+
+        return filled(config('services.zoom.account_id'))
+            && filled(config('services.zoom.client_id'))
+            && filled(config('services.zoom.client_secret'));
     }
 
     /**

@@ -35,27 +35,11 @@ return [
         ],
     ],
 
-    'google_maps' => [
-        'enabled' => env('GOOGLE_MAPS_ENABLED', false),
-        'key' => env('GOOGLE_MAPS_API_KEY'),
-    ],
-
-    'gemini' => [
-        'enabled' => env('GEMINI_ENABLED', false),
-        'key' => env('GEMINI_API_KEY'),
-        'model' => env('GEMINI_MODEL', 'gemini-1.5-flash'),
-    ],
-
     'zoom' => [
         'enabled' => env('ZOOM_ENABLED', false),
         'account_id' => env('ZOOM_ACCOUNT_ID'),
         'client_id' => env('ZOOM_CLIENT_ID'),
         'client_secret' => env('ZOOM_CLIENT_SECRET'),
-    ],
-
-    'zapier' => [
-        'enabled' => env('ZAPIER_ENABLED', false),
-        'webhook_url' => env('ZAPIER_WEBHOOK_URL'),
     ],
 
 ];

@@ -4,6 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+      window.__APP_CONFIG__ = {
+        apiBaseUrl: "{{ rtrim(config('app.url', env('APP_URL', '')), '/') }}"
+      };
+    </script>
     <title>@yield('title', 'HIMS') — {{ config('app.name', 'HIMS') }}</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">

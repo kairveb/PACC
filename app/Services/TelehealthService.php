@@ -5,8 +5,6 @@ namespace App\Services;
 use App\Models\TelehealthParticipant;
 use App\Models\TelehealthSession;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class TelehealthService
 {
@@ -24,8 +22,6 @@ class TelehealthService
 
         if ($this->zoom->enabled()) {
             $this->configureZoomMeeting($session, $appointment);
-        } elseif ($this->hasDailyConfig()) {
-            $this->configureDailyRoom($session, $appointment);
         } else {
             $this->configureSecureRoom($session, $appointment);
         }
@@ -82,32 +78,6 @@ class TelehealthService
             'start_time' => $session->start_time ?? ($appointment->starts_at ?? now()),
             'duration' => $session->duration ?: $this->resolveDuration($appointment),
         ]);
-    }
-
-    protected function hasDailyConfig(): bool
-    {
-        return filled(config('services.daily.api_key'));
-    }
-
-    protected function configureDailyRoom(TelehealthSession $session, $appointment): void
-    {
-        $response = Http::withToken(config('services.daily.api_key'))
-            ->post('https://api.daily.co/v1/rooms', [
-                'name' => 'consult-' . Str::random(8),
-                'properties' => [
-                    'exp' => now()->addHours(2)->timestamp,
-                    'enable_chat' => true,
-                ],
-            ]);
-
-        if ($response->successful()) {
-            $room = $response->json();
-            $session->update([
-                'join_url' => $room['url'] ?? null,
-                'host_start_url' => $room['url'] ?? null,
-                'status' => TelehealthSession::STATUS_ACTIVE,
-            ]);
-        }
     }
 
     public function generateJoinToken(TelehealthSession $session): string

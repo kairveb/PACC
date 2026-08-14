@@ -6,12 +6,13 @@
   const rememberEmail = document.getElementById("remember-email");
   const passwordToggle = document.querySelector("[data-password-toggle]");
   const rememberedEmailKey = "himsRememberedEmail";
+  const apiBaseUrl = window.__APP_CONFIG__?.apiBaseUrl || "";
 
-n  try {
-    const rememberedEmail = localStorage.getItem(rememberedEmailKey);
-    if (rememberedEmail && email && rememberEmail) {
-      email.value = rememberedEmail;
-      rememberEmail.checked = true;
+  try {
+    const rememberedEmailValue = localStorage.getItem(rememberedEmailKey);
+    if (rememberedEmailValue && email) {
+      email.value = rememberedEmailValue;
+      if (rememberEmail) rememberEmail.checked = true;
     }
   } catch { /* Storage may be unavailable in privacy-restricted contexts. */ }
 
@@ -39,7 +40,8 @@ n  try {
     } catch { /* Remember-email is optional and does not affect sign-in. */ }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/auth/login", {
+      const loginUrl = `${apiBaseUrl}/api/v1/auth/login`;
+      const response = await fetch(loginUrl || "/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({

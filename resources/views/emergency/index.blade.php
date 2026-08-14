@@ -272,28 +272,17 @@
 @push('scripts')
 <script>
     (function () {
-        const token = document.querySelector('meta[name="csrf-token"]')?.content;
-
         async function apiRequest(url, method = 'GET', payload = null) {
-            const headers = { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
-            if (token) headers['X-CSRF-TOKEN'] = token;
-            if (payload !== null) {
-                headers['Content-Type'] = 'application/json';
-            }
-
-            const response = await fetch(url, {
+            const options = {
                 method,
-                credentials: 'same-origin',
-                headers,
-                body: payload ? JSON.stringify(payload) : undefined,
-            });
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            };
 
-            const data = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                throw new Error(data.message || 'Request failed.');
+            if (payload !== null) {
+                options.body = payload;
             }
 
-            return data;
+            return window.HimsApi?.request?.(url, options) ?? Promise.reject(new Error('API client unavailable.'));
         }
 
         const priorityMap = {
