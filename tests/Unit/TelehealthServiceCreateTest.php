@@ -51,6 +51,8 @@ class TelehealthServiceCreateTest extends TestCase
 
         $this->assertInstanceOf(TelehealthSession::class, $session);
         $this->assertSame($appointment->id, $session->appointment_id);
-        $this->assertSame(TelehealthSession::STATUS_NOT_CONFIGURED, $session->status);
+        $this->assertSame(TelehealthSession::STATUS_SCHEDULED, $session->status);
+        $this->assertNotNull($session->join_url);
+        $this->assertStringContainsString('/telehealth/' . $session->id . '/join', $session->join_url);
     }
 }

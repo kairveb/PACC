@@ -55,14 +55,16 @@ class HimsSeeder extends Seeder
 
         $permissions = [
             'manage-users', 'manage-roles',
-'view-patients', 'create-patients', 'update-patients', 'delete-patients', 'verify-patients',
+            'view-patients', 'create-patients', 'update-patients', 'delete-patients', 'verify-patients',
             'view-appointments', 'create-appointments', 'update-appointments', 'cancel-appointments', 'delete-appointments', 'view-own-appointments',
             'view-encounters', 'create-encounters', 'update-encounters',
             'view-triage', 'create-triage', 'update-triage',
             'view-er', 'create-er-visits', 'triage-patients',
-            'view-beds', 'manage-beds', 'view-admissions', 'manage-admissions',
+            'view-beds', 'manage-beds', 'view-wards', 'manage-wards',
+            'view-admissions', 'manage-admissions', 'create-admissions', 'transfer-patients', 'discharge-patients',
             'view-reports', 'view-audit-logs',
-            'view-telehealth', 'start-telehealth', 'join-telehealth',
+            'view-telehealth', 'start-telehealth', 'join-telehealth', 'view-own-telehealth',
+            'view-own-medical-history', 'portal-dashboard',
             'view-billing', 'manage-billing',
         ];
 
@@ -70,32 +72,53 @@ class HimsSeeder extends Seeder
             Permission::firstOrCreate(['name' => $name], ['label' => ucwords(str_replace('-', ' ', $name))]);
         }
 
-$rolePerms = [
+        $rolePerms = [
             'super-admin' => $permissions,
             'hospital-admin' => [
-                'manage-users', 'manage-roles', 'view-patients', 'create-patients', 'update-patients', 'verify-patients',
+                'manage-users', 'manage-roles',
+                'view-patients', 'create-patients', 'update-patients', 'delete-patients', 'verify-patients',
                 'view-appointments', 'create-appointments', 'update-appointments', 'cancel-appointments', 'delete-appointments',
                 'view-encounters', 'create-encounters', 'update-encounters', 'view-triage', 'create-triage', 'update-triage',
-                'view-er', 'create-er-visits', 'triage-patients', 'view-beds', 'manage-beds', 'view-admissions', 'manage-admissions',
-                'view-reports', 'view-audit-logs', 'view-telehealth', 'start-telehealth', 'join-telehealth', 'view-billing', 'manage-billing'
+                'view-er', 'create-er-visits', 'triage-patients',
+                'view-beds', 'manage-beds', 'view-wards', 'manage-wards',
+                'view-admissions', 'manage-admissions', 'create-admissions', 'transfer-patients', 'discharge-patients',
+                'view-reports', 'view-audit-logs',
+                'view-telehealth', 'start-telehealth', 'join-telehealth',
+                'view-own-medical-history', 'portal-dashboard',
+                'view-billing', 'manage-billing',
             ],
             'registration' => [
                 'view-patients', 'create-patients', 'update-patients', 'verify-patients',
                 'view-appointments', 'create-appointments', 'update-appointments', 'cancel-appointments',
-                'view-triage', 'create-triage', 'update-triage', 'view-er', 'view-billing', 'view-reports'
+                'view-er', 'create-er-visits',
+                'view-reports', 'view-own-appointments',
             ],
             'doctor' => [
-                'view-patients', 'update-patients', 'view-appointments', 'update-appointments',
-                'view-encounters', 'create-encounters', 'update-encounters', 'view-triage', 'create-triage', 'update-triage',
-                'view-er', 'triage-patients', 'view-telehealth', 'start-telehealth', 'join-telehealth', 'view-billing', 'view-reports'
+                'view-patients', 'update-patients',
+                'view-appointments', 'update-appointments',
+                'view-encounters', 'create-encounters', 'update-encounters',
+                'view-triage', 'create-triage', 'update-triage',
+                'view-er', 'triage-patients',
+                'view-beds', 'view-wards',
+                'view-admissions', 'create-admissions', 'transfer-patients', 'discharge-patients',
+                'view-telehealth', 'start-telehealth', 'join-telehealth',
+                'view-own-medical-history', 'portal-dashboard',
+                'view-billing', 'view-reports',
             ],
             'nurse' => [
-                'view-patients', 'update-patients', 'view-appointments', 'view-encounters', 'create-encounters',
-                'view-triage', 'create-triage', 'update-triage', 'view-er', 'create-er-visits', 'triage-patients',
-                'view-beds', 'manage-beds', 'view-admissions', 'manage-admissions', 'view-telehealth', 'join-telehealth', 'view-billing'
+                'view-patients', 'update-patients',
+                'view-appointments',
+                'view-encounters', 'create-encounters',
+                'view-triage', 'create-triage', 'update-triage',
+                'view-er', 'create-er-visits', 'triage-patients',
+                'view-beds', 'manage-beds', 'view-wards', 'manage-wards',
+                'view-admissions', 'manage-admissions', 'create-admissions', 'transfer-patients', 'discharge-patients',
+                'view-telehealth', 'join-telehealth',
+                'view-own-medical-history', 'portal-dashboard',
+                'view-billing',
             ],
             'patient' => [
-                'view-own-appointments', 'view-telehealth', 'join-telehealth', 'view-billing'
+                'view-own-appointments', 'view-own-medical-history', 'view-own-telehealth', 'portal-dashboard', 'view-telehealth', 'join-telehealth',
             ],
         ];
 

@@ -18,7 +18,7 @@
                     <li><i class="ph ph-buildings" aria-hidden="true"></i><span>Centralized Hospital Operations</span></li>
                 </ul>
             </div>
-            <footer class="login-brand-footer"><span>HIMS Command Center</span><span>Version 0.9</span></footer>
+            <footer class="login-brand-footer"><span>HIMS</span><span>Operations</span></footer>
         </section>
 
         <section class="login-panel" aria-labelledby="login-title">
@@ -42,7 +42,7 @@
                             <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required aria-describedby="password-note">
                             <button class="password-toggle" type="button" data-password-toggle aria-label="Show password" aria-pressed="false"><i class="ph ph-eye" aria-hidden="true"></i></button>
                         </div>
-                        <small id="password-note">Your password is used only for this frontend preview and is never stored.</small>
+                        <small id="password-note">Use the password assigned to your hospital account.</small>
                         @error('password')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
                     <label class="remember-field"><input id="remember-email" name="remember_email" type="checkbox">Remember email on this device</label>
@@ -55,12 +55,12 @@
                     <p><strong>Need access help?</strong><span>Contact your hospital administrator.</span></p>
                 </div>
 
-                <aside class="login-access-notice" aria-label="Access and privacy notice">
+                <aside class="login-access-notice" aria-label="Security notice">
                     <i class="ph ph-lock-key" aria-hidden="true"></i>
-                    <div><strong>Authentication preview</strong><span>Frontend authentication preview. Backend authentication will be enabled during system integration.</span></div>
+                    <div><strong>Secure access</strong><span>Your session is protected and monitored according to hospital security policies.</span></div>
                 </aside>
 
-                <footer class="login-card-footer"><span>Authorized users only</span><span>Frontend access preview</span></footer>
+                <footer class="login-card-footer"><span>Authorized users only</span><span>HIMS</span></footer>
             </div>
         </section>
     </main>

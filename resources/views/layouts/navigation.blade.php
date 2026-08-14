@@ -15,6 +15,36 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @can('view-patients')
+                        <x-nav-link :href="route('patients.index')" :active="request()->routeIs('patients.*')">
+                            {{ __('Patients') }}
+                        </x-nav-link>
+                    @endcan
+
+                    @can('view-appointments')
+                        <x-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')">
+                            {{ __('Appointments') }}
+                        </x-nav-link>
+                    @endcan
+
+                    @can('view-er')
+                        <x-nav-link :href="route('emergency.index')" :active="request()->routeIs('emergency.*')">
+                            {{ __('ER') }}
+                        </x-nav-link>
+                    @endcan
+
+                    @can('view-beds')
+                        <x-nav-link :href="route('beds.index')" :active="request()->routeIs('beds.*', 'inpatient.*')">
+                            {{ __('Beds') }}
+                        </x-nav-link>
+                    @endcan
+
+                    @can('view-reports')
+                        <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
+                            {{ __('Reports') }}
+                        </x-nav-link>
+                    @endcan
                 </div>
             </div>
 
@@ -70,6 +100,36 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @can('view-patients')
+                <x-responsive-nav-link :href="route('patients.index')" :active="request()->routeIs('patients.*')">
+                    {{ __('Patients') }}
+                </x-responsive-nav-link>
+            @endcan
+
+            @can('view-appointments')
+                <x-responsive-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')">
+                    {{ __('Appointments') }}
+                </x-responsive-nav-link>
+            @endcan
+
+            @can('view-er')
+                <x-responsive-nav-link :href="route('emergency.index')" :active="request()->routeIs('emergency.*')">
+                    {{ __('ER') }}
+                </x-responsive-nav-link>
+            @endcan
+
+            @can('view-beds')
+                <x-responsive-nav-link :href="route('beds.index')" :active="request()->routeIs('beds.*', 'inpatient.*')">
+                    {{ __('Beds') }}
+                </x-responsive-nav-link>
+            @endcan
+
+            @can('view-reports')
+                <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
+                    {{ __('Reports') }}
+                </x-responsive-nav-link>
+            @endcan
         </div>
 
         <!-- Responsive Settings Options -->

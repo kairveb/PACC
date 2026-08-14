@@ -19,6 +19,18 @@ class EncounterController extends Controller
     {
         $query = Encounter::with(['patient', 'provider'])->orderBy('started_at', 'desc');
 
+        $user = auth()->user();
+        if ($user && $user->hasRole('doctor')) {
+            $providerId = $user->provider?->id;
+            if ($providerId) {
+                $query->where('provider_id', $providerId);
+            } else {
+                $query->whereRaw('0 = 1');
+            }
+        } elseif ($user && $user->hasRole('nurse')) {
+            $query->where('type', Encounter::TYPE_EMERGENCY);
+        }
+
         if ($request->get('type')) {
             $query->where('type', $request->get('type'));
         }
@@ -27,7 +39,7 @@ class EncounterController extends Controller
             $query->whereHas('patient', fn ($p) => $p->where('first_name', 'like', "%{$term}%")->orWhere('last_name', 'like', "%{$term}%"));
         }
 
-$encounters = $query->paginate(15);
+        $encounters = $query->paginate(15);
 
         return view('encounters.index', compact('encounters'));
     }

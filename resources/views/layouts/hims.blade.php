@@ -39,7 +39,7 @@
                     <ul class="nav-list">
                         <li><a class="nav-link{{ request()->routeIs('dashboard') ? ' active' : '' }}" href="{{ route('dashboard') }}" aria-label="Dashboard" @if(request()->routeIs('dashboard')) aria-current="page" @endif><i class="ph-fill ph-squares-four" aria-hidden="true"></i><span class="nav-label">Dashboard</span></a></li>
                         @if (auth()->user()->hasRole('patient'))
-                            <li><a class="nav-link{{ request()->routeIs('patients.profile') ? ' active' : '' }}" href="{{ route('patients.profile') }}" aria-label="Patient Portal" @if(request()->routeIs('patients.profile')) aria-current="page" @endif><i class="ph-fill ph-user-circle" aria-hidden="true"></i><span class="nav-label">Patient Portal</span></a></li>
+                            <li><a class="nav-link{{ request()->routeIs('patients.portal', 'patients.portal.appointments', 'patients.portal.history', 'patients.portal.telehealth') ? ' active' : '' }}" href="{{ route('patients.portal') }}" aria-label="Patient Portal" @if(request()->routeIs('patients.portal', 'patients.portal.appointments', 'patients.portal.history', 'patients.portal.telehealth')) aria-current="page" @endif><i class="ph-fill ph-user-circle" aria-hidden="true"></i><span class="nav-label">Patient Portal</span></a></li>
                         @endif
                     </ul>
 
@@ -52,27 +52,37 @@
                                 @can('create-patients')
                                     <li><a href="{{ route('patients.create') }}" class="{{ request()->routeIs('patients.create') ? 'active' : '' }}">Register Patient</a></li>
                                 @endcan
-                                <li><a href="{{ route('patients.index') }}" class="{{ request()->routeIs('patients.index', 'patients.show', 'patients.vitals') ? 'active' : '' }}">Patient List</a></li>
+                                @if (auth()->user()->hasAnyRole(['registration','doctor','nurse','super-admin','hospital-admin']))
+                                    <li><a href="{{ route('patients.index') }}" class="{{ request()->routeIs('patients.index', 'patients.show', 'patients.vitals') ? 'active' : '' }}">Patient List</a></li>
+                                @endif
                             </ul>
                         </li>
                         @endcan
 
                         @canAny(['view-appointments', 'view-encounters', 'view-telehealth', 'view-er'])
-                        <li class="nav-accordion{{ request()->routeIs('appointments.*', 'outpatient.*', 'encounters.*', 'telehealth.*', 'emergency.*') ? ' is-expanded is-active' : '' }}">
-                            <button class="nav-link nav-link-button nav-accordion__toggle" type="button" aria-expanded="{{ request()->routeIs('appointments.*', 'outpatient.*', 'encounters.*', 'telehealth.*', 'emergency.*') ? 'true' : 'false' }}" aria-controls="nav-care" aria-label="Care Delivery"><i class="ph-fill ph-heartbeat" aria-hidden="true"></i><span class="nav-label">Care Delivery</span><i class="ph ph-caret-down nav-chevron" aria-hidden="true"></i></button>
-                            <ul class="nav-submenu" id="nav-care" @if(!request()->routeIs('appointments.*', 'outpatient.*', 'encounters.*', 'telehealth.*', 'emergency.*')) hidden @endif>
+                        <li class="nav-accordion{{ request()->routeIs('appointments.*', 'outpatient.*', 'encounters.*', 'telehealth.*', 'emergency.*', 'doctors.queue*') ? ' is-expanded is-active' : '' }}">
+                            <button class="nav-link nav-link-button nav-accordion__toggle" type="button" aria-expanded="{{ request()->routeIs('appointments.*', 'outpatient.*', 'encounters.*', 'telehealth.*', 'emergency.*', 'doctors.queue*') ? 'true' : 'false' }}" aria-controls="nav-care" aria-label="Care Delivery"><i class="ph-fill ph-heartbeat" aria-hidden="true"></i><span class="nav-label">Care Delivery</span><i class="ph ph-caret-down nav-chevron" aria-hidden="true"></i></button>
+                            <ul class="nav-submenu" id="nav-care" @if(!request()->routeIs('appointments.*', 'outpatient.*', 'encounters.*', 'telehealth.*', 'emergency.*', 'doctors.queue*')) hidden @endif>
                                 @can('view-appointments')
                                     <li><a href="{{ route('appointments.index') }}" class="{{ request()->routeIs('appointments.*') ? 'active' : '' }}">Appointments</a></li>
                                 @endcan
                                 @can('view-encounters')
-                                    <li><a href="{{ route('outpatient.index') }}" class="{{ request()->routeIs('outpatient.index', 'encounters.*') ? 'active' : '' }}">Outpatient</a></li>
-                                    <li><a href="{{ route('doctors.queue') }}" class="{{ request()->routeIs('doctors.queue') ? 'active' : '' }}">Doctor Queue</a></li>
+                                    @if (auth()->user()->hasAnyRole(['doctor','super-admin','hospital-admin','nurse']))
+                                        <li><a href="{{ route('outpatient.index') }}" class="{{ request()->routeIs('outpatient.index', 'encounters.*') ? 'active' : '' }}">Outpatient</a></li>
+                                    @endif
+                                    @if (auth()->user()->hasAnyRole(['doctor','super-admin','hospital-admin']))
+                                        <li><a href="{{ route('doctors.queue') }}" class="{{ request()->routeIs('doctors.queue') ? 'active' : '' }}">Doctor Queue</a></li>
+                                    @endif
                                 @endcan
                                 @can('view-telehealth')
-                                    <li><a href="{{ route('telehealth.index') }}" class="{{ request()->routeIs('telehealth.*') ? 'active' : '' }}">Telehealth</a></li>
+                                    @if (auth()->user()->hasAnyRole(['doctor','nurse','super-admin','hospital-admin','patient']))
+                                        <li><a href="{{ route('telehealth.index') }}" class="{{ request()->routeIs('telehealth.*') ? 'active' : '' }}">Telehealth</a></li>
+                                    @endif
                                 @endcan
                                 @can('view-er')
-                                    <li><a href="{{ route('emergency.index') }}" class="{{ request()->routeIs('emergency.*') ? 'active' : '' }}">ER / Emergency</a></li>
+                                    @if (auth()->user()->hasAnyRole(['nurse','doctor','super-admin','hospital-admin','registration']))
+                                        <li><a href="{{ route('emergency.index') }}" class="{{ request()->routeIs('emergency.*') ? 'active' : '' }}">ER / Emergency</a></li>
+                                    @endif
                                 @endcan
                             </ul>
                         </li>
@@ -83,10 +93,14 @@
                             <button class="nav-link nav-link-button nav-accordion__toggle" type="button" aria-expanded="{{ request()->routeIs('beds.*', 'admissions.*', 'inpatient.*') ? 'true' : 'false' }}" aria-controls="nav-inpatient" aria-label="Inpatient Services"><i class="ph-fill ph-bed" aria-hidden="true"></i><span class="nav-label">Inpatient</span><i class="ph ph-caret-down nav-chevron" aria-hidden="true"></i></button>
                             <ul class="nav-submenu" id="nav-inpatient" @if(!request()->routeIs('beds.*', 'admissions.*', 'inpatient.*')) hidden @endif>
                                 @can('view-beds')
-                                    <li><a href="{{ route('beds.index') }}" class="{{ request()->routeIs('beds.index', 'inpatient.index') ? 'active' : '' }}">Bed Board</a></li>
+                                    @if (auth()->user()->hasAnyRole(['nurse','super-admin','hospital-admin']))
+                                        <li><a href="{{ route('beds.index') }}" class="{{ request()->routeIs('beds.index', 'inpatient.index') ? 'active' : '' }}">Bed Board</a></li>
+                                    @endif
                                 @endcan
                                 @can('view-admissions')
-                                    <li><a href="{{ route('admissions.index') }}" class="{{ request()->routeIs('admissions.*') ? 'active' : '' }}">Admissions</a></li>
+                                    @if (auth()->user()->hasAnyRole(['nurse','super-admin','hospital-admin']))
+                                        <li><a href="{{ route('admissions.index') }}" class="{{ request()->routeIs('admissions.*') ? 'active' : '' }}">Admissions</a></li>
+                                    @endif
                                 @endcan
                             </ul>
                         </li>
@@ -97,10 +111,14 @@
                             <button class="nav-link nav-link-button nav-accordion__toggle" type="button" aria-expanded="{{ request()->routeIs('reports.*', 'audit.*') ? 'true' : 'false' }}" aria-controls="nav-ops" aria-label="Operations"><i class="ph-fill ph-chart-pie-slice" aria-hidden="true"></i><span class="nav-label">Operations</span><i class="ph ph-caret-down nav-chevron" aria-hidden="true"></i></button>
                             <ul class="nav-submenu" id="nav-ops" @if(!request()->routeIs('reports.*', 'audit.*')) hidden @endif>
                                 @can('view-reports')
-                                    <li><a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">Reports</a></li>
+                                    @if (auth()->user()->hasAnyRole(['super-admin','hospital-admin','doctor','nurse','registration']))
+                                        <li><a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">Reports</a></li>
+                                    @endif
                                 @endcan
                                 @can('view-audit-logs')
-                                    <li><a href="{{ route('audit.index') }}" class="{{ request()->routeIs('audit.*') ? 'active' : '' }}">Audit Logs</a></li>
+                                    @if (auth()->user()->hasAnyRole(['super-admin','hospital-admin']))
+                                        <li><a href="{{ route('audit.index') }}" class="{{ request()->routeIs('audit.*') ? 'active' : '' }}">Audit Logs</a></li>
+                                    @endif
                                 @endcan
                             </ul>
                         </li>

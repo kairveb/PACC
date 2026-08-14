@@ -36,6 +36,48 @@ class TriageAndTelehealthParityTest extends TestCase
         $response->assertOk();
         $response->assertJsonPath('data.level', 2);
         $response->assertJsonPath('data.score', 2);
+        $response->assertJsonPath('data.severity_score', 85);
+        $response->assertJsonPath('data.priority_band', 'Yellow');
+    }
+
+    public function test_telehealth_session_generates_secure_join_link_without_zoom(): void
+    {
+        $patient = Patient::create([
+            'mrn' => 'MRN-TEST-001-A',
+            'first_name' => 'Secure',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1991-01-15',
+            'sex' => 'Male',
+            'phone' => '09170000010',
+            'email' => 'secure-patient@example.test',
+            'verified' => true,
+        ]);
+        $provider = Provider::create([
+            'user_id' => User::factory()->create()->id,
+            'display_name' => 'Dr. Secure',
+            'active' => true,
+        ]);
+        $appointmentType = AppointmentType::create([
+            'name' => 'Telehealth',
+            'default_duration' => 30,
+            'telehealth' => true,
+        ]);
+        $appointment = Appointment::create([
+            'appointment_number' => 'APT-TEST-001-A',
+            'patient_id' => $patient->id,
+            'provider_id' => $provider->id,
+            'appointment_type_id' => $appointmentType->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDay()->addHour(),
+            'status' => 'CONFIRMED',
+        ]);
+
+        $service = app(\App\Services\TelehealthService::class);
+        $session = $service->createSession($appointment);
+
+        $this->assertNotNull($session->join_url);
+        $this->assertStringContainsString('/telehealth/' . $session->id . '/join', $session->join_url);
+        $this->assertNotSame(TelehealthSession::STATUS_NOT_CONFIGURED, $session->status);
     }
 
     public function test_telehealth_start_endpoint_marks_session_active(): void

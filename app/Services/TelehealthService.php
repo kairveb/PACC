@@ -16,7 +16,7 @@ class TelehealthService
 
     /**
      * Create a telehealth session for an appointment.
-     * Uses Zoom when configured, otherwise marks as NOT_CONFIGURED.
+     * Uses Zoom when configured, otherwise generates a secure local room URL.
      */
     public function createSession($appointment): TelehealthSession
     {
@@ -26,9 +26,11 @@ class TelehealthService
             $this->configureZoomMeeting($session, $appointment);
         } elseif ($this->hasDailyConfig()) {
             $this->configureDailyRoom($session, $appointment);
+        } else {
+            $this->configureSecureRoom($session, $appointment);
         }
 
-        return $session;
+        return $session->fresh();
     }
 
     protected function ensureSession($appointment): TelehealthSession
@@ -36,7 +38,7 @@ class TelehealthService
         return TelehealthSession::firstOrCreate(
             ['appointment_id' => $appointment->id],
             [
-                'start_time' => $appointment->starts_at,
+                'start_time' => $appointment->starts_at ?? now(),
                 'duration' => $this->resolveDuration($appointment),
                 'status' => TelehealthSession::STATUS_NOT_CONFIGURED,
             ]
@@ -68,6 +70,20 @@ class TelehealthService
         }
     }
 
+    protected function configureSecureRoom(TelehealthSession $session, $appointment): void
+    {
+        $token = $session->secureJoinToken();
+        $joinUrl = url('/telehealth/' . $session->id . '/join?token=' . rawurlencode($token));
+
+        $session->update([
+            'join_url' => $joinUrl,
+            'host_start_url' => $joinUrl,
+            'status' => TelehealthSession::STATUS_SCHEDULED,
+            'start_time' => $session->start_time ?? ($appointment->starts_at ?? now()),
+            'duration' => $session->duration ?: $this->resolveDuration($appointment),
+        ]);
+    }
+
     protected function hasDailyConfig(): bool
     {
         return filled(config('services.daily.api_key'));
@@ -92,6 +108,20 @@ class TelehealthService
                 'status' => TelehealthSession::STATUS_ACTIVE,
             ]);
         }
+    }
+
+    public function generateJoinToken(TelehealthSession $session): string
+    {
+        return $session->secureJoinToken();
+    }
+
+    public function verifyJoinToken(TelehealthSession $session, ?string $token): bool
+    {
+        if (blank($token)) {
+            return false;
+        }
+
+        return hash_equals($session->secureJoinToken(), (string) $token);
     }
 
     /**
@@ -121,16 +151,21 @@ class TelehealthService
         return $session->fresh();
     }
 
+    public function cancel(TelehealthSession $session): TelehealthSession
+    {
+        $session->update(['status' => TelehealthSession::STATUS_CANCELLED]);
+        return $session->fresh();
+    }
+
     public function complete(TelehealthSession $session): TelehealthSession
     {
         $session->update(['status' => TelehealthSession::STATUS_COMPLETED]);
-        return $session;
+        return $session->fresh();
     }
 
     public function end(TelehealthSession $session): TelehealthSession
     {
-        $session->update(['status' => TelehealthSession::STATUS_COMPLETED]);
-        return $session;
+        return $this->complete($session);
     }
 
     public function isConfigured(): bool

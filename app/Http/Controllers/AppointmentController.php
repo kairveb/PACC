@@ -25,6 +25,26 @@ class AppointmentController extends Controller
         $query = Appointment::with(['patient', 'provider', 'department', 'appointmentType'])
             ->orderBy('starts_at', 'desc');
 
+        $user = auth()->user();
+        if ($user && $user->hasRole('doctor')) {
+            $providerId = $user->provider?->id;
+            if ($providerId) {
+                $query->where('provider_id', $providerId);
+            } else {
+                $query->whereRaw('0 = 1');
+            }
+        } elseif ($user && $user->hasRole('patient')) {
+            $patientId = $user->patient?->id;
+            if ($patientId) {
+                $query->where('patient_id', $patientId);
+            } else {
+                $query->whereRaw('0 = 1');
+            }
+        } elseif ($user && $user->hasRole('nurse')) {
+            $query->whereIn('status', [Appointment::STATUS_CHECKED_IN, Appointment::STATUS_IN_CONSULTATION, Appointment::STATUS_CONFIRMED])
+                ->whereDate('starts_at', today());
+        }
+
         if ($request->get('status')) {
             $query->where('status', $request->get('status'));
         }

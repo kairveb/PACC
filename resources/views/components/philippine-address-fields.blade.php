@@ -76,124 +76,81 @@
     @push('scripts')
         <script>
             (function () {
-                const philippineAddressData = {
+                const fallbackPhilippineAddressData = {
                     'Metro Manila': {
-                        'Caloocan City': ['Barangay 1','Barangay 2','Barangay 3','Barangay 4','Barangay 5','Barangay 6','Barangay 7','Barangay 8','Barangay 9','Barangay 10'],
-                        'Las Piñas City': ['Pilar','Talon Dos','Manuyo Dos','CAA','Zapotal','Pulang Lupa','Talon Uno','Elias Aldana','Ilaya','Madrigal'],
-                        'Makati City': ['Bangkal','Bel-Air','Carmona','Poblacion','San Antonio','Urdaneta','Valenzuela','Kasilawan','Magallanes','Palanan'],
-                        'Malabon City': ['Baritan','Concepcion','Flores','Muzon','Navotas','Potrero','Tonsuya','Tugatog','Catmon','Caniogan'],
-                        'Mandaluyong City': ['Addition Hills','Bagong Silang','Barangka','Burol','Hulo','Maysilo','Namayan','Pag-asa','Plainview','Wack-Wack'],
-                        'Manila': ['Binondo','Ermita','Intramuros','Malate','Paco','Quiapo','San Miguel','Santa Ana','Tondo','Sampaloc'],
-                        'Marikina City': ['Barangka','Concepcion Dos','Jesus Dela Peña','Marikina Heights','Nangka','Parang','San Roque','Santa Elena','Tumana','Valle Verde'],
-                        'Muntinlupa City': ['Ayala Alabang','Bayanan','Cupang','Poblacion','Sucat','Tunasan','Victoria Homes','Putatan','New Alabang Village','Niugan'],
-                        'Navotas City': ['Bangkulasi','Daanghari','North Bay Blvd.','San Jose','Sipac','Tangos','Tanza','Navotas East','Navotas West','Panghulo'],
-                        'Parañaque City': ['Baclaran','Don Bosco','Merville','San Antonio','Sun Valley','Tambo','La Huerta','San Dionisio','San Isidro','Vitalez'],
-                        'Pasay City': ['Barangay 1','Barangay 2','Barangay 3','Barangay 4','Barangay 5','Barangay 6','Barangay 7','Barangay 8','Barangay 9','Barangay 10'],
-                        'Pasig City': ['Bagong Ilog','Buting','Caniogan','Kalawaan','Manggahan','Oranbo','Pineda','San Joaquin','Santa Barbara','Sumilang'],
-                        'Quezon City': ['Bagong Silang','Bahay Toro','Diliman','Kamuning','Laging Handa','New Manila','Project 7','Tandang Sora','U.P. Campus','West Triangle'],
-                        'San Juan City': ['Corazon de Jesus','Greenhills','Little Baguio','Pedro Cruz','San Perfecto','Santa Lucia','Tibagan','Maytunas','Halo-halo','Pinaglabanan'],
-                        'Taguig City': ['Bagumbayan','Bicutan','Central Bicutan','Fort Bonifacio','Maharlika Village','North Signal','Pateros','Pinagsama','Tuktukan','Ususan'],
-                        'Valenzuela City': ['Arkong Bato','Canumay','Dalandanan','Gen. T. De Leon','Karuhatan','Lawang Bato','Mabolo','Malinta','Polo','Wawang Pulo']
-                    },
-                    'Cavite': {
-                        'Bacoor City': ['Bayanan','Campo Santo','Daang Bukid','Molino','Niog','Pulong'],
-                        'Cavite City': ['Barangay 1','Barangay 2','Barangay 3','Barangay 4','Barangay 5','Barangay 6','Barangay 7','Barangay 8','Barangay 9','Barangay 10'],
-                        'Dasmariñas City': ['Burol','Salawag','Langkaan','San Agustin','Pala-Pala','Carmona'],
-                        'General Trias City': ['Barangay 1','Barangay 2','Barangay 3','Barangay 4','Barangay 5','Almanza','P. Rosales','San Francisco','Tejero'],
-                        'Imus City': ['Anabu','Bucandala','Cabilang Baybay','Medicion','Poblacion','Toclong'],
-                        'Tagaytay City': ['Calabuso','Kaybagal South','Mendez Crossing','Sangat','Tolentino West','San Jose'],
-                        'Trece Martires City': ['Cabezas','De Ocampo','Conchu','San Agustin','Poblacion','Lallana']
-                    },
-                    'Laguna': {
-                        'Biñan City': ['San Jose','Sto. Niño','Mabini','Santo Tomas','Poblacion','Malaban'],
-                        'Calamba City': ['Barangay 1','Barangay 2','Barangay 3','Barangay 4','Barangay 5','Parang','Putho-Tuntong','Real','Ma. Cruz','Turbina'],
-                        'San Pablo City': ['San Rafael','San Jose','San Roque','Dolores','Concepcion','Bagong Bayan'],
-                        'Santa Rosa City': ['Balibago','Caingin','Labas','Malitlit','Poblacion','Tagapo'],
-                        'Lipa City': ['Barangay 1','Barangay 2','Barangay 3','Barangay 4','Barangay 5','Bahay','Balete','Bolbok','Cumba','Mabini'],
-                        'Cabuyao City': ['Banaybanay','Bigaa','Mamatid','Pulo','Sala','San Isidro']
-                    },
-                    'Bulacan': {
-                        'Malolos City': ['Guinhawa','Mojon','Pinagbakahan','San Agustin','Santor','Tikay'],
-                        'San Jose del Monte City': ['Barangay 1','Barangay 2','Barangay 3','Barangay 4','Barangay 5','Francisco Homes','Minuyan','Poblacion','Tungkong Mangga','Gaya-Gaya'],
-                        'Meycauayan City': ['Bagbaguin','Bahayang Pag-asa','Camalig','Lawa','Malanday','Pajo'],
-                        'Baliwag': ['Bagong Pag-asa','Bahayang Pag-asa','Baliwag','Casilagan','Piel','San Jose'],
-                        'Guiguinto': ['Cut-cut','Daang Bukid','Mabiga','Panginay','Santa Cruz','Tiaong']
-                    },
-                    'Pampanga': {
-                        'Angeles City': ['Balibago','Cutcut','Pampang','Poblacion','Santo Rosario','Sapang Bato'],
-                        'San Fernando City': ['Bahayang Pag-asa','Baliti','Dolores','Lourdes','Poro','Santa Catalina'],
-                        'Mabalacat City': ['Bical','Dau','Mabiga','Malabanan','Mawaque','Poblacion'],
-                        'Apalit': ['Capalangan','Cocolo','Paligui','Sampaloc','San Vicente','Tabuyuc'],
-                        'Lubao': ['Babo Pangulo','Concepcion','Lourdes','Mabiga','Prado Siongco','Santa Catalina']
-                    },
-                    'Batangas': {
-                        'Batangas City': ['Barangay 1','Barangay 2','Barangay 3','Barangay 4','Barangay 5','Balagtas','Buhangin','Palloc','San Agustin','Taal'],
-                        'Lipa City': ['Balete','Bolbok','Cumba','Mabini','Marawoy','San Carlos'],
-                        'Tanauan City': ['Altura','Bagbag','Bilog','Calamias','Luyos','San Jose'],
-                        'Nasugbu': ['Bucana','Lumbangan','Mabini','Poblacion','Tiaong','Wawa'],
-                        'Taal': ['Banyaga','Gonzales','Poblacion','San Nicolas','Santo Niño','Tulo']
-                    },
-                    'Rizal': {
-                        'Antipolo City': ['Bagong Nayon','Calawis','Dela Paz','Mambugan','San Jose','Sta. Cruz'],
-                        'Cainta': ['A. Bonifacio','San Isidro','San Miguel','San Vicente','Santa Rosa','Sto. Niño'],
-                        'Rodriguez': ['Burgos','Manggahan','San Jose','San Isidro','San Rafael','Sto. Niño'],
-                        'Taytay': ['Dolores','San Isidro','San Juan','Santa Ana','Sta. Monica','Taytay'],
-                        'Binangonan': ['Bilibiran','Kalinawan','Palangoy','Poblacion','San Isidro','Santa Ursula']
+                        'Caloocan City': Array.from({ length: 188 }, (_, i) => `Barangay ${i + 1}`),
+                        'Las Piñas City': ['Pamplona Uno', 'Pamplona Dos', 'Pamplona Tres', 'CAA/BF International', 'Manuyo Uno', 'Manuyo Dos', 'Manuyo Tres', 'Manuyo Cuatro', 'Manuyo Cinco', 'Daniel Fajardo', 'Elias Aldana', 'Ilaya', 'Jesus Dela Peña', 'Madelin', 'Pilar', 'Pulang Lupa Uno', 'Pulang Lupa Dos', 'Talon Uno', 'Talon Dos', 'Talon Tres', 'Talon Kuatro', 'Talon Singko'],
+                        'Makati City': ['Bangkal', 'Bel-Air', 'Carmona', 'Cembo', 'Comembo', 'Dasmariñas', 'East Rembo', 'Forbes Park', 'Guadalupe Nuevo', 'Guadalupe Viejo', 'Kasilawan', 'La Paz', 'Magallanes', 'Olympia', 'Palanan', 'Pembo', 'Pinagkaisahan', 'Pio del Pilar', 'Pitogo', 'Post Proper Northside', 'Post Proper Southside', 'Rizal', 'San Antonio', 'San Isidro', 'San Lorenzo', 'Santa Cruz', 'Singkamas', 'South Cembo', 'Tejeros', 'Urdaneta', 'Valenzuela', 'West Rembo'],
+                        'Malabon City': ['Acacia', 'Baritan', 'Bayan-Bayanan', 'Catmon', 'Concepcion', 'C-3', 'Dampalit', 'Flores', 'Hulong Duhat', 'Ibaba', 'Longos', 'Maysilo', 'Muzon', 'Niugan', 'Panghulo', 'Potrero', 'San Agustin', 'Santolan', 'Tinajeros', 'Tonsuya', 'Tugatog', 'Tanza', 'Navotas East'],
+                        'Mandaluyong City': ['Addition Hills', 'Bagong Silang', 'Barangka Drive', 'Barangka Ibaba', 'Barangka Ilaya', 'Barangka Itaas', 'Burol', 'Daang Bakal', 'Harapin Ang Bukas', 'Highway Hills', 'Hulo', 'Kalentong', 'Kansilayan', 'Mauway', 'Namayan', 'Old Zaniga', 'Pag-asa', 'Plainview', 'Poblacion', 'San Jose', 'Santa Ana', 'Vergara', 'Wack-Wack Greenhills', 'Wawang Pulo', 'Wack Wack', 'Barangka', 'Mandaluyong', 'Hulo'],
+                        'Manila': Array.from({ length: 896 }, (_, i) => `Barangay ${i + 1}`),
+                        'Marikina City': ['A. Bonifacio', 'Bayan-Bayanan', 'Calumpang', 'Concepcion Dos', 'Concepcion Uno', 'Fortune', 'Industrial Valley', 'Jesus Dela Peña', 'Malanday', 'Marikina Heights', 'Nangka', 'Parang', 'Poblacion', 'Santo Niño', 'Tumana', 'Valentine'],
+                        'Muntinlupa City': ['Bayanan', 'Baywalk', 'Cupang', 'Poblacion', 'Putatan', 'Sucat', 'Sun Valley', 'Tunasan', 'New Alabang Village'],
+                        'Navotas City': ['Bagumbayan North', 'Bagumbayan South', 'Bangculasi', 'Central', 'Daanghari', 'East Grace Park', 'Manuel A. Roxas', 'NBBS Dagat-Dagatan', 'NBBS Proper', 'Navotas West', 'San Jose', 'San Rafael Village', 'Sipac', 'Tangos North', 'Tangos South', 'Tanza'],
+                        'Parañaque City': ['Baclaran', 'B.F. Homes', 'Don Bosco', 'La Huerta', 'Merville', 'Moonwalk', 'P. Dela Cruz', 'San Antonio', 'San Dionisio', 'San Isidro', 'San Martin de Porres', 'Santo Niño', 'Sun Valley', 'Tambo', 'Vitug', 'Zapotal'],
+                        'Pasay City': Array.from({ length: 201 }, (_, i) => `Barangay ${i + 1}`),
+                        'Pasig City': ['Bagong Ilog', 'Bagong Katipunan', 'Bambang', 'Buting', 'Caniogan', 'Dela Paz', 'Kalawaan', 'Kapasigan', 'Malinao', 'Manggahan', 'Maybunga', 'Oranbo', 'Pineda', 'Pinagbuhatan', 'Rosario', 'Sampaloc', 'San Antonio', 'San Joaquin', 'San Miguel', 'San Nicolas', 'Santolan', 'Sta. Lucia', 'Sta. Rosa', 'Sumilang', 'Ugong'],
+                        'Pateros': ['Aguho', 'Bautista', 'C.M. Recto', 'Magtanggol', 'Poblacion', 'San Roque', 'Tandang Sora', 'Valenzuela'],
+                        'Quezon City': ['Alicia', 'Amihan', 'Bagbag', 'Bahay Toro', 'Balingasa', 'Bayanihan', 'Bungad', 'Camp Aguinaldo', 'Central', 'Commonwealth', 'Culiat', 'Damar', 'Diliman', 'Don Manuel', 'Doña Imelda', 'Fairview', 'Greater Lagro', 'Gulod', 'Holy Spirit', 'Kaligayahan', 'Kamuning', 'Katipunan', 'Laging Handa', 'Libis', 'Malanday', 'Mangga', 'Mariblo', 'Masagana', 'N. S. Amoranto', 'New Era', 'New Manila', 'Payatas', 'Project 6', 'Project 7', 'Quirino 2-A', 'Roxas', 'Sangandaan', 'San Martin de Porres', 'Santa Cruz', 'Tandang Sora', 'U.P. Campus', 'Vasra', 'West Triangle', 'White Plains'],
+                        'San Juan City': ['Arenal', 'Batis', 'Corazon de Jesus', 'Ermitaño', 'Greenhills', 'Isabelita', 'Maytunas', 'Onse', 'Pedro Cruz', 'Poblacion', 'Salapan', 'San Perfecto', 'Santa Lucia', 'Tibagan', 'West Crame', 'Balong-Bato', 'Bantayan', 'H. Bautista', 'Kagitingan', 'Little Baguio', 'Paseo de Roxas', 'Rivera', 'Talatak', 'Tinajeros'],
+                        'Taguig City': ['Bagong Tanyag', 'Bambang', 'Calzada', 'Central Bicutan', 'Cembo', 'Comembo', 'Hagonoy', 'Ibayo-Tipas', 'Katuparan', 'Lower Bicutan', 'Maharlika Village', 'Napindan', 'New Lower Bicutan', 'North Daang Hari', 'Palingon', 'Pembo', 'Pinagsama', 'Santa Ana', 'South Daang Hari', 'Tanyag', 'Tuktukan', 'Upper Bicutan', 'Wawa', 'Zone 1', 'Zone 2', 'Zone 3', 'Zone 4', 'Zone 5', 'Zone 6', 'Zone 7', 'Zone 8', 'Zone 9', 'Zone 10', 'Zone 11', 'Zone 12'],
+                        'Valenzuela City': ['Arkong Bato', 'Bignay', 'Canumay East', 'Canumay West', 'Coloong', 'Dalandanan', 'Gen. T. de Leon', 'Isla', 'Karuhatan', 'Lawang Bato', 'Libis', 'Mabolo', 'Malanday', 'Mapulang Lupa', 'Marulas', 'Poblacion', 'Polo', 'Rincon', 'Tagalag', 'Tugatog', 'Ugong', 'Veinte Reales', 'Wawang Pulo'],
                     },
                     'Cebu': {
-                        'Cebu City': ['Adlaon','Apas','Bacayan','Lahug','Mambaling','Parang'],
-                        'Lapu-Lapu City': ['Bankal','Marigondon','Mactan','Pajo','Pusok','Tungasan'],
-                        'Mandaue City': ['Alang-alang','Canduman','Labogon','Mango','Opao','Subangdaku'],
-                        'Talisay City': ['Bulacao','Lutong','Poblacion','San Fernando','Tabunok','Tangke'],
-                        'Danao City': ['Basak','Cambioc','Danao','Poblacion','Sabang','Sampok']
+                        'Cebu City': ['Adlaon', 'Apas', 'Bacayan', 'Lahug', 'Mambaling', 'Parang', 'Poblacion', 'San Antonio', 'Sambag', 'Talamban'],
                     },
                     'Davao del Sur': {
-                        'Davao City': ['Buhangin','Poblacion','Talomo','Tugbok','Ulas','Bajada'],
-                        'Digos City': ['Aplaya','Goma','Kapatagan','Poblacion','San Jose','Sinawilan'],
-                        'Matanao': ['Bansalan','Capas','Kabasalan','Poblacion','Sampao','Tomas Oppus'],
-                        'Malita': ['Bito','Lais','Poblacion','Bulan','Magsaysay','Mansay']
-                    },
-                    'Iloilo': {
-                        'Iloilo City': ['Arevalo','La Paz','Mandurriao','Molo','Jaro','City Proper'],
-                        'Passi City': ['Agtabo','Bita-og','Poblacion','Rizal','Santo Tomas','Tabucan'],
-                        'Jordan': ['Butuan','Lutong','Poblacion','San Miguel','Santa Barbara','Tigbauan'],
-                        'Oton': ['Agham','Bagiw','Poblacion','Rizal','San Antonio','Tina']
-                    },
-                    'Negros Occidental': {
-                        'Bacolod City': ['Barangay 1','Barangay 2','Barangay 3','Barangay 4','Barangay 5','Barangay 6','Barangay 7','Barangay 8','Barangay 9','Barangay 10'],
-                        'Silay City': ['Barangay 1','Barangay 2','Barangay 3','Barangay 4','Barangay 5','Bagtic','E. Lopez','Guimbala-on','Mali-ao','Poblacion'],
-                        'Bago City': ['Balingasag','Bucaya','Hilwan','Poblacion','Rizal','Taloc'],
-                        'Kabankalan City': ['Camingawan','Cauayan','Poblacion','Sagasa','Talubangi','Tampalon']
-                    },
-                    'Leyte': {
-                        'Tacloban City': ['Barangay 1','Barangay 2','Barangay 3','Barangay 4','Barangay 5','Anibong','San Jose','Santa Elena','Tigbao','Urbana'],
-                        'Ormoc City': ['Alegria','Bagong Buhay','Barangay 1','Cabaunan','Lao','Poblacion'],
-                        'Baybay City': ['Bubon','Jebangga','Maanyag','Poblacion','San Isidro','Visca'],
-                        'Maasin City': ['Bahay','Cabarbarran','Mambajao','Poblacion','Siloam','Tunga']
-                    },
-                    'Zamboanga del Sur': {
-                        'Zamboanga City': ['Bolong','Mampang','Pasonanca','San Jose Gusu','Sinunoc','Tetuan'],
-                        'Pagadian City': ['Balangasan','Benguet','Dumagal','Kawayan','Lourdes','Poblacion'],
-                        'Dumingag': ['Biga','Cabulay','Malaubang','Poblacion','Tigwa','Tularan'],
-                        'Molave': ['Baclay','Bubong','Mabini','Poblacion','Saguiran','Sungay']
-                    },
-                    'Benguet': {
-                        'Baguio City': ['Asin Road','Camp 7','General Luna','Magsaysay','Pacdal','Santo Tomas'],
-                        'La Trinidad': ['Alapang','Ba-asa','Poblacion','Shilan','Tawang','Wangal'],
-                        'Itogon': ['Amlimay','Loacan','Poblacion','Santo Tomas','Upp','Virac'],
-                        'Tuba': ['Ambiong','Camp 1','Nangka','Poblacion','Tadiangan','Tublay']
-                    },
-                    'Ilocos Norte': {
-                        'Laoag City': ['Arroyo','Bgy. 1','Bgy. 2','Bgy. 3','Bgy. 4','Bulag','Poblacion','San Andres','Viga','Villar']
-                    },
-                    'Pangasinan': {
-                        'Dagupan City': ['Bonuan Boquig','Bonuan Gueset','Lamarca','Mabini','Poblacion','Tapuac'],
-                        'Urdaneta City': ['Anonas','Bayaoas','Mabaning','Poblacion','San Jose','Togonan'],
-                        'San Carlos City': ['Balayong','Bacayao','Malalacao','Poblacion','San Juan','Tebeng']
+                        'Davao City': ['Bajada', 'Buhangin', 'Poblacion', 'Talomo', 'Tugbok', 'Ulas', 'San Pedro', 'Sasa', 'Marapangi', 'Toril'],
                     }
                 };
 
                 const normalizeText = (value = '') => String(value).toLowerCase().replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, ' ').trim();
+
+                const buildAddressMap = (provinces = []) => {
+                    const addressMap = {};
+
+                    provinces.forEach((province) => {
+                        const provinceName = province?.name;
+                        if (!provinceName) {
+                            return;
+                        }
+
+                        addressMap[provinceName] = {};
+                        (province.cities || []).forEach((city) => {
+                            const cityName = city?.name;
+                            if (!cityName) {
+                                return;
+                            }
+
+                            addressMap[provinceName][cityName] = city.barangays || [];
+                        });
+                    });
+
+                    return addressMap;
+                };
+
+                const loadPhilippineAddressData = async () => {
+                    try {
+                        const response = await fetch('/api/v1/address-data/philippines', {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Unable to fetch address data');
+                        }
+
+                        const payload = await response.json();
+                        const provinces = payload?.data?.provinces || [];
+
+                        return buildAddressMap(provinces);
+                    } catch (error) {
+                        console.warn('Falling back to local Philippine address dataset.', error);
+                        return fallbackPhilippineAddressData;
+                    }
+                };
 
                 const populateDatalist = (datalist, values = []) => {
                     if (!datalist) return;
@@ -205,7 +162,7 @@
                     });
                 };
 
-                const initAddressGroup = (root) => {
+                const initAddressGroup = async (root) => {
                     const provinceInput = root.querySelector('[data-address-field="province"]');
                     const cityInput = root.querySelector('[data-address-field="city"]');
                     const barangayInput = root.querySelector('[data-address-field="barangay"]');
@@ -214,6 +171,7 @@
                         return;
                     }
 
+                    const philippineAddressData = await loadPhilippineAddressData();
                     const provinceList = root.querySelector('datalist');
                     const cityList = root.querySelectorAll('datalist')[1];
                     const barangayList = root.querySelectorAll('datalist')[2];
@@ -299,7 +257,9 @@
                 };
 
                 const roots = document.querySelectorAll('[data-philippine-address-root]');
-                roots.forEach(initAddressGroup);
+                roots.forEach((root) => {
+                    initAddressGroup(root);
+                });
             })();
         </script>
     @endpush

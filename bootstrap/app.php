@@ -21,7 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'cors' => \App\Http\Middleware\AllowCors::class,
         ]);
 
-        $middleware->appendToGroup('api', \App\Http\Middleware\AllowCors::class);
+        $middleware->appendToGroup('api', [
+            \App\Http\Middleware\AllowCors::class,
+            \App\Http\Middleware\SecureApiHeaders::class,
+        ]);
 
         // Enforce 3-minute inactivity auto-logout across the authenticated web UI.
         $middleware->web(append: [

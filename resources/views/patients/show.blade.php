@@ -10,13 +10,19 @@
             <p class="text-sm text-slate-500 mt-1">Complete patient record</p>
         </div>
         <div class="flex gap-2">
-            @if (!$patient->verified)
-                <form method="POST" action="{{ route('patients.verify', $patient) }}">@csrf
-                    <button class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Verify Patient</button>
-                </form>
-            @endif
-            <a href="{{ route('patients.vitals', $patient) }}" class="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">View Vitals</a>
-            <a href="{{ route('appointments.create') }}?patient_id={{ $patient->id }}" class="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700">Book Appointment</a>
+            @can('verify-patients')
+                @if (!$patient->verified)
+                    <form method="POST" action="{{ route('patients.verify', $patient) }}">@csrf
+                        <button class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Verify Patient</button>
+                    </form>
+                @endif
+            @endcan
+            @can('view-patients')
+                <a href="{{ route('patients.vitals', $patient) }}" class="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">View Vitals</a>
+            @endcan
+            @can('create-appointments')
+                <a href="{{ route('appointments.create') }}?patient_id={{ $patient->id }}" class="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700">Book Appointment</a>
+            @endcan
         </div>
     </div>
 

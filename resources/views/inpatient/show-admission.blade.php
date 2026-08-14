@@ -10,75 +10,85 @@
             <p class="text-sm text-slate-500 mt-1">Patient: <span class="font-medium">{{ $admission->patient->full_name ?? '—' }}</span> · {{ $admission->patient->mrn ?? '' }}</p>
         </div>
         <div class="flex gap-2">
-            @if ($admission->status === 'REQUESTED')
-                <form method="POST" action="{{ route('admissions.approve', $admission) }}">@csrf
-                    <button class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Approve</button>
-                </form>
-            @endif
-            @if (in_array($admission->status, ['ADMITTED', 'TRANSFERRED']))
-                <button onclick="document.getElementById('discharge-form').classList.toggle('hidden')" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Discharge</button>
-            @endif
+            @can('manage-admissions')
+                @if ($admission->status === 'REQUESTED')
+                    <form method="POST" action="{{ route('admissions.approve', $admission) }}">@csrf
+                        <button class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Approve</button>
+                    </form>
+                @endif
+            @endcan
+            @can('manage-admissions')
+                @if (in_array($admission->status, ['ADMITTED', 'TRANSFERRED']))
+                    <button onclick="document.getElementById('discharge-form').classList.toggle('hidden')" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Discharge</button>
+                @endif
+            @endcan
         </div>
     </div>
 
-    {{-- Discharge form --}}
-    <div id="discharge-form" class="hidden bg-white rounded-xl border border-slate-200 p-6">
-        <h3 class="font-semibold text-slate-800 mb-3">Discharge Patient</h3>
-        <form method="POST" action="{{ route('admissions.discharge', $admission) }}" class="space-y-3">
-            @csrf
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label class="block text-sm font-medium text-slate-700 mb-1">Reason</label><input type="text" name="reason" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"></div>
-                <div><label class="block text-sm font-medium text-slate-700 mb-1">Disposition</label><input type="text" name="disposition" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"></div>
-            </div>
-            <div><label class="block text-sm font-medium text-slate-700 mb-1">Notes</label><textarea name="notes" rows="2" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"></textarea></div>
-            <button type="submit" class="px-6 py-2.5 text-sm bg-blue-600 text-white rounded-lg" onclick="return confirm('Discharge this patient and release the bed?')">Confirm Discharge</button>
-        </form>
-    </div>
+    @can('manage-admissions')
+        {{-- Discharge form --}}
+        <div id="discharge-form" class="hidden bg-white rounded-xl border border-slate-200 p-6">
+            <h3 class="font-semibold text-slate-800 mb-3">Discharge Patient</h3>
+            <form method="POST" action="{{ route('admissions.discharge', $admission) }}" class="space-y-3">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Reason</label><input type="text" name="reason" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"></div>
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Disposition</label><input type="text" name="disposition" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"></div>
+                </div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Notes</label><textarea name="notes" rows="2" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"></textarea></div>
+                <button type="submit" class="px-6 py-2.5 text-sm bg-blue-600 text-white rounded-lg" onclick="return confirm('Discharge this patient and release the bed?')">Confirm Discharge</button>
+            </form>
+        </div>
+    @endcan
 
-    {{-- Bed assignment / reservation --}}
-    @if (in_array($admission->status, ['REQUESTED', 'APPROVED']))
-    <div class="bg-white rounded-xl border border-slate-200 p-6">
-        <h3 class="font-semibold text-slate-800 mb-3">Assign Bed</h3>
-        <form method="POST" action="{{ route('admissions.admit', $admission) }}" class="space-y-3">
-            @csrf
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Select Bed *</label>
-                <select name="bed_id" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
-                    <option value="">Choose bed</option>
-                    @foreach ($availableBeds as $bed)
-                        <option value="{{ $bed->id }}">{{ $bed->label }} ({{ $bed->room?->ward?->name ?? '—' }})</option>
-                    @endforeach
-                </select>
-                @error('bed_id')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
-            </div>
-            <button type="submit" class="px-6 py-2.5 text-sm bg-teal-600 text-white rounded-lg">Admit &amp; Assign Bed</button>
-        </form>
-    </div>
-    @endif
-
-    {{-- Transfer form --}}
-    @if (in_array($admission->status, ['ADMITTED', 'TRANSFERRED']))
-    <div class="bg-white rounded-xl border border-slate-200 p-6">
-        <h3 class="font-semibold text-slate-800 mb-3">Transfer Patient</h3>
-        <form method="POST" action="{{ route('admissions.transfer', $admission) }}" class="space-y-3">
-            @csrf
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @can('manage-beds')
+        {{-- Bed assignment / reservation --}}
+        @if (in_array($admission->status, ['REQUESTED', 'APPROVED']))
+        <div class="bg-white rounded-xl border border-slate-200 p-6">
+            <h3 class="font-semibold text-slate-800 mb-3">Assign Bed</h3>
+            <form method="POST" action="{{ route('admissions.admit', $admission) }}" class="space-y-3">
+                @csrf
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Destination Bed *</label>
-                    <select name="to_bed_id" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Select Bed *</label>
+                    <select name="bed_id" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
                         <option value="">Choose bed</option>
                         @foreach ($availableBeds as $bed)
                             <option value="{{ $bed->id }}">{{ $bed->label }} ({{ $bed->room?->ward?->name ?? '—' }})</option>
                         @endforeach
                     </select>
-                    @error('to_bed_id')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    @error('bed_id')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
                 </div>
-                <div><label class="block text-sm font-medium text-slate-700 mb-1">Reason</label><input type="text" name="reason" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"></div>
-            </div>
-            <button type="submit" class="px-6 py-2.5 text-sm bg-amber-600 text-white rounded-lg">Transfer</button>
-        </form>
-    </div>
-    @endif
+                <button type="submit" class="px-6 py-2.5 text-sm bg-teal-600 text-white rounded-lg">Admit &amp; Assign Bed</button>
+            </form>
+        </div>
+        @endif
+    @endcan
+
+    @can('manage-beds')
+        {{-- Transfer form --}}
+        @if (in_array($admission->status, ['ADMITTED', 'TRANSFERRED']))
+        <div class="bg-white rounded-xl border border-slate-200 p-6">
+            <h3 class="font-semibold text-slate-800 mb-3">Transfer Patient</h3>
+            <form method="POST" action="{{ route('admissions.transfer', $admission) }}" class="space-y-3">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Destination Bed *</label>
+                        <select name="to_bed_id" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
+                            <option value="">Choose bed</option>
+                            @foreach ($availableBeds as $bed)
+                                <option value="{{ $bed->id }}">{{ $bed->label }} ({{ $bed->room?->ward?->name ?? '—' }})</option>
+                            @endforeach
+                        </select>
+                        @error('to_bed_id')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Reason</label><input type="text" name="reason" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg"></div>
+                </div>
+                <button type="submit" class="px-6 py-2.5 text-sm bg-amber-600 text-white rounded-lg">Transfer</button>
+            </form>
+        </div>
+        @endif
+    @endcan
 
     {{-- Admission details --}}
     <div class="bg-white rounded-xl border border-slate-200 p-6">

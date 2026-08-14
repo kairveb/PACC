@@ -11,9 +11,9 @@
         <div class="panel-card p-5">
             <div class="flex items-center justify-between">
                 <div class="text-sm font-semibold text-teal-600">Live</div>
-                <span class="status-pill success">Active</span>
+                <span class="status-pill success">Ongoing</span>
             </div>
-            <div class="mt-4 text-3xl font-semibold text-slate-900">—</div>
+            <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $sessions->whereIn('status', [\App\Models\TelehealthSession::STATUS_ACTIVE, \App\Models\TelehealthSession::STATUS_ONGOING])->count() }}</div>
             <p class="mt-2 text-sm text-slate-500">Active telehealth sessions</p>
         </div>
         <div class="panel-card p-5">
@@ -21,7 +21,7 @@
                 <div class="text-sm font-semibold text-slate-700">Queue</div>
                 <span class="status-pill info">Waiting</span>
             </div>
-            <div class="mt-4 text-3xl font-semibold text-slate-900">—</div>
+            <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $sessions->where('status', \App\Models\TelehealthSession::STATUS_SCHEDULED)->count() }}</div>
             <p class="mt-2 text-sm text-slate-500">Patients in queue</p>
         </div>
         <div class="panel-card p-5">
@@ -29,7 +29,7 @@
                 <div class="text-sm font-semibold text-emerald-600">Done</div>
                 <span class="status-pill success">Complete</span>
             </div>
-            <div class="mt-4 text-3xl font-semibold text-slate-900">—</div>
+            <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $sessions->where('status', \App\Models\TelehealthSession::STATUS_COMPLETED)->count() }}</div>
             <p class="mt-2 text-sm text-slate-500">Completed consults</p>
         </div>
         <div class="panel-card p-5">
@@ -37,7 +37,7 @@
                 <div class="text-sm font-semibold text-indigo-600">Rx</div>
                 <span class="status-pill warning">Pending</span>
             </div>
-            <div class="mt-4 text-3xl font-semibold text-slate-900">—</div>
+            <div class="mt-4 text-3xl font-semibold text-slate-900">{{ \App\Models\ClinicalDocument::where('name', 'like', 'Telehealth Prescription%')->count() }}</div>
             <p class="mt-2 text-sm text-slate-500">E-prescriptions generated</p>
         </div>
     </div>
@@ -71,21 +71,32 @@
             <table class="min-w-full text-sm">
                 <thead>
                     <tr class="text-left text-xs uppercase text-slate-500 bg-slate-50 border-b border-slate-200">
-                        <th class="py-3 px-4">Patient</th><th class="py-3 px-4">Provider</th><th class="py-3 px-4">Start</th><th class="py-3 px-4">Duration</th><th class="py-3 px-4">Meeting</th><th class="py-3 px-4">Status</th><th class="py-3 px-4"></th>
+                        <th class="py-3 px-4">Patient</th><th class="py-3 px-4">Provider</th><th class="py-3 px-4">Start</th><th class="py-3 px-4">Countdown</th><th class="py-3 px-4">Meeting</th><th class="py-3 px-4">Status</th><th class="py-3 px-4"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($sessions as $session)
-                        <tr class="border-b border-slate-100 hover:bg-slate-50" data-session-id="{{ $session->id }}" data-appointment-id="{{ $session->appointment_id }}">
+                        @php
+                            $isLive = in_array($session->status, [\App\Models\TelehealthSession::STATUS_ACTIVE, \App\Models\TelehealthSession::STATUS_ONGOING], true);
+                        @endphp
+                        <tr class="border-b border-slate-100 hover:bg-slate-50" data-session-id="{{ $session->id }}" data-appointment-id="{{ $session->appointment_id }}" data-start-at="{{ $session->start_time?->toIso8601String() }}" data-live="{{ $isLive ? '1' : '0' }}">
                             <td class="py-3 px-4 font-medium">{{ $session->appointment->patient->full_name ?? '—' }}</td>
                             <td class="py-3 px-4">{{ $session->appointment->provider->full_name ?? '—' }}</td>
                             <td class="py-3 px-4">{{ $session->start_time?->format('M d, Y g:i A') }}</td>
-                            <td class="py-3 px-4">{{ $session->duration }} min</td>
-                            <td class="py-3 px-4 font-mono text-xs">{{ $session->zoom_meeting_id ?? 'Not configured' }}</td>
-                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-slate-100">{{ $session->status }}</span></td>
+                            <td class="py-3 px-4">
+                                <span class="countdown-label text-xs font-medium {{ $isLive ? 'text-emerald-600' : 'text-slate-500' }}" data-countdown="{{ $session->start_time?->toIso8601String() }}">
+                                    {{ $isLive ? 'Live now' : 'Waiting' }}
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 font-mono text-xs">{{ $session->join_url ? 'Secure room' : ($session->zoom_meeting_id ?? 'Not configured') }}</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full {{ $isLive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700' }}">{{ $session->displayStatus() }}</span></td>
                             <td class="py-3 px-4 flex gap-2">
                                 <a href="{{ route('telehealth.show', $session) }}" class="text-teal-600 text-xs font-medium">View</a>
-                                <button type="button" class="telehealth-open-session text-xs font-medium text-blue-600" data-session-id="{{ $session->id }}">Open</button>
+                                @if ($session->join_url)
+                                    <a href="{{ $session->join_url }}" target="_blank" rel="noopener noreferrer" class="join-room-link text-blue-600 text-xs font-medium {{ $isLive ? '' : 'pointer-events-none opacity-50' }}">{{ $isLive ? 'Join room' : 'Awaiting start' }}</a>
+                                @else
+                                    <button type="button" class="telehealth-open-session text-xs font-medium text-blue-600" data-session-id="{{ $session->id }}">Open</button>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -216,15 +227,41 @@
             });
         }
 
+        function updateCountdowns() {
+            const nodes = document.querySelectorAll('[data-countdown]');
+            nodes.forEach((el) => {
+                const start = new Date(el.dataset.countdown);
+                const now = new Date();
+                const diff = start.getTime() - now.getTime();
+                const row = el.closest('tr');
+                const live = row && row.dataset.live === '1';
+
+                if (live) {
+                    el.textContent = 'Live now';
+                    el.className = 'countdown-label text-xs font-medium text-emerald-600';
+                    return;
+                }
+
+                if (diff <= 0) {
+                    el.textContent = 'Starting';
+                    el.className = 'countdown-label text-xs font-medium text-amber-600';
+                    return;
+                }
+
+                const totalSeconds = Math.max(0, Math.floor(diff / 1000));
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+                el.textContent = hours > 0 ? `${hours}h ${minutes}m ${seconds}s` : `${minutes}m ${seconds}s`;
+                el.className = 'countdown-label text-xs font-medium text-slate-500';
+            });
+        }
+
+        updateCountdowns();
+        setInterval(updateCountdowns, 1000);
+
         document.querySelectorAll('.telehealth-open-session').forEach((button) => {
             button.addEventListener('click', function () {
-                const sessionId = this.dataset.sessionId;
-                if (sessionId) startSession(sessionId, null);
-            });
-        });
-
-        document.querySelectorAll('[data-session-id]').forEach((row) => {
-            row.addEventListener('dblclick', function () {
                 const sessionId = this.dataset.sessionId;
                 if (sessionId) startSession(sessionId, null);
             });

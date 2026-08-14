@@ -259,6 +259,20 @@ class TelehealthApiController extends Controller
         ]);
     }
 
+    public function cancel(Request $request, int $id): JsonResponse
+    {
+        abort_unless(Gate::allows('start-telehealth'), 403, 'You are not authorized.');
+
+        $session = TelehealthSession::findOrFail($id);
+        $this->telehealthService->cancel($session);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Telehealth session cancelled successfully.',
+            'data' => $session->fresh(),
+        ]);
+    }
+
     public function end(Request $request, int $id): JsonResponse
     {
         abort_unless(Gate::allows('start-telehealth'), 403, 'You are not authorized.');

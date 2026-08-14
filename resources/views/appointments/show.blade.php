@@ -10,21 +10,25 @@
             <p class="text-sm text-slate-500 mt-1">Appointment and Scheduling System (ASS)</p>
         </div>
         <div class="flex gap-2 flex-wrap">
-            @if ($appointment->status === 'CONFIRMED' || $appointment->status === 'PENDING')
-                <form method="POST" action="{{ route('appointments.check-in', $appointment) }}">@csrf
-                    <button class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Check In</button>
-                </form>
-            @endif
-            @if ($appointment->status === 'CONFIRMED')
-                <form method="POST" action="{{ route('appointments.no-show', $appointment) }}">@csrf
-                    <button class="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700">Mark No-Show</button>
-                </form>
-            @endif
-            @if (in_array($appointment->status, ['PENDING', 'CONFIRMED', 'CHECKED-IN']))
-                <form method="POST" action="{{ route('appointments.cancel', $appointment) }}" onsubmit="return confirm('Cancel this appointment?')">@csrf
-                    <button class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Cancel</button>
-                </form>
-            @endif
+            @can('create-appointments')
+                @if ($appointment->status === 'CONFIRMED' || $appointment->status === 'PENDING')
+                    <form method="POST" action="{{ route('appointments.check-in', $appointment) }}">@csrf
+                        <button class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Check In</button>
+                    </form>
+                @endif
+            @endcan
+            @can('cancel-appointments')
+                @if ($appointment->status === 'CONFIRMED')
+                    <form method="POST" action="{{ route('appointments.no-show', $appointment) }}">@csrf
+                        <button class="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700">Mark No-Show</button>
+                    </form>
+                @endif
+                @if (in_array($appointment->status, ['PENDING', 'CONFIRMED', 'CHECKED-IN']))
+                    <form method="POST" action="{{ route('appointments.cancel', $appointment) }}" onsubmit="return confirm('Cancel this appointment?')">@csrf
+                        <button class="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Cancel</button>
+                    </form>
+                @endif
+            @endcan
         </div>
     </div>
 
@@ -72,22 +76,24 @@
     </div>
     @endif
 
-    {{-- Reschedule --}}
-    <div class="bg-white rounded-xl border border-slate-200 p-6">
-        <h3 class="font-semibold text-slate-800 mb-3">Reschedule Appointment</h3>
-        <form method="POST" action="{{ route('appointments.reschedule', $appointment) }}" class="flex flex-wrap gap-3 items-end">
-            @csrf
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">New Date &amp; Time</label>
-                <input type="datetime-local" name="starts_at" required class="px-3 py-2 text-sm border border-slate-300 rounded-lg">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Duration (min)</label>
-                <input type="number" name="duration" value="30" class="px-3 py-2 text-sm border border-slate-300 rounded-lg w-28">
-            </div>
-            <button type="submit" class="px-4 py-2 text-sm bg-slate-800 text-white rounded-lg hover:bg-slate-900">Reschedule</button>
-        </form>
-    </div>
+    @can('cancel-appointments')
+        {{-- Reschedule --}}
+        <div class="bg-white rounded-xl border border-slate-200 p-6">
+            <h3 class="font-semibold text-slate-800 mb-3">Reschedule Appointment</h3>
+            <form method="POST" action="{{ route('appointments.reschedule', $appointment) }}" class="flex flex-wrap gap-3 items-end">
+                @csrf
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">New Date &amp; Time</label>
+                    <input type="datetime-local" name="starts_at" required class="px-3 py-2 text-sm border border-slate-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Duration (min)</label>
+                    <input type="number" name="duration" value="30" class="px-3 py-2 text-sm border border-slate-300 rounded-lg w-28">
+                </div>
+                <button type="submit" class="px-4 py-2 text-sm bg-slate-800 text-white rounded-lg hover:bg-slate-900">Reschedule</button>
+            </form>
+        </div>
+    @endcan
 
     {{-- Status history --}}
     <div class="bg-white rounded-xl border border-slate-200 p-6">

@@ -7,6 +7,7 @@ use App\Services\TelehealthService;
 use App\Services\ZoomService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class TelehealthController extends Controller
 {
@@ -17,6 +18,15 @@ class TelehealthController extends Controller
     public function index(Request $request)
     {
         $query = TelehealthSession::with(['appointment.patient', 'appointment.provider'])->orderBy('start_time', 'desc');
+
+        $user = auth()->user();
+        if ($user && $user->hasRole('patient')) {
+            $patientId = $user->patient?->id;
+            $query->whereHas('appointment', fn ($appointmentQuery) => $appointmentQuery->where('patient_id', $patientId ?? 0));
+        } elseif ($user && $user->hasRole('doctor')) {
+            $providerId = $user->provider?->id;
+            $query->whereHas('appointment', fn ($appointmentQuery) => $appointmentQuery->where('provider_id', $providerId ?? 0));
+        }
 
         if ($request->get('status')) {
             $query->where('status', $request->get('status'));
@@ -36,10 +46,15 @@ class TelehealthController extends Controller
         ]);
     }
 
-public function join(TelehealthSession $session)
+public function join(TelehealthSession $session, Request $request)
     {
-        // Patients get join_url, providers/hosts get host access
         $this->authorize('view', $session->appointment);
+
+        $token = $request->query('token');
+        abort_unless($this->telehealth->verifyJoinToken($session, $token), 403, 'Invalid or expired telehealth session link.');
+        abort_unless(Gate::allows('join-telehealth'), 403, 'You are not authorized to join this telehealth room.');
+
+        $session->load(['appointment.patient', 'appointment.provider', 'participants.user']);
 
         return view('telehealth.join', compact('session'));
     }

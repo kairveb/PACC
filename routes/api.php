@@ -32,7 +32,18 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     // Public auth
-    Route::post('/auth/login', [ApiAuthController::class, 'login']);
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::post('/auth/login', [ApiAuthController::class, 'login']);
+    });
+
+    Route::get('/address-data/philippines', function () {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'provinces' => \App\Support\PhilippineAddressData::provinces(),
+            ],
+        ]);
+    });
 
     Route::middleware('auth:sanctum')->get('/dashboard', function (\Illuminate\Http\Request $request) {
         $user = $request->user();
@@ -139,24 +150,24 @@ Route::prefix('v1')->group(function () {
     });
 
     // Authenticated routes
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::post('/auth/logout', [ApiAuthController::class, 'logout']);
         Route::get('/auth/me', [ApiAuthController::class, 'me']);
 
         // Patients
-        Route::middleware('can:view-patients')->group(function () {
+        Route::middleware(['can:view-patients', 'throttle:60,1'])->group(function () {
             Route::get('/patients', [PatientApiController::class, 'index']);
             Route::get('/patients/{id}', [PatientApiController::class, 'show']);
             Route::get('/patients/search/{term}', [PatientApiController::class, 'search']);
         });
-        Route::middleware('can:create-patients')->group(function () {
+        Route::middleware(['can:create-patients', 'throttle:30,1'])->group(function () {
             Route::post('/patients', [PatientApiController::class, 'store']);
         });
-        Route::middleware('can:update-patients')->group(function () {
+        Route::middleware(['can:update-patients', 'throttle:30,1'])->group(function () {
             Route::put('/patients/{id}', [PatientApiController::class, 'update']);
             Route::patch('/patients/{id}', [PatientApiController::class, 'update']);
         });
-        Route::middleware('can:delete-patients')->group(function () {
+        Route::middleware(['can:delete-patients', 'throttle:10,1'])->group(function () {
             Route::delete('/patients/{id}', [PatientApiController::class, 'destroy']);
         });
 
@@ -173,17 +184,17 @@ Route::prefix('v1')->group(function () {
         Route::get('/schedules/{providerId}/slots', [ScheduleApiController::class, 'slots']);
 
         // Appointments
-        Route::middleware('can:view-appointments')->group(function () {
+        Route::middleware(['can:view-appointments', 'throttle:60,1'])->group(function () {
             Route::get('/appointments', [AppointmentApiController::class, 'index']);
             Route::get('/appointments/{id}', [AppointmentApiController::class, 'show']);
         });
-        Route::middleware('can:create-appointments')->group(function () {
+        Route::middleware(['can:create-appointments', 'throttle:30,1'])->group(function () {
             Route::post('/appointments', [AppointmentApiController::class, 'store']);
         });
-        Route::middleware('can:update-appointments')->group(function () {
+        Route::middleware(['can:update-appointments', 'throttle:30,1'])->group(function () {
             Route::patch('/appointments/{id}', [AppointmentApiController::class, 'update']);
         });
-Route::middleware('can:cancel-appointments')->group(function () {
+        Route::middleware(['can:cancel-appointments', 'throttle:30,1'])->group(function () {
             Route::delete('/appointments/{id}', [AppointmentApiController::class, 'destroy']);
             Route::post('/appointments/{id}/cancel', [AppointmentApiController::class, 'cancel']);
             Route::post('/appointments/{id}/reschedule', [AppointmentApiController::class, 'reschedule']);
@@ -192,29 +203,30 @@ Route::middleware('can:cancel-appointments')->group(function () {
         });
 
         // Encounters
-        Route::middleware('can:view-encounters')->group(function () {
+        Route::middleware(['can:view-encounters', 'throttle:60,1'])->group(function () {
             Route::get('/encounters', [EncounterApiController::class, 'index']);
             Route::get('/encounters/{id}', [EncounterApiController::class, 'show']);
         });
-        Route::middleware('can:create-encounters')->group(function () {
+        Route::middleware(['can:create-encounters', 'throttle:30,1'])->group(function () {
             Route::post('/encounters', [EncounterApiController::class, 'store']);
         });
 
         // Telehealth
-        Route::middleware('can:view-telehealth')->group(function () {
+        Route::middleware(['can:view-telehealth', 'throttle:60,1'])->group(function () {
             Route::get('/telehealth', [TelehealthApiController::class, 'index']);
             Route::get('/telehealth/{id}', [TelehealthApiController::class, 'show']);
             Route::get('/telehealth/{id}/participants', [TelehealthParticipantApiController::class, 'index']);
         });
-        Route::middleware('can:join-telehealth')->group(function () {
+        Route::middleware(['can:join-telehealth', 'throttle:30,1'])->group(function () {
             Route::post('/telehealth/{id}/participants', [TelehealthParticipantApiController::class, 'store']);
         });
-        Route::middleware('can:start-telehealth')->group(function () {
+        Route::middleware(['can:start-telehealth', 'throttle:30,1'])->group(function () {
             Route::post('/telehealth', [TelehealthApiController::class, 'store']);
             Route::post('/telehealth/{id}/start', [TelehealthApiController::class, 'start']);
             Route::post('/telehealth/{id}/prescription', [TelehealthApiController::class, 'prescription']);
             Route::post('/telehealth/{id}/reminder', [TelehealthApiController::class, 'reminder']);
             Route::post('/telehealth/{id}/closeout', [TelehealthApiController::class, 'closeout']);
+            Route::post('/telehealth/{id}/cancel', [TelehealthApiController::class, 'cancel']);
             Route::post('/telehealth/{id}/end', [TelehealthApiController::class, 'end']);
         });
 
@@ -263,45 +275,47 @@ Route::middleware('can:cancel-appointments')->group(function () {
         });
 
         // Emergency
-        Route::middleware('can:view-er')->group(function () {
+        Route::middleware(['can:view-er', 'throttle:60,1'])->group(function () {
             Route::get('/emergency/queue', [EmergencyApiController::class, 'queue']);
             Route::get('/emergency/visits/{id}', [EmergencyApiController::class, 'showVisit']);
         });
-        Route::middleware('can:create-er-visits')->group(function () {
+        Route::middleware(['can:create-er-visits', 'throttle:30,1'])->group(function () {
             Route::post('/emergency/visits', [EmergencyApiController::class, 'storeVisit']);
         });
-        Route::middleware('can:triage-patients')->group(function () {
+        Route::middleware(['can:triage-patients', 'throttle:30,1'])->group(function () {
             Route::post('/triage/score', [TriageApiController::class, 'score']);
             Route::post('/emergency/{id}/triage', [TriageApiController::class, 'store']);
         });
 
         // Wards / Rooms / Beds
-        Route::middleware('can:view-beds')->group(function () {
+        Route::middleware(['can:view-beds', 'throttle:60,1'])->group(function () {
             Route::get('/wards', [WardApiController::class, 'index']);
             Route::get('/rooms', [RoomApiController::class, 'index']);
             Route::get('/beds', [BedApiController::class, 'index']);
             Route::get('/beds/available', [BedApiController::class, 'available']);
             Route::get('/beds/{id}', [BedApiController::class, 'show']);
         });
-        Route::middleware('can:manage-beds')->group(function () {
+        Route::middleware(['can:manage-beds', 'throttle:30,1'])->group(function () {
             Route::post('/beds/{id}/reserve', [BedApiController::class, 'reserve']);
             Route::post('/beds/{id}/assign', [BedApiController::class, 'assign']);
             Route::post('/beds/{id}/release', [BedApiController::class, 'release']);
         });
 
         // Admissions
-        Route::middleware('can:view-admissions')->group(function () {
+        Route::middleware(['can:view-admissions', 'throttle:60,1'])->group(function () {
             Route::get('/admissions', [AdmissionApiController::class, 'index']);
             Route::get('/admissions/{id}', [AdmissionApiController::class, 'show']);
         });
-        Route::middleware('can:manage-admissions')->group(function () {
+        Route::middleware(['can:manage-admissions', 'throttle:30,1'])->group(function () {
             Route::post('/admissions', [AdmissionApiController::class, 'store']);
             Route::post('/admissions/{id}/transfer', [TransferApiController::class, 'store']);
             Route::post('/admissions/{id}/discharge', [DischargeApiController::class, 'store']);
         });
 
         // Notifications
-        Route::get('/notifications', [NotificationApiController::class, 'index']);
-        Route::post('/notifications/{id}/read', [NotificationApiController::class, 'markRead']);
+        Route::middleware('throttle:60,1')->group(function () {
+            Route::get('/notifications', [NotificationApiController::class, 'index']);
+            Route::post('/notifications/{id}/read', [NotificationApiController::class, 'markRead']);
+        });
     });
 });

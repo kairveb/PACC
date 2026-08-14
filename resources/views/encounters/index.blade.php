@@ -26,7 +26,7 @@
                             <td class="py-3 px-4 font-mono text-xs">{{ $enc->encounter_number }}</td>
                             <td class="py-3 px-4 font-medium"><a href="{{ route('patients.show', $enc->patient) }}" class="text-teal-600 hover:underline">{{ $enc->patient->full_name ?? '—' }}</a></td>
                             <td class="py-3 px-4">{{ $enc->provider->full_name ?? '—' }}</td>
-                            <td class="py-3 px-4">{{ $enc->encountered_at->format('M d, Y g:i A') }}</td>
+                            <td class="py-3 px-4">{{ $enc->started_at?->format('M d, Y g:i A') ?? '—' }}</td>
                             <td class="py-3 px-4">{{ $enc->type }}</td>
                             <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full bg-slate-100">{{ $enc->status }}</span></td>
                         </tr>

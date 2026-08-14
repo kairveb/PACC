@@ -32,7 +32,7 @@ Example journey: Registration → MRN → Appointment/Emergency → Outpatient/T
 - Appointment booking with **double-booking prevention**
 - Provider schedules, slots, cancellation, rescheduling, check-in, no-show
 - Outpatient encounters, vitals, clinical notes, follow-up
-- Telehealth sessions with Zoom integration (optional)
+- Telehealth sessions with secure room fallback, join-token validation, and optional Zoom integration
 - ER arrival, triage, priority, ER queue
 - Wards, rooms, beds, reservations, assignments, transfers, discharges
 - **Transactional bed assignment** with concurrency protection
@@ -216,7 +216,7 @@ All other endpoints require header `Authorization: Bearer <token>`.
 - Appointments: `GET/POST /api/v1/appointments`, `GET/PATCH/DELETE /api/v1/appointments/{id}`, `POST .../cancel|reschedule|check-in`
 - Providers / Departments / Schedules: `GET /api/v1/providers`, `GET /api/v1/departments`, `GET /api/v1/schedules`, `GET /api/v1/schedules/{providerId}/slots`
 - Encounters: `GET/POST /api/v1/encounters`
-- Telehealth: `GET/POST /api/v1/telehealth`
+- Telehealth: `GET/POST /api/v1/telehealth`, `POST /api/v1/telehealth/{id}/start`, `POST /api/v1/telehealth/{id}/cancel`, `POST /api/v1/telehealth/{id}/closeout`, `POST /api/v1/telehealth/{id}/end`
 - Emergency: `GET /api/v1/emergency/queue`, `POST /api/v1/emergency/visits`, `POST /api/v1/emergency/{id}/triage`
 - Wards/Rooms/Beds: `GET /api/v1/wards`, `GET /api/v1/rooms`, `GET /api/v1/beds`, `GET /api/v1/beds/available`, `POST /api/v1/beds/{id}/reserve|assign|release`
 - Admissions: `GET/POST /api/v1/admissions`, `POST /api/v1/admissions/{id}/transfer`, `POST /api/v1/admissions/{id}/discharge`
@@ -242,10 +242,13 @@ Validation errors return HTTP 422; unauthorized 401; forbidden 403; conflicts (d
 
 Integrations are **optional** and isolated behind service classes. When disabled (`..._ENABLED=false`), core HIMS workflows continue normally and the UI shows a clear **"Not Configured"** status. No fake external calls are made.
 
-### 16. Google Maps
+### 16. Telehealth secure-room flow
+`app/Models/TelehealthSession.php` + `app/Services/TelehealthService.php` — generate a secure join URL even when Zoom is not configured. Sessions create a local meeting room with a signed token and only expose the join URL to authorized participants. Lifecycle transitions include scheduled, active/ongoing, completed, and cancelled states.
+
+### 17. Google Maps
 `app/Services/GoogleMapsService.php` — address autocomplete, hospital location. Set `GOOGLE_MAPS_API_KEY` and `GOOGLE_MAPS_ENABLED=true`.
 
-### 17. Zoom
+### 18. Zoom
 `app/Services/ZoomService.php` + `TelehealthService` — creates telehealth meetings. Set `ZOOM_ACCOUNT_ID`, `ZOOM_CLIENT_ID`, `ZOOM_CLIENT_SECRET`, `ZOOM_ENABLED=true`. Patients receive the join URL only; host secrets are never exposed in the frontend.
 
 ### 18. Gemini

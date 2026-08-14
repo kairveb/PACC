@@ -40,6 +40,13 @@ class RbacMatrixTest extends TestCase
         $this->assertTrue($nurse->permissions()->where('name', 'manage-beds')->exists());
         $this->assertTrue($patient->permissions()->where('name', 'view-own-appointments')->exists());
 
+        $this->assertTrue($superAdmin->permissions()->where('name', 'view-wards')->exists());
+        $this->assertTrue($nurse->permissions()->where('name', 'transfer-patients')->exists());
+        $this->assertTrue($nurse->permissions()->where('name', 'discharge-patients')->exists());
+        $this->assertTrue($doctor->permissions()->where('name', 'create-admissions')->exists());
+        $this->assertTrue($patient->permissions()->where('name', 'view-own-medical-history')->exists());
+        $this->assertTrue($patient->permissions()->where('name', 'view-own-telehealth')->exists());
+
         $this->assertFalse($patient->permissions()->where('name', 'manage-users')->exists());
         $this->assertFalse($registration->permissions()->where('name', 'manage-beds')->exists());
     }
@@ -72,5 +79,100 @@ class RbacMatrixTest extends TestCase
         $frontDeskResponse->assertOk();
         $frontDeskResponse->assertSee('Registration desk');
         $frontDeskResponse->assertDontSee('Bed occupancy');
+    }
+
+    public function test_doctor_and_nurse_see_only_role_scoped_data(): void
+    {
+        $this->seed(HimsSeeder::class);
+
+        $doctor = User::whereHas('roles', fn ($query) => $query->where('name', 'doctor'))->firstOrFail();
+        $nurse = User::whereHas('roles', fn ($query) => $query->where('name', 'nurse'))->firstOrFail();
+
+        $doctorProvider = $doctor->provider()->firstOrFail();
+        $otherProvider = \App\Models\Provider::create([
+            'user_id' => User::factory()->create()->id,
+            'display_name' => 'Dr. Other',
+            'active' => true,
+        ]);
+
+        $doctorPatient = \App\Models\Patient::create([
+            'mrn' => 'MRN-ROLE-001',
+            'first_name' => 'Doctor',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1990-01-01',
+            'sex' => 'Female',
+            'phone' => '09170000001',
+            'email' => 'doctor.patient@example.test',
+            'verified' => true,
+        ]);
+
+        $otherPatient = \App\Models\Patient::create([
+            'mrn' => 'MRN-ROLE-002',
+            'first_name' => 'Other',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1988-02-02',
+            'sex' => 'Male',
+            'phone' => '09170000002',
+            'email' => 'other.patient@example.test',
+            'verified' => true,
+        ]);
+
+        \App\Models\Encounter::create([
+            'encounter_number' => 'ENC-ROLE-001',
+            'patient_id' => $doctorPatient->id,
+            'provider_id' => $doctorProvider->id,
+            'type' => \App\Models\Encounter::TYPE_OUTPATIENT,
+            'started_at' => now(),
+            'status' => 'ACTIVE',
+        ]);
+
+        \App\Models\Encounter::create([
+            'encounter_number' => 'ENC-ROLE-002',
+            'patient_id' => $otherPatient->id,
+            'provider_id' => $otherProvider->id,
+            'type' => \App\Models\Encounter::TYPE_OUTPATIENT,
+            'started_at' => now(),
+            'status' => 'ACTIVE',
+        ]);
+
+        $doctorResponse = $this->actingAs($doctor, 'web')->get('/encounters');
+        $doctorResponse->assertOk();
+        $doctorResponse->assertSee($doctorPatient->full_name);
+        $doctorResponse->assertDontSee($otherPatient->full_name);
+
+        $erQueueOne = \App\Models\ErVisit::create([
+            'visit_number' => 'ER-ROLE-001',
+            'patient_id' => $doctorPatient->id,
+            'chief_complaint' => 'Chest pain',
+            'arrived_at' => now(),
+            'status' => 'ARRIVED',
+        ]);
+
+        $erQueueTwo = \App\Models\ErVisit::create([
+            'visit_number' => 'ER-ROLE-002',
+            'patient_id' => $otherPatient->id,
+            'chief_complaint' => 'Back pain',
+            'arrived_at' => now(),
+            'status' => 'ARRIVED',
+        ]);
+
+        \App\Models\ErQueue::create([
+            'er_visit_id' => $erQueueOne->id,
+            'priority' => 'Level 1',
+            'status' => 'WAITING',
+            'queued_at' => now(),
+        ]);
+
+        \App\Models\ErQueue::create([
+            'er_visit_id' => $erQueueTwo->id,
+            'priority' => 'Level 2',
+            'status' => 'WAITING',
+            'queued_at' => now(),
+        ]);
+
+        $nurseResponse = $this->actingAs($nurse, 'web')->get('/emergency');
+        $nurseResponse->assertOk();
+        $nurseResponse->assertSee('Chest pain');
+        $nurseResponse->assertSee('Back pain');
     }
 }

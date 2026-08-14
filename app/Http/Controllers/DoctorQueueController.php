@@ -11,9 +11,16 @@ class DoctorQueueController extends Controller
 {
     public function index(): View
     {
-        $queue = TriageAssessment::with(['patient', 'vitals'])
-            ->whereNotNull('patient_id')
-            ->orderByRaw("CASE
+        $query = TriageAssessment::with(['patient', 'vitals'])
+            ->whereNotNull('patient_id');
+
+        $user = auth()->user();
+        if ($user && $user->hasRole('doctor')) {
+            $query->whereIn('status', ['WAITING', 'SEEN', 'IN_CONSULT'])
+                ->whereNotNull('priority_score');
+        }
+
+        $queue = $query->orderByRaw("CASE
                 WHEN priority_score IS NULL THEN 99
                 WHEN priority_score = 1 THEN 1
                 WHEN priority_score = 2 THEN 2

@@ -136,6 +136,14 @@ class AppointmentService
             $from = $appointment->status;
             $appointment->update(['status' => $toStatus]);
 
+            if ($toStatus === Appointment::STATUS_CONFIRMED && $appointment->appointmentType?->telehealth) {
+                $this->telehealth->createSession($appointment);
+            }
+
+            if ($toStatus === Appointment::STATUS_CANCELLED && $appointment->telehealthSession) {
+                $this->telehealth->cancel($appointment->telehealthSession);
+            }
+
             AppointmentStatusHistory::create([
                 'appointment_id' => $appointment->id,
                 'from_status' => $from,

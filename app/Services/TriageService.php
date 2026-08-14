@@ -138,7 +138,9 @@ class TriageService
         return [
             'level' => $ai['level'],
             'score' => $ai['score'],
+            'severity_score' => $ai['severity_score'],
             'priority' => $ai['priority'],
+            'priority_band' => $ai['priority_band'],
             'color' => $ai['color'],
             'confidence' => $ai['confidence'],
             'recommendation' => $ai['recommendation'],

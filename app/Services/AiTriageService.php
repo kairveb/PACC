@@ -96,6 +96,22 @@ class AiTriageService
             5 => 'green',
         ];
 
+        $priorityBandMap = [
+            1 => 'Red',
+            2 => 'Yellow',
+            3 => 'Green',
+            4 => 'Green',
+            5 => 'Green',
+        ];
+
+        $severityScoreMap = [
+            1 => 96,
+            2 => 85,
+            3 => 68,
+            4 => 46,
+            5 => 22,
+        ];
+
         $recommendation = match ($score) {
             self::LEVEL_EMERGENCY => 'Emergency — immediate resuscitation/rapid physician assessment and possible escalation to emergency care.',
             self::LEVEL_URGENT => 'Urgent — prioritize this patient for immediate nursing review and doctor assessment.',
@@ -104,14 +120,18 @@ class AiTriageService
             default => 'Routine — continue routine evaluation and observation.',
         };
 
+        $confidence = $this->confidenceForLevel($score);
+
         return [
             'level' => $score,
             'score' => $score,
+            'severity_score' => $severityScoreMap[$score] ?? 22,
             'priority' => $priorityMap[$score],
+            'priority_band' => $priorityBandMap[$score] ?? 'Green',
             'color' => $colorMap[$score],
             'recommendation' => $recommendation,
             'reasons' => $reasons,
-            'confidence' => $this->confidenceForLevel($score),
+            'confidence' => $confidence,
         ];
     }
 

@@ -110,23 +110,15 @@
     <form method="POST" action="{{ route('patients.store') }}" class="bg-white rounded-xl border border-slate-200 p-6">
         @csrf
 
-        <h2 class="font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-100">1. Personal Information</h2>
+        <h2 class="font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-100">1. Essential Information</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">First Name *</label>
                 <input type="text" name="first_name" value="{{ old('first_name') }}" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
             </div>
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Middle Name</label>
-                <input type="text" name="middle_name" value="{{ old('middle_name') }}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
-            </div>
-            <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Last Name *</label>
                 <input type="text" name="last_name" value="{{ old('last_name') }}" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Suffix</label>
-                <input type="text" name="suffix" value="{{ old('suffix') }}" placeholder="Jr., Sr., III" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
             </div>
             <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Date of Birth *</label>
@@ -142,18 +134,6 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Civil Status</label>
-                <input type="text" name="civil_status" value="{{ old('civil_status') }}" placeholder="Single, Married, etc." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Nationality</label>
-                <input type="text" name="nationality" value="{{ old('nationality') }}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
-            </div>
-        </div>
-
-        <h2 class="font-semibold text-slate-800 mt-8 mb-4 pb-2 border-b border-slate-100">2. Contact Information</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Contact Number</label>
                 <input type="text" name="phone" value="{{ old('phone') }}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
             </div>
@@ -163,7 +143,7 @@
             </div>
         </div>
 
-        <h2 class="font-semibold text-slate-800 mt-8 mb-4 pb-2 border-b border-slate-100">3. Address</h2>
+        <h2 class="font-semibold text-slate-800 mt-8 mb-4 pb-2 border-b border-slate-100">2. Address</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-slate-700 mb-1">Street Address</label>
@@ -182,26 +162,52 @@
             />
         </div>
 
-        <h2 class="font-semibold text-slate-800 mt-8 mb-4 pb-2 border-b border-slate-100">4. Emergency Contact</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h2 class="font-semibold text-slate-800 mt-8 mb-4 pb-2 border-b border-slate-100">3. Emergency Contact</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Name</label>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Emergency Contact Name</label>
                 <input type="text" name="emergency_name" value="{{ old('emergency_name') }}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
             </div>
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Relationship</label>
-                <input type="text" name="emergency_relationship" value="{{ old('emergency_relationship') }}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Emergency Contact Phone</label>
                 <input type="text" name="emergency_phone" value="{{ old('emergency_phone') }}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
             </div>
         </div>
 
-        <h2 class="font-semibold text-slate-800 mt-8 mb-4 pb-2 border-b border-slate-100">5. Medical Alerts</h2>
-        <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Allergies / Alerts</label>
-            <textarea name="allergies" rows="2" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">{{ old('allergies') }}</textarea>
+        <div class="mt-8">
+            <details class="rounded-xl border border-slate-200 bg-slate-50">
+                <summary class="cursor-pointer list-none p-4 text-sm font-semibold text-slate-700">
+                    Advanced Details
+                </summary>
+                <div class="border-t border-slate-200 p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Middle Name</label>
+                            <input type="text" name="middle_name" value="{{ old('middle_name') }}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Suffix</label>
+                            <input type="text" name="suffix" value="{{ old('suffix') }}" placeholder="Jr., Sr., III" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Civil Status</label>
+                            <input type="text" name="civil_status" value="{{ old('civil_status') }}" placeholder="Single, Married, etc." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Nationality</label>
+                            <input type="text" name="nationality" value="{{ old('nationality') }}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Emergency Contact Relationship</label>
+                            <input type="text" name="emergency_relationship" value="{{ old('emergency_relationship') }}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Allergies / Alerts</label>
+                            <textarea name="allergies" rows="2" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg">{{ old('allergies') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </details>
         </div>
 
         <div class="mt-8 flex items-center gap-3">

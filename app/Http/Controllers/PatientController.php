@@ -23,7 +23,50 @@ class PatientController extends Controller
     {
         $this->authorize('viewAny', Patient::class);
 
-        $patients = $this->patientService->search($request->get('q'), $request->only(['date_of_birth', 'sex']));
+        $query = Patient::query()
+            ->with(['addresses', 'emergencyContacts'])
+            ->orderBy('created_at', 'desc');
+
+        $user = auth()->user();
+        if ($user && $user->hasRole('doctor')) {
+            $providerId = $user->provider?->id;
+            if ($providerId) {
+                $query->where(function ($q) use ($providerId) {
+                    $q->whereHas('encounters', fn ($encounterQuery) => $encounterQuery->where('provider_id', $providerId))
+                        ->orWhereHas('appointments', fn ($appointmentQuery) => $appointmentQuery->where('provider_id', $providerId));
+                });
+            } else {
+                $query->whereRaw('0 = 1');
+            }
+        } elseif ($user && $user->hasRole('nurse')) {
+            $query->where(function ($q) {
+                $q->whereHas('erVisits')
+                    ->orWhereHas('triageAssessments');
+            });
+        }
+
+        if ($request->filled('q')) {
+            $term = $request->get('q');
+            $like = '%'.$term.'%';
+            $query->where(function ($q) use ($like, $term) {
+                $q->where('mrn', 'like', $like)
+                    ->orWhere('first_name', 'like', $like)
+                    ->orWhere('last_name', 'like', $like)
+                    ->orWhere('middle_name', 'like', $like)
+                    ->orWhere('phone', 'like', $like)
+                    ->orWhere('email', 'like', $like);
+            });
+        }
+
+        if ($request->filled('date_of_birth')) {
+            $query->where('date_of_birth', $request->get('date_of_birth'));
+        }
+
+        if ($request->filled('sex')) {
+            $query->where('sex', $request->get('sex'));
+        }
+
+        $patients = $query->paginate(15);
 
         return view('patients.index', compact('patients'));
     }

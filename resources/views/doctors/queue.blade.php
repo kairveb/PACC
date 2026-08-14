@@ -120,31 +120,22 @@
                                 {{ $assessment->triaged_at?->diffForHumans() ?? 'Recently' }}
                             </td>
                             <td class="px-5 py-4">
-                                <div class="flex flex-col gap-2">
-                                    <div class="flex items-center gap-3">
-                                        <a href="{{ route('doctors.queue.show', $assessment) }}" class="text-sm font-semibold text-teal-600 hover:text-teal-700">Open detail</a>
-                                        <a href="{{ route('patients.show', $assessment->patient_id) }}" class="text-sm font-semibold text-slate-600 hover:text-slate-700">Chart</a>
-                                    </div>
+                                <div class="flex flex-col items-start gap-2">
+                                    <a href="{{ route('doctors.queue.show', $assessment) }}" class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700">Open patient</a>
+
                                     <div class="flex items-center gap-2">
                                         @if (($assessment->status ?? '') !== 'SEEN' && ($assessment->status ?? '') !== 'IN_CONSULT')
                                             <form method="POST" action="{{ route('doctors.queue.status', $assessment) }}">
                                                 @csrf
                                                 <input type="hidden" name="status" value="SEEN">
-                                                <button type="submit" class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">Mark seen</button>
+                                                <button type="submit" class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50">Mark seen</button>
                                             </form>
                                         @endif
                                         @if (($assessment->status ?? '') !== 'IN_CONSULT' && ($assessment->status ?? '') !== 'COMPLETED')
                                             <form method="POST" action="{{ route('doctors.queue.status', $assessment) }}">
                                                 @csrf
                                                 <input type="hidden" name="status" value="IN_CONSULT">
-                                                <button type="submit" class="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600">Start consult</button>
-                                            </form>
-                                        @endif
-                                        @if (($assessment->status ?? '') === 'IN_CONSULT')
-                                            <form method="POST" action="{{ route('doctors.queue.status', $assessment) }}">
-                                                @csrf
-                                                <input type="hidden" name="status" value="COMPLETED">
-                                                <button type="submit" class="rounded-lg bg-slate-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">Complete consult</button>
+                                                <button type="submit" class="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-semibold text-amber-700 hover:bg-amber-100">Start consult</button>
                                             </form>
                                         @endif
                                     </div>
