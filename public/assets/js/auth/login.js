@@ -6,7 +6,6 @@
   const rememberEmail = document.getElementById("remember-email");
   const passwordToggle = document.querySelector("[data-password-toggle]");
   const rememberedEmailKey = "himsRememberedEmail";
-  const apiBaseUrl = window.__APP_CONFIG__?.apiBaseUrl || "";
 
   try {
     const rememberedEmailValue = localStorage.getItem(rememberedEmailKey);
@@ -26,14 +25,21 @@
     if (icon) icon.className = `ph ${show ? "ph-eye-slash" : "ph-eye"}`;
   });
 
-  form?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    if (!form.checkValidity()) { form.reportValidity(); return; }
+  form?.addEventListener("submit", (event) => {
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      form.reportValidity();
+      return;
+    }
+
     const values = new FormData(form);
     const passwordValue = String(values.get("password") || "");
     if (!passwordValue.trim()) {
-      error.textContent = "Enter a password to continue.";
-      error.hidden = false;
+      event.preventDefault();
+      if (error) {
+        error.textContent = "Enter a password to continue.";
+        error.hidden = false;
+      }
       return;
     }
 
@@ -47,45 +53,9 @@
       /* Remember-email is optional and does not affect sign-in. */
     }
 
-    error.hidden = true;
-    error.textContent = "";
-
-    try {
-      const loginUrl = `${apiBaseUrl}/api/v1/auth/login`;
-      const response = await fetch(loginUrl || "/api/v1/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          email: String(values.get("email") || "").trim(),
-          password: passwordValue,
-        }),
-      });
-
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok || !payload?.success) {
-        throw new Error(payload?.message || "Unable to sign in to the HIMS backend.");
-      }
-
-      const user = payload?.data?.user;
-      const role = String(values.get("role") || "").trim();
-      const session = {
-        authenticated: true,
-        token: payload?.data?.token,
-        user: {
-          id: user?.id,
-          name: String(values.get("name") || user?.name || "").trim(),
-          email: String(values.get("email") || user?.email || "").trim(),
-          role: role || (user?.roles?.[0] || "Patient"),
-          roles: user?.roles || [],
-        },
-      };
-      window.HimsSession.create(session.user);
-      sessionStorage.setItem("himsMainSessionToken", payload?.data?.token || "");
-      form.reset();
-      window.location.replace("/dashboard");
-    } catch (loginError) {
-      error.textContent = loginError.message || "Unable to sign in to the HIMS backend.";
-      error.hidden = false;
+    if (error) {
+      error.hidden = true;
+      error.textContent = "";
     }
   });
 })();

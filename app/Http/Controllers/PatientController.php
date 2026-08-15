@@ -224,6 +224,8 @@ return view('patients.show', compact('patient'));
                 'mrn' => $this->patientService->generateMpn(),
                 'first_name' => $user->name,
                 'last_name' => '',
+                'date_of_birth' => now()->subYears(18)->toDateString(),
+                'sex' => 'Other',
                 'email' => $user->email,
                 'lookup_code' => strtoupper(Str::random(8)),
                 'pre_registration_status' => 'not_started',

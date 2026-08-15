@@ -12,6 +12,42 @@ class RbacMatrixTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_each_role_has_expected_access_scope(): void
+    {
+        $this->seed(HimsSeeder::class);
+
+        $superAdmin = User::whereHas('roles', fn ($query) => $query->where('name', 'super-admin'))->firstOrFail();
+        $hospitalAdmin = User::whereHas('roles', fn ($query) => $query->where('name', 'hospital-admin'))->firstOrFail();
+        $registration = User::whereHas('roles', fn ($query) => $query->where('name', 'registration'))->firstOrFail();
+        $doctor = User::whereHas('roles', fn ($query) => $query->where('name', 'doctor'))->firstOrFail();
+        $nurse = User::whereHas('roles', fn ($query) => $query->where('name', 'nurse'))->firstOrFail();
+        $patient = User::whereHas('roles', fn ($query) => $query->where('name', 'patient'))->firstOrFail();
+
+        $this->actingAs($superAdmin, 'web')->get('/patients/lookup')->assertOk();
+        $this->actingAs($superAdmin, 'web')->get('/audit-logs')->assertOk();
+        $this->actingAs($superAdmin, 'web')->get('/patients/profile')->assertOk();
+
+        $this->actingAs($hospitalAdmin, 'web')->get('/patients/lookup')->assertOk();
+        $this->actingAs($hospitalAdmin, 'web')->get('/audit-logs')->assertOk();
+        $this->actingAs($hospitalAdmin, 'web')->get('/patients/profile')->assertForbidden();
+
+        $this->actingAs($registration, 'web')->get('/patients/lookup')->assertOk();
+        $this->actingAs($registration, 'web')->get('/patients')->assertOk();
+        $this->actingAs($registration, 'web')->get('/audit-logs')->assertForbidden();
+
+        $this->actingAs($doctor, 'web')->get('/encounters')->assertOk();
+        $this->actingAs($doctor, 'web')->get('/doctors/queue')->assertOk();
+        $this->actingAs($doctor, 'web')->get('/patients/lookup')->assertForbidden();
+
+        $this->actingAs($nurse, 'web')->get('/emergency')->assertOk();
+        $this->actingAs($nurse, 'web')->get('/triage')->assertOk();
+        $this->actingAs($nurse, 'web')->get('/patients/lookup')->assertForbidden();
+
+        $this->actingAs($patient, 'web')->get('/patients/profile')->assertOk();
+        $this->actingAs($patient, 'web')->get('/patient-portal')->assertOk();
+        $this->actingAs($patient, 'web')->get('/patients/lookup')->assertForbidden();
+    }
+
     public function test_the_expected_role_permission_matrix_is_seeded(): void
     {
         $this->seed(HimsSeeder::class);

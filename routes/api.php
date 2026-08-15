@@ -171,17 +171,15 @@ Route::prefix('v1')->group(function () {
             Route::delete('/patients/{id}', [PatientApiController::class, 'destroy']);
         });
 
-        // Providers
-        Route::get('/providers', [ProviderApiController::class, 'index']);
-        Route::get('/providers/{id}', [ProviderApiController::class, 'show']);
-
-        // Departments
-        Route::get('/departments', [DepartmentApiController::class, 'index']);
-        Route::get('/departments/{id}', [DepartmentApiController::class, 'show']);
-
-        // Schedules
-        Route::get('/schedules', [ScheduleApiController::class, 'index']);
-        Route::get('/schedules/{providerId}/slots', [ScheduleApiController::class, 'slots']);
+        // Providers / Departments / Schedules
+        Route::middleware(['can:view-appointments'])->group(function () {
+            Route::get('/providers', [ProviderApiController::class, 'index']);
+            Route::get('/providers/{id}', [ProviderApiController::class, 'show']);
+            Route::get('/departments', [DepartmentApiController::class, 'index']);
+            Route::get('/departments/{id}', [DepartmentApiController::class, 'show']);
+            Route::get('/schedules', [ScheduleApiController::class, 'index']);
+            Route::get('/schedules/{providerId}/slots', [ScheduleApiController::class, 'slots']);
+        });
 
         // Appointments
         Route::middleware(['can:view-appointments', 'throttle:60,1'])->group(function () {

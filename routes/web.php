@@ -23,16 +23,20 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
-    Route::middleware(['can:portal-dashboard'])->group(function () {
+    Route::middleware(['can:portal-dashboard', 'role:patient'])->group(function () {
         Route::get('patient-portal', [PatientPortalController::class, 'dashboard'])->name('patients.portal');
         Route::get('patient-portal/appointments', [PatientPortalController::class, 'appointments'])->name('patients.portal.appointments');
         Route::get('patient-portal/history', [PatientPortalController::class, 'history'])->name('patients.portal.history');
         Route::get('patient-portal/telehealth', [PatientPortalController::class, 'telehealth'])->name('patients.portal.telehealth');
     });
 
-    Route::get('patients/profile', [PatientController::class, 'profile'])->name('patients.profile');
-    Route::post('patients/profile', [PatientController::class, 'saveProfile'])->name('patients.profile.save');
-    Route::get('patients/lookup', [PatientController::class, 'lookup'])->name('patients.lookup');
+    Route::middleware(['role:patient'])->group(function () {
+        Route::get('patients/profile', [PatientController::class, 'profile'])->name('patients.profile');
+        Route::post('patients/profile', [PatientController::class, 'saveProfile'])->name('patients.profile.save');
+    });
+    Route::middleware(['role:registration,super-admin,hospital-admin'])->group(function () {
+        Route::get('patients/lookup', [PatientController::class, 'lookup'])->name('patients.lookup');
+    });
 
     // Patients
     Route::middleware('can:view-patients')->group(function () {
