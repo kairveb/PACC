@@ -40,8 +40,11 @@ class TriageAndTelehealthParityTest extends TestCase
         $response->assertJsonPath('data.priority_band', 'Yellow');
     }
 
-    public function test_telehealth_session_generates_secure_join_link_without_zoom(): void
+    public function test_telehealth_session_generates_local_join_link_when_zoom_is_disabled(): void
     {
+        $zoom = \Mockery::mock(\App\Services\ZoomService::class);
+        $zoom->shouldReceive('enabled')->once()->andReturn(false);
+
         $patient = Patient::create([
             'mrn' => 'MRN-TEST-001-A',
             'first_name' => 'Secure',
@@ -72,11 +75,60 @@ class TriageAndTelehealthParityTest extends TestCase
             'status' => 'CONFIRMED',
         ]);
 
-        $service = app(\App\Services\TelehealthService::class);
+        $service = new \App\Services\TelehealthService($zoom);
         $session = $service->createSession($appointment);
 
         $this->assertNotNull($session->join_url);
         $this->assertStringContainsString('/telehealth/' . $session->id . '/join', $session->join_url);
+        $this->assertNotSame(TelehealthSession::STATUS_NOT_CONFIGURED, $session->status);
+    }
+
+    public function test_telehealth_session_generates_zoom_join_link_when_zoom_is_enabled(): void
+    {
+        $zoom = \Mockery::mock(\App\Services\ZoomService::class);
+        $zoom->shouldReceive('enabled')->once()->andReturn(true);
+        $zoom->shouldReceive('createMeeting')->once()->with(\Mockery::type('array'))->andReturn([
+            'meeting_id' => 'zoom-12345',
+            'join_url' => 'https://us05web.zoom.us/j/12345?pwd=abc',
+            'start_url' => 'https://us05web.zoom.us/s/12345?pwd=abc',
+        ]);
+
+        $patient = Patient::create([
+            'mrn' => 'MRN-TEST-001-B',
+            'first_name' => 'Zoom',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1992-02-20',
+            'sex' => 'Female',
+            'phone' => '09170000011',
+            'email' => 'zoom-patient@example.test',
+            'verified' => true,
+        ]);
+        $provider = Provider::create([
+            'user_id' => User::factory()->create()->id,
+            'display_name' => 'Dr. Zoom',
+            'active' => true,
+        ]);
+        $appointmentType = AppointmentType::create([
+            'name' => 'Telehealth',
+            'default_duration' => 30,
+            'telehealth' => true,
+        ]);
+        $appointment = Appointment::create([
+            'appointment_number' => 'APT-TEST-001-B',
+            'patient_id' => $patient->id,
+            'provider_id' => $provider->id,
+            'appointment_type_id' => $appointmentType->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDay()->addHour(),
+            'status' => 'CONFIRMED',
+        ]);
+
+        $service = new \App\Services\TelehealthService($zoom);
+        $session = $service->createSession($appointment);
+
+        $this->assertNotNull($session->join_url);
+        $this->assertStringContainsString('zoom.us/', $session->join_url);
+        $this->assertStringNotContainsString('/telehealth/' . $session->id . '/join', $session->join_url);
         $this->assertNotSame(TelehealthSession::STATUS_NOT_CONFIGURED, $session->status);
     }
 

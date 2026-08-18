@@ -26,7 +26,9 @@ class EnsureRole
             return $next($request);
         }
 
-        if (!$user->hasAnyRole($roles)) {
+        $hasRole = $user->hasAnyRole($roles);
+
+        if (!$hasRole) {
             abort(403, 'You are not authorized to access this page.');
         }
 

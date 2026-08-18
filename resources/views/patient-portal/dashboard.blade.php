@@ -61,6 +61,30 @@
     </div>
 
     <div class="space-y-6">
+        @php
+            $preArrivalProfile = $patient->preArrivalProfiles()->latest()->first();
+        @endphp
+
+        @if ($preArrivalProfile)
+            <div class="card rounded-2xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.25em] text-emerald-700">Pre-arrival ticket</p>
+                        <h3 class="mt-2 text-lg font-semibold text-slate-900">Visit check-in ready</h3>
+                    </div>
+                    <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">{{ ucfirst($preArrivalProfile->status) }}</span>
+                </div>
+
+                <div class="mt-4 grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+                    <div>
+                        <p class="text-sm text-slate-700"><span class="font-semibold">Reason:</span> {{ $preArrivalProfile->visit_reason }}</p>
+                        <p class="mt-2 text-xs text-slate-500">Secure token: {{ $preArrivalProfile->token }}</p>
+                    </div>
+                    <img src="{{ $preArrivalProfile->qr_code_url ?? 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' . urlencode($preArrivalProfile->token) }}" alt="Pre-arrival QR code" class="h-28 w-28 rounded-xl border border-emerald-200 bg-white p-2 shadow-sm">
+                </div>
+            </div>
+        @endif
+
         <div class="card rounded-2xl border bg-white p-6 shadow-sm">
             <h3 class="text-lg font-semibold text-slate-900">Upcoming telehealth</h3>
             @if ($upcomingTelehealth->isEmpty())

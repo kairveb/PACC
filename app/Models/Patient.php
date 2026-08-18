@@ -76,6 +76,11 @@ class Patient extends Model
         return $this->hasMany(ClinicalDocument::class);
     }
 
+    public function preArrivalProfiles(): HasMany
+    {
+        return $this->hasMany(PreArrivalProfile::class);
+    }
+
     public function waitlists(): HasMany
     {
         return $this->hasMany(Waitlist::class);
