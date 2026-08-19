@@ -113,7 +113,7 @@ Route::middleware('can:cancel-appointments')->group(function () {
     });
 
     // Telehealth
-    Route::middleware('can:view-telehealth')->group(function () {
+    Route::middleware(['can:view-telehealth', 'role:doctor,nurse,super-admin,hospital-admin'])->group(function () {
         Route::get('telehealth', [TelehealthController::class, 'index'])->name('telehealth.index');
         Route::get('telehealth/{session}', [TelehealthController::class, 'show'])->name('telehealth.show');
     });

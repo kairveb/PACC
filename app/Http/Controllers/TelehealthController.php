@@ -48,13 +48,22 @@ class TelehealthController extends Controller
 
 public function join(TelehealthSession $session, Request $request)
     {
+        $user = auth()->user();
+
         $this->authorize('view', $session->appointment);
 
         $token = $request->query('token');
         abort_unless($this->telehealth->verifyJoinToken($session, $token), 403, 'Invalid or expired telehealth session link.');
         abort_unless(Gate::allows('join-telehealth'), 403, 'You are not authorized to join this telehealth room.');
 
-        $session->load(['appointment.patient', 'appointment.provider', 'participants.user']);
+        if ($user && $user->hasRole('patient')) {
+            $sessionPatientId = $session->appointment?->patient_id;
+            $patientUserId = $user->patient?->id;
+
+            if ($patientUserId === null || $sessionPatientId !== $patientUserId) {
+                abort(403, 'You can only join your own telehealth session.');
+            }
+        }
 
         return view('telehealth.join', compact('session'));
     }

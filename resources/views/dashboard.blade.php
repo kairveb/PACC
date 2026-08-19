@@ -139,19 +139,21 @@
                     <div class="text-base font-semibold text-slate-900">Patient List</div>
                     <div class="mt-1 text-sm text-slate-600">Jump straight to patient records</div>
                 </a>
-            @else
-                <a href="{{ route('patients.create') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                        <i class="bi bi-person-plus-fill"></i>
+            @elseif ($isPatient)
+                <a href="{{ route('portal.pre-register') }}" class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition hover:border-emerald-400 hover:bg-emerald-100">
+                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
+                        <i class="bi bi-clipboard-check"></i>
                     </div>
-                    <div class="text-base font-semibold text-slate-900">Register Patient</div>
+                    <div class="text-base font-semibold text-slate-900">Pre-register for your visit</div>
+                    <div class="mt-1 text-sm text-slate-600">Share your arrival details before you come in</div>
                 </a>
 
-                <a href="{{ route('emergency.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
+                <a href="{{ route('patients.portal') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
                     <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                        <i class="bi bi-hospital"></i>
+                        <i class="bi bi-person-circle"></i>
                     </div>
-                    <div class="text-base font-semibold text-slate-900">ER Queue</div>
+                    <div class="text-base font-semibold text-slate-900">Patient Portal</div>
+                    <div class="mt-1 text-sm text-slate-600">View appointments, history, and telehealth</div>
                 </a>
             @endif
         </div>

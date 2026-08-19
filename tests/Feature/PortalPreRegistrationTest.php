@@ -78,4 +78,56 @@ class PortalPreRegistrationTest extends TestCase
         $dashboardResponse->assertOk();
         $dashboardResponse->assertSee('Pre-arrival ticket');
     }
+
+    public function test_patient_cannot_access_staff_telehealth_index(): void
+    {
+        $role = Role::where('name', 'patient')->firstOrFail();
+        $user = User::factory()->create();
+        $user->forceFill(['email_verified_at' => now()])->save();
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
+        Patient::create([
+            'user_id' => $user->id,
+            'mrn' => 'MRN-ACCESS-001',
+            'first_name' => 'Access',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1991-02-10',
+            'sex' => 'Female',
+            'phone' => '09170000088',
+            'email' => 'access.patient@example.test',
+            'verified' => true,
+        ]);
+
+        $response = $this->actingAs($user, 'web')->get('/telehealth');
+
+        $response->assertForbidden();
+    }
+
+    public function test_patient_dashboard_hides_staff_quick_actions_and_shows_pre_registration_link(): void
+    {
+        $role = Role::where('name', 'patient')->firstOrFail();
+        $user = User::factory()->create();
+        $user->forceFill(['email_verified_at' => now()])->save();
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
+        Patient::create([
+            'user_id' => $user->id,
+            'mrn' => 'MRN-ACCESS-002',
+            'first_name' => 'Portal',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1988-03-15',
+            'sex' => 'Male',
+            'phone' => '09170000089',
+            'email' => 'portal.patient@example.test',
+            'verified' => true,
+        ]);
+
+        $dashboard = $this->actingAs($user, 'web')->get('/dashboard');
+        $dashboard->assertDontSee('Register Patient');
+        $dashboard->assertDontSee('ER Queue');
+        $dashboard->assertSee('Pre-register for your visit');
+
+        $portal = $this->actingAs($user, 'web')->get('/patient-portal');
+        $portal->assertSee('Pre-register for your visit');
+    }
 }

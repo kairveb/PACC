@@ -33,6 +33,21 @@
             </dl>
         </div>
 
+        <div class="card rounded-2xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.25em] text-emerald-700">Pre-registration</p>
+                    <h3 class="mt-2 text-lg font-semibold text-slate-900">Pre-register for your visit</h3>
+                </div>
+            </div>
+
+            <p class="mt-3 text-sm text-slate-700">Share your visit details, medical history, and emergency contact before you arrive so check-in is faster and smoother.</p>
+
+            <a href="{{ route('portal.pre-register') }}" class="mt-5 inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                Pre-register for your visit
+            </a>
+        </div>
+
         <div class="card rounded-2xl border bg-white p-6 shadow-sm">
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-semibold text-slate-900">Upcoming appointments</h3>
