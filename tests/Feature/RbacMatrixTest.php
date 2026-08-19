@@ -41,11 +41,28 @@ class RbacMatrixTest extends TestCase
 
         $this->actingAs($nurse, 'web')->get('/emergency')->assertOk();
         $this->actingAs($nurse, 'web')->get('/triage')->assertOk();
+        $this->actingAs($nurse, 'web')->get('/reports')->assertForbidden();
+        $this->actingAs($nurse, 'web')->get('/audit-logs')->assertForbidden();
         $this->actingAs($nurse, 'web')->get('/patients/lookup')->assertForbidden();
+
+        $this->actingAs($doctor, 'web')->get('/reports')->assertOk();
+        $this->actingAs($doctor, 'web')->get('/audit-logs')->assertForbidden();
+        $this->actingAs($doctor, 'web')->get('/triage')->assertOk();
+
+        $this->actingAs($hospitalAdmin, 'web')->get('/reports')->assertOk();
+        $this->actingAs($hospitalAdmin, 'web')->get('/audit-logs')->assertOk();
+        $this->actingAs($hospitalAdmin, 'web')->get('/triage')->assertOk();
+
+        $this->actingAs($registration, 'web')->get('/reports')->assertForbidden();
+        $this->actingAs($registration, 'web')->get('/audit-logs')->assertForbidden();
+        $this->actingAs($registration, 'web')->get('/triage')->assertForbidden();
 
         $this->actingAs($patient, 'web')->get('/patients/profile')->assertOk();
         $this->actingAs($patient, 'web')->get('/patient-portal')->assertOk();
         $this->actingAs($patient, 'web')->get('/patients/lookup')->assertForbidden();
+        $this->actingAs($patient, 'web')->get('/triage')->assertForbidden();
+        $this->actingAs($patient, 'web')->get('/reports')->assertForbidden();
+        $this->actingAs($patient, 'web')->get('/audit-logs')->assertForbidden();
     }
 
     public function test_the_expected_role_permission_matrix_is_seeded(): void

@@ -29,6 +29,11 @@ class TelehealthApiController extends Controller
 
         $query = TelehealthSession::with('appointment.patient', 'appointment.provider');
 
+        if ($request->user()?->hasRole('patient')) {
+            $patientId = $request->user()->patient?->id;
+            $query->whereHas('appointment', fn ($appointmentQuery) => $appointmentQuery->where('patient_id', $patientId ?? 0));
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
@@ -79,6 +84,15 @@ class TelehealthApiController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $session = TelehealthSession::with('appointment.patient', 'appointment.provider', 'participants')->findOrFail($id);
+
+        if ($request->user()?->hasRole('patient')) {
+            $patientId = $request->user()->patient?->id;
+            $sessionPatientId = $session->appointment?->patient_id;
+
+            if ($patientId === null || $sessionPatientId !== $patientId) {
+                abort(403, 'You can only access your own telehealth session.');
+            }
+        }
 
         return response()->json([
             'success' => true,

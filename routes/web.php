@@ -83,7 +83,7 @@ Route::middleware('can:cancel-appointments')->group(function () {
         Route::post('emergency/check-in', [\App\Http\Controllers\ArrivalCheckInController::class, 'store'])->name('emergency.checkin.store');
     });
 
-    Route::middleware('can:triage-patients')->group(function () {
+    Route::middleware(['can:triage-patients', 'role:nurse,doctor,super-admin,hospital-admin'])->group(function () {
         Route::get('triage', [TriageAssessmentController::class, 'create'])->name('triage.dashboard');
         Route::get('triage/create', [TriageAssessmentController::class, 'create'])->name('triage.create');
         Route::post('triage', [TriageAssessmentController::class, 'store'])->name('triage.store');
@@ -127,7 +127,7 @@ Route::middleware('can:cancel-appointments')->group(function () {
     });
 
     // Reports
-    Route::middleware('can:view-reports')->group(function () {
+    Route::middleware(['can:view-reports', 'role:doctor,super-admin,hospital-admin'])->group(function () {
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/patients', [ReportController::class, 'patients'])->name('reports.patients');
         Route::get('reports/appointments', [ReportController::class, 'appointments'])->name('reports.appointments');
@@ -138,7 +138,7 @@ Route::middleware('can:cancel-appointments')->group(function () {
     });
 
     // Audit logs
-    Route::middleware('can:view-audit-logs')->group(function () {
+    Route::middleware(['can:view-audit-logs', 'role:super-admin,hospital-admin'])->group(function () {
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit.index');
     });
 
