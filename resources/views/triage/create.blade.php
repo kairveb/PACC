@@ -107,6 +107,14 @@
                     <button type="button" id="clinical-override" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200">Clinical override</button>
                 </div>
 
+                <input type="hidden" name="ai_confirmed" id="ai_confirmed" value="0">
+                <input type="hidden" name="priority_override" id="priority_override" value="">
+
+                <label class="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                    <input type="checkbox" id="ai-confirmed-toggle" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                    <span>I confirm the recommended priority, or I have applied a clinical override and documented the reason.</span>
+                </label>
+
                 <div class="mt-5">
                     <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200">Save triage</button>
                 </div>
@@ -173,6 +181,20 @@
         const applyOverrideButton = document.getElementById('apply-override');
         const overrideNotesField = document.getElementById('override-notes');
         const overrideLevelField = document.getElementById('override-level');
+        const aiConfirmedToggle = document.getElementById('ai-confirmed-toggle');
+        const aiConfirmedField = document.getElementById('ai_confirmed');
+        const priorityOverrideField = document.getElementById('priority_override');
+
+        function syncAiConfirmationState(checked) {
+            if (aiConfirmedField) aiConfirmedField.value = checked ? '1' : '0';
+            if (aiConfirmedToggle) aiConfirmedToggle.checked = checked;
+        }
+
+        if (aiConfirmedToggle) {
+            aiConfirmedToggle.addEventListener('change', function () {
+                syncAiConfirmationState(this.checked);
+            });
+        }
 
         function renderAssessment(result) {
             const priority = result.priority || 'Routine';
@@ -193,6 +215,9 @@
                 bandDisplay.textContent = priorityBand;
                 bandDisplay.className = 'font-semibold ' + (priorityBand === 'Red' ? 'text-rose-600' : priorityBand === 'Yellow' ? 'text-amber-600' : 'text-emerald-600');
             }
+
+            if (priorityOverrideField) priorityOverrideField.value = priority;
+            syncAiConfirmationState(false);
 
             preview.innerHTML = `
                 <div class="mb-4 flex items-center justify-between gap-3">
@@ -269,6 +294,9 @@
                 if (notesField) {
                     notesField.value = `Clinical override applied: ${selectedBand}. Reason: ${rationale}`;
                 }
+
+                if (priorityOverrideField) priorityOverrideField.value = selectedBand;
+                syncAiConfirmationState(true);
 
                 if (bandDisplay) {
                     bandDisplay.textContent = selectedBand;

@@ -58,16 +58,29 @@ class AiTriageService
         $symptoms = array_map(fn ($value) => strtolower(trim((string) $value)), $data['symptoms'] ?? []);
         $vitals = $data['vitals'] ?? [];
         $painScore = (int) ($data['pain_score'] ?? 0);
+        $preArrival = $data['pre_arrival_profile'] ?? [];
+        $profileText = implode(' ', array_filter([
+            $preArrival['visit_reason'] ?? '',
+            $preArrival['medical_history'] ?? '',
+            $preArrival['current_medications'] ?? '',
+            $preArrival['allergies'] ?? '',
+            $preArrival['initial_notes'] ?? '',
+        ]));
 
-        $combinedText = implode(' ', array_filter([$complaint, ...$symptoms]));
+        $combinedText = implode(' ', array_filter([$complaint, ...$symptoms, strtolower(trim((string) $profileText))]));
 
         $score = self::LEVEL_ROUTINE;
         $reasons = [];
 
+        $profileSignals = $this->extractProfileSignals($preArrival);
+        if (! empty($profileSignals)) {
+            $reasons[] = 'Pre-arrival profile added elevated-risk context: ' . implode('; ', $profileSignals) . '.';
+        }
+
         if ($this->hasCriticalPattern($combinedText, $vitals)) {
             $score = self::LEVEL_EMERGENCY;
             $reasons[] = 'Life-threatening symptoms or critical physiology were detected.';
-        } elseif ($this->hasUrgentPattern($combinedText, $vitals, $painScore)) {
+        } elseif ($this->hasUrgentPattern($combinedText, $vitals, $painScore) || ! empty($profileSignals)) {
             $score = self::LEVEL_URGENT;
             $reasons[] = 'Urgent symptoms or abnormal vital signs require rapid review.';
         } elseif ($this->hasPromptPattern($combinedText, $vitals, $painScore)) {
@@ -217,6 +230,37 @@ class AiTriageService
         }
 
         return false;
+    }
+
+    protected function extractProfileSignals(array $preArrival): array
+    {
+        $signals = [];
+        $combinedText = strtolower(implode(' ', array_filter([
+            $preArrival['medical_history'] ?? '',
+            $preArrival['allergies'] ?? '',
+            $preArrival['visit_reason'] ?? '',
+            $preArrival['current_medications'] ?? '',
+        ])));
+
+        foreach ([
+            'asthma' => 'Asthma history',
+            'cardiac' => 'Cardiac history',
+            'heart' => 'Cardiac history',
+            'diabetes' => 'Diabetes history',
+            'stroke' => 'Prior stroke history',
+            'sepsis' => 'Sepsis history',
+            'pregnancy' => 'Pregnancy risk',
+            'anaphylaxis' => 'Severe allergy risk',
+            'allergy' => 'Allergy history',
+            'shortness of breath' => 'Shortness of breath noted in pre-arrival profile',
+            'chest pain' => 'Chest pain noted in pre-arrival profile',
+        ] as $keyword => $label) {
+            if (str_contains($combinedText, $keyword)) {
+                $signals[] = $label;
+            }
+        }
+
+        return array_values(array_unique($signals));
     }
 
     protected function containsAny(string $text, array $keywords): bool

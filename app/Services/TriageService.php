@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ErQueue;
 use App\Models\ErVisit;
+use App\Models\PreArrivalProfile;
 use App\Models\TriageAssessment;
 use App\Models\TriageVital;
 use Illuminate\Support\Facades\DB;
@@ -133,7 +134,8 @@ class TriageService
 
     public function score(array $data): array
     {
-        $ai = app(AiTriageService::class)->analyze($data);
+        $analysisData = $this->buildAnalysisData($data);
+        $ai = app(AiTriageService::class)->analyze($analysisData);
 
         return [
             'level' => $ai['level'],
@@ -146,6 +148,44 @@ class TriageService
             'recommendation' => $ai['recommendation'],
             'reasons' => $ai['reasons'],
         ];
+    }
+
+    protected function buildAnalysisData(array $data): array
+    {
+        $patientId = $data['patient_id'] ?? null;
+        $profile = $patientId ? $this->resolvePreArrivalProfile((int) $patientId) : null;
+
+        if (! $profile) {
+            return $data;
+        }
+
+        $merged = $data;
+        $merged['pre_arrival_profile'] = [
+            'visit_reason' => $profile->visit_reason,
+            'medical_history' => $profile->medical_history,
+            'current_medications' => $profile->current_medications,
+            'allergies' => $profile->allergies,
+            'initial_notes' => $profile->initial_notes,
+            'emergency_contact_name' => $profile->emergency_contact_name,
+            'emergency_contact_phone' => $profile->emergency_contact_phone,
+        ];
+
+        if (blank($merged['chief_complaint'] ?? null) && filled($profile->visit_reason)) {
+            $merged['chief_complaint'] = $profile->visit_reason;
+        }
+
+        if (empty($merged['symptoms'] ?? []) && filled($profile->medical_history)) {
+            $merged['symptoms'] = array_values(array_filter(array_map('trim', preg_split('/[,;\n]/', $profile->medical_history ?? ''))));
+        }
+
+        return $merged;
+    }
+
+    protected function resolvePreArrivalProfile(int $patientId): ?PreArrivalProfile
+    {
+        return PreArrivalProfile::where('patient_id', $patientId)
+            ->orderByDesc('created_at')
+            ->first();
     }
 
     protected function isImmediateThreat(array $values, string $complaint, array $visual, array $symptoms): bool

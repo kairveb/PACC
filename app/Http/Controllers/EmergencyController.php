@@ -9,6 +9,7 @@ use App\Models\Provider;
 use App\Models\TriageAssessment;
 use App\Services\TriageService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class EmergencyController extends Controller
 {
@@ -171,9 +172,13 @@ class EmergencyController extends Controller
     public function triage(Request $request, ErVisit $visit)
     {
         $data = $request->validate([
+            'patient_id' => ['nullable', 'exists:patients,id'],
             'chief_complaint' => ['nullable', 'string'],
             'pain_score' => ['nullable', 'integer', 'min:0', 'max:10'],
-            'priority' => ['required', 'in:Level 1,Level 2,Level 3,Level 4,Level 5'],
+            'symptoms' => ['nullable', 'string'],
+            'priority' => ['nullable', 'in:Level 1,Level 2,Level 3,Level 4,Level 5,Emergency,Urgent,Prompt,Non-Urgent,Routine'],
+            'priority_override' => ['nullable', 'in:Emergency,Urgent,Prompt,Non-Urgent,Routine'],
+            'ai_confirmed' => ['accepted'],
             'notes' => ['nullable', 'string'],
             'treatment_area' => ['nullable', 'string'],
             'provider_id' => ['nullable', 'exists:providers,id'],
@@ -184,10 +189,19 @@ class EmergencyController extends Controller
             'vitals_spo2' => ['nullable', 'integer'],
         ]);
 
+        if (! $request->boolean('ai_confirmed')) {
+            throw ValidationException::withMessages([
+                'ai_confirmed' => ['You must explicitly confirm or override the AI priority before finalizing triage.'],
+            ]);
+        }
+
+        $priority = $data['priority_override'] ?? $data['priority'] ?? 'Level 3';
+        $symptoms = array_values(array_filter(array_map('trim', preg_split('/[,;\n]/', (string) ($data['symptoms'] ?? '')))));
+
         $assessment = $this->triage->triage($visit, [
             'chief_complaint' => $data['chief_complaint'] ?? null,
             'pain_score' => $data['pain_score'] ?? null,
-            'priority' => $data['priority'],
+            'priority' => $this->normalizePriorityForErQueue($priority),
             'notes' => $data['notes'] ?? null,
             'treatment_area' => $data['treatment_area'] ?? null,
             'provider_id' => $data['provider_id'] ?? null,
@@ -200,7 +214,23 @@ class EmergencyController extends Controller
             ],
         ]);
 
+        if ($symptoms !== []) {
+            $assessment->update(['symptoms' => $symptoms]);
+        }
+
         return redirect()->route('emergency.show', $visit)->with('success', 'Triage assessment completed.');
+    }
+
+    protected function normalizePriorityForErQueue(string $priority): string
+    {
+        return match (strtolower(trim($priority))) {
+            'emergency' => 'Level 1',
+            'urgent' => 'Level 2',
+            'prompt' => 'Level 3',
+            'non-urgent' => 'Level 4',
+            'routine' => 'Level 5',
+            default => $priority,
+        };
     }
 
     public function queueStatus(Request $request, ErQueue $queue)
