@@ -17,6 +17,50 @@
         </div>
     </div>
 
+    @if (!empty($prefill['checkin_summary']))
+        <div class="panel-card p-6">
+            <div class="mb-4 flex items-center justify-between gap-3">
+                <h3 class="text-lg font-semibold text-slate-900">Pre-arrival check-in summary</h3>
+                <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">Checked in via token</span>
+            </div>
+
+            <dl class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Patient</dt>
+                    <dd class="mt-1 font-semibold text-slate-900">{{ $prefill['checkin_summary']['patient_name'] }}</dd>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Age</dt>
+                    <dd class="mt-1 font-semibold text-slate-900">{{ $prefill['checkin_summary']['age'] }} years</dd>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Contact</dt>
+                    <dd class="mt-1 font-semibold text-slate-900">{{ $prefill['checkin_summary']['contact_phone'] }}</dd>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Address</dt>
+                    <dd class="mt-1 font-semibold text-slate-900">{{ $prefill['checkin_summary']['address'] }}</dd>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 md:col-span-2">
+                    <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Medical history</dt>
+                    <dd class="mt-1 text-sm text-slate-700">{{ $prefill['checkin_summary']['medical_history'] ?: 'Not provided' }}</dd>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 md:col-span-2">
+                    <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Allergies</dt>
+                    <dd class="mt-1 text-sm text-slate-700">{{ $prefill['checkin_summary']['allergies'] ?: 'Not provided' }}</dd>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 md:col-span-2">
+                    <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Current medications</dt>
+                    <dd class="mt-1 text-sm text-slate-700">{{ $prefill['checkin_summary']['current_medications'] ?: 'Not provided' }}</dd>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 md:col-span-2">
+                    <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Emergency contact</dt>
+                    <dd class="mt-1 text-sm text-slate-700">{{ $prefill['checkin_summary']['emergency_contact'] ?: 'Not provided' }}</dd>
+                </div>
+            </dl>
+        </div>
+    @endif
+
     <form method="POST" action="{{ route('emergency.store') }}" class="space-y-6">
         @csrf
 

@@ -72,13 +72,15 @@ Route::middleware('can:cancel-appointments')->group(function () {
     });
 
     // Emergency / ER
-    Route::middleware('can:view-er')->group(function () {
+    Route::middleware(['can:view-er', 'role:nurse,doctor,super-admin,hospital-admin,registration'])->group(function () {
         Route::get('emergency', [EmergencyController::class, 'index'])->name('emergency.index');
         Route::get('emergency/create', [EmergencyController::class, 'create'])->name('emergency.create');
         Route::post('emergency', [EmergencyController::class, 'store'])->name('emergency.store');
         Route::get('emergency/{visit}', [EmergencyController::class, 'show'])->name('emergency.show');
         Route::post('emergency/{visit}/triage', [EmergencyController::class, 'triage'])->name('emergency.triage');
         Route::post('emergency/queue/{queue}/status', [EmergencyController::class, 'queueStatus'])->name('emergency.queue-status');
+        Route::get('emergency/check-in/{token}', [\App\Http\Controllers\ArrivalCheckInController::class, 'show'])->name('emergency.checkin.show');
+        Route::post('emergency/check-in', [\App\Http\Controllers\ArrivalCheckInController::class, 'store'])->name('emergency.checkin.store');
     });
 
     Route::middleware('can:triage-patients')->group(function () {
