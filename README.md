@@ -3,10 +3,11 @@
 A complete, modular, secure, responsive web-based **Hospital Information Management System** for **Patient Access & Care Coordination**, built with **Laravel + PHP + MySQL**.
 
 **Local project folder:** `C:\laragon\www\coor`
-**Local URL:** `http://coor.test` (or `http://127.0.0.1:8000`)
+**Canonical local URL:** `http://127.0.0.1:8000`
+**Run command:** `php artisan serve --host=127.0.0.1 --port=8000`
 **Database:** `coor`
 
-> Note: The system itself is **HIMS**. Only the local project folder/database/domain are named `coor`.
+> Note: The system itself is **HIMS**. Only the local project folder and database are named `coor`. For local web access, the canonical URL is the PHP dev server at `http://127.0.0.1:8000`; Laragon remains useful for MySQL, but the app should not be served through the Apache vhost when using this local dev flow.
 
 ---
 
@@ -29,6 +30,9 @@ Example journey: Registration → MRN → Appointment/Emergency → Outpatient/T
 - Patient registration with unique **MRN** generation (`MRN-2026-000001`)
 - Smart duplicate-patient detection
 - **Patient 360** view (demographics, appointments, encounters, ER, triage, admissions, bed history, discharges, audit)
+- Patient web **pre-registration** portal for emergency or outpatient arrival preparation
+- Arrival **check-in** workflow that pre-fills ER intake using a secure pre-arrival token
+- **AI-assisted triage evaluation hook** that merges pre-arrival data with live vitals and complaint data
 - Appointment booking with **double-booking prevention**
 - Provider schedules, slots, cancellation, rescheduling, check-in, no-show
 - Outpatient encounters, vitals, clinical notes, follow-up
@@ -41,6 +45,31 @@ Example journey: Registration → MRN → Appointment/Emergency → Outpatient/T
 - Versioned **REST API** (`/api/v1`) with Sanctum token auth
 - Optional integrations: Google Maps, Gemini, Zoom, Zapier (feature-flagged)
 
+### 2.1 Patient Web Pre-Registration Portal
+
+The system includes a patient-facing portal flow for pre-arrival registration and intake preparation. Patients can self-register visit details, medical history, emergency contacts, and relevant background information at `/portal/pre-register` before arriving at the hospital. The portal creates a secure digital ticket with a QR code and token that can be used later by staff to rapidly locate and pre-populate a patient's static profile data.
+
+This helps reduce redundant manual intake and ensures staff receive a structured pre-arrival snapshot before the patient reaches the ER or registration desk. The portal is intentionally scoped to the patient role and access is limited to the patient's own profile and pre-registration records, rather than hospital-wide operational data.
+
+### 2.2 Staff Arrival Check-In
+
+Staff can access a patient check-in flow at `/emergency/check-in/{token}` to look up a pre-arrival token and immediately pre-fill ER intake with the patient’s static profile information. This includes demographic details, emergency contact data, allergies, and relevant medical history from the pre-registration record.
+
+The goal is to eliminate duplicate manual entry and shorten the initial intake time when a patient arrives for emergency or urgent assessment. This check-in step is intentionally paired with the triage workflow so staff can validate the patient record while moving directly into severity scoring and queue assignment.
+
+### 2.3 AI-Assisted Triage Evaluation Hook
+
+HIMS includes an AI-assisted triage decision-support hook that combines:
+
+- pre-arrival profile information (allergies, chronic conditions, prior history, existing risk factors),
+- staff-entered patient vitals,
+- the triage chief complaint and symptom details,
+- contextual evaluation factors such as urgency and severity indicators.
+
+This logic is executed through `AiTriageService`, which is intentionally a **rule-based clinical decision support engine** rather than a trained machine learning model. It uses keyword matching, symptom pattern detection, and vital-sign thresholds to generate a severity score and explainable contributing factors. It is not an autonomous diagnosis engine and it does not replace clinical judgment.
+
+The project intentionally avoids a naïve ML approach because there is not yet enough historical, labeled triage data to train a reliable model. The current architecture supports a future upgrade to real ML inference once a sufficiently large and validated data set exists. The current system is designed for transparency and human oversight: the nurse or doctor sees the severity score, the reason factors, and a clear explanation panel, then must explicitly confirm or revise the final triage assessment before it is considered complete.
+
 ## 3. Technology Stack
 
 - **Frontend:** HTML5, CSS3, JavaScript, Laravel Blade, Vite, Tailwind CSS, Alpine.js
@@ -48,7 +77,7 @@ Example journey: Registration → MRN → Appointment/Emergency → Outpatient/T
 - **Database:** MySQL (InnoDB), foreign keys, indexes, transactions
 - **Auth:** Session-based (Laravel starter kit) + Sanctum tokens for API
 - **API:** RESTful JSON, versioned `/api/v1`
-- **Tools:** Laragon, Git, Composer, Node/NPM, Postman
+- **Tools:** Laragon (MySQL), Git, Composer, Node/NPM, Postman
 
 ## 4. Requirements
 
@@ -61,9 +90,11 @@ Example journey: Registration → MRN → Appointment/Emergency → Outpatient/T
 ## 5. Laragon Setup
 
 1. Install and start **Laragon**.
-2. Click **Start All** (Apache/Nginx + MySQL).
+2. Start **MySQL** and any required local services from Laragon.
 3. Place the project at `C:\laragon\www\coor`.
-4. Laragon auto-configures `http://coor.test` (add project via the Laragon menu if needed).
+4. For local app access, use the PHP dev server, not the Apache vhost: `php artisan serve --host=127.0.0.1 --port=8000`.
+
+> Laragon remains useful for the database and local environment management, but the application itself should be served through the Laravel dev server on `http://127.0.0.1:8000` to avoid session/cookie mismatches and follow the canonical local setup.
 
 ## 6. Installation
 
@@ -94,6 +125,7 @@ npm run build        # production-style local asset build
 
 1. Open Laragon → **Database** (or phpMyAdmin/HeidiSQL).
 2. Create a database named **`coor`** (utf8mb4).
+3. Keep MySQL running locally while the app is served via `php artisan serve`.
 
 ## 10. `.env` Configuration
 
@@ -102,7 +134,7 @@ Copy `.env.example` to `.env` and configure:
 ```env
 APP_NAME=HIMS
 APP_ENV=local
-APP_URL=http://coor.test
+APP_URL=http://127.0.0.1:8000
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -177,7 +209,7 @@ php artisan migrate
 php artisan db:seed
 ```
 
-This seeds fictional demo data: 6 roles, permissions, 10 users, 5 departments, providers, 4+ patients, appointment types, wards/rooms/beds (18 beds), appointments, ER visits, triage, admissions, and bed assignments.
+This seeds fictional demo data: 6 roles, permissions, multiple staff and patient users, 5 departments, providers, 4+ patients, appointment types, wards/rooms/beds, appointments, ER visits, triage records, admissions, and bed assignments.
 
 **Demo login (password for all):** `Password123!`
 
@@ -185,10 +217,12 @@ This seeds fictional demo data: 6 roles, permissions, 10 users, 5 departments, p
 |------|-------|
 | Super Admin | `super.admin@coor.test` |
 | Hospital Admin | `hospital.admin@coor.test` |
-| Registration | `registration@coor.test` |
+| Registration Staff | `registration@coor.test` |
 | Doctor | `doctor@coor.test` |
 | Nurse | `nurse@coor.test` |
 | Patient | `patient@coor.test` |
+
+The current RBAC audit confirms that patients are restricted to their own portal/profile and pre-registration access, while nurse/doctor/admin users can access the staff-level triage, check-in, reports, and audit features appropriate to their role. Audit logs remain restricted to the super-admin and hospital-admin roles, not all doctors or nurses.
 
 ## 13. Authentication
 
@@ -197,10 +231,12 @@ This seeds fictional demo data: 6 roles, permissions, 10 users, 5 departments, p
 - 6 roles: Super Admin, Hospital Admin, Registration Staff, Doctor, Nurse, Patient.
 - Permissions mapped to roles via `role_user` / `permission_role` pivot tables.
 - Server-side authorization via Policies, Middleware, and Gates (a user manually entering a URL is still blocked if unauthorized).
+- Patient role access is intentionally scoped to the patient-only portal and own record flow.
+- Nurse/doctor/admin roles are scoped to staff workflows such as ER triage, patient check-in, reporting, and operational oversight; audit log access is restricted to super-admin and hospital-admin users.
 
 ## 14. API Documentation
 
-Base URL: `http://coor.test/api/v1` (or `http://127.0.0.1:8000/api/v1`)
+Base URL: `http://127.0.0.1:8000/api/v1`
 
 **Authentication**
 
@@ -233,7 +269,7 @@ Validation errors return HTTP 422; unauthorized 401; forbidden 403; conflicts (d
 ## 15. Postman Instructions
 
 1. Import the Postman collection (see `postman/HIMS_API.postman_collection.json` if present, or construct requests manually).
-2. Set the base URL variable to `http://coor.test/api/v1`.
+2. Set the base URL variable to `http://127.0.0.1:8000/api/v1`.
 3. Call `POST /auth/login` → copy the returned `token`.
 4. Set a `token` collection variable and enable it in the `Authorization: Bearer {{token}}` header.
 5. Test each module (Patients, Appointments, ER, Triage, Beds, Admissions, Transfers, Discharges).
@@ -265,7 +301,16 @@ Run automated tests (if present under `tests/`):
 php artisan test
 ```
 
-Critical workflows covered: patient registration/search/duplicate detection, appointment booking + double-booking prevention, ER registration + triage + queue, bed availability/reservation/assignment concurrency, transfer, discharge, and API auth/authorization/validation.
+Current verified status: **79 tests passing, 345 assertions, 0 failures**.
+
+The suite includes dedicated coverage for the current HIMS workflows, including:
+
+- `PortalPreRegistrationTest`
+- `ArrivalCheckInTest`
+- `TriageAiEvaluationHookTest`
+- `RbacMatrixTest`
+
+Critical workflows covered: patient registration/search/duplicate detection, portal pre-registration, arrival check-in, AI triage evaluation, RBAC enforcement, appointment booking + double-booking prevention, ER registration + triage + queue, bed availability/reservation/assignment concurrency, transfer, discharge, and API auth/authorization/validation.
 
 ## 21. Git / GitHub Workflow
 
@@ -302,6 +347,8 @@ Suggested branches: `main`, `develop`, `feature/...`. **Never commit `.env`, `.e
 - External integrations (Maps, Gemini, Zoom, Zapier) require real credentials and are disabled by default on localhost.
 - Mail uses the `log` driver locally (no production SMTP required).
 - Production deployment requires configuring real domains, HTTPS, SMTP, queue/storage, and security hardening — a configuration change, not an application rewrite.
+- AI-assisted triage is currently **rule-based rather than a trained ML model** because the project does not yet have enough historical, labeled triage data to support reliable model training. The architecture supports upgrading to a real ML-based inference service once sufficient data is collected.
+- The current triage engine relies on keyword matching, symptom pattern recognition, and vital-sign thresholds; it is intended as explainable clinical decision support rather than autonomous diagnosis.
 
 ---
 
@@ -316,6 +363,9 @@ php artisan migrate
 php artisan db:seed
 npm run build
 php artisan optimize:clear
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-Open `http://coor.test` (or `php artisan serve` → `http://127.0.0.1:8000`).
+Open `http://127.0.0.1:8000`.
+
+This is the canonical local URL for the app. The app should be served with `php artisan serve --host=127.0.0.1 --port=8000`; Laragon may still be used for MySQL, but not as the primary web-serving method for this local developer setup.
