@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
+use App\Rules\PhilippineMobilePhone;
 use App\Services\PatientService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -52,7 +53,7 @@ class PatientApiController extends Controller
             'sex' => ['required', 'in:Male,Female,Other'],
             'civil_status' => ['nullable', 'string', 'max:30'],
             'nationality' => ['nullable', 'string', 'max:100'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
             'email' => ['nullable', 'email', 'max:255'],
             'allergies' => ['nullable', 'string'],
             'address' => ['nullable', 'array'],
@@ -64,7 +65,7 @@ class PatientApiController extends Controller
             'emergency_contact' => ['nullable', 'array'],
             'emergency_contact.name' => ['nullable', 'string'],
             'emergency_contact.relationship' => ['nullable', 'string'],
-            'emergency_contact.phone' => ['nullable', 'string'],
+            'emergency_contact.phone' => ['nullable', 'string', new PhilippineMobilePhone],
         ]);
 
         $patient = $this->patientService->register($data, $request->user()->id);
@@ -110,7 +111,7 @@ class PatientApiController extends Controller
             'sex' => ['sometimes', 'in:Male,Female,Other'],
             'civil_status' => ['nullable', 'string', 'max:30'],
             'nationality' => ['nullable', 'string', 'max:100'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
             'email' => ['nullable', 'email', 'max:255'],
             'allergies' => ['nullable', 'string'],
             'address' => ['nullable', 'array'],

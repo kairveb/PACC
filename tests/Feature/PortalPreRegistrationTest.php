@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Patient;
+use App\Models\PreArrivalProfile;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\HimsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
 class PortalPreRegistrationTest extends TestCase
@@ -62,6 +64,11 @@ class PortalPreRegistrationTest extends TestCase
             'contact_email' => 'jane.patient@example.test',
         ]);
 
+        $profile = $patient->preArrivalProfiles()->latest()->first();
+        $this->assertNotNull($profile);
+        $this->assertNotEmpty($profile->reference_code);
+        $this->assertMatchesRegularExpression('/^(?:[A-Z]{3,4}-)?[A-Z0-9]{4,8}$/i', $profile->reference_code);
+
         $postResponse->assertRedirect(route('patients.portal'));
         $this->assertDatabaseHas('pre_arrival_profiles', [
             'patient_id' => $patient->id,
@@ -69,14 +76,60 @@ class PortalPreRegistrationTest extends TestCase
             'visit_reason' => 'Follow-up for recurring abdominal pain',
         ]);
 
-        $profile = $patient->preArrivalProfiles()->latest()->first();
-        $this->assertNotNull($profile);
         $this->assertNotEmpty($profile->token);
         $this->assertNotEmpty($profile->qr_code_url);
 
         $dashboardResponse = $this->actingAs($user, 'web')->get(route('patients.portal'));
         $dashboardResponse->assertOk();
         $dashboardResponse->assertSee('Pre-arrival ticket');
+        $dashboardResponse->assertSee($profile->reference_code);
+    }
+
+    public function test_reference_codes_are_generated_and_unique(): void
+    {
+        $firstPatient = Patient::create([
+            'user_id' => null,
+            'mrn' => 'MRN-REF-001',
+            'first_name' => 'First',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1990-01-01',
+            'sex' => 'Female',
+            'phone' => '09170000001',
+            'email' => 'first.patient@example.test',
+            'verified' => true,
+        ]);
+
+        $secondPatient = Patient::create([
+            'user_id' => null,
+            'mrn' => 'MRN-REF-002',
+            'first_name' => 'Second',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1991-02-02',
+            'sex' => 'Male',
+            'phone' => '09170000002',
+            'email' => 'second.patient@example.test',
+            'verified' => true,
+        ]);
+
+        $first = PreArrivalProfile::create([
+            'patient_id' => $firstPatient->id,
+            'token' => (string) Uuid::uuid4(),
+            'reference_code' => PreArrivalProfile::generateUniqueReferenceCode(),
+            'status' => 'pending',
+            'visit_reason' => 'Follow-up',
+        ]);
+
+        $second = PreArrivalProfile::create([
+            'patient_id' => $secondPatient->id,
+            'token' => (string) Uuid::uuid4(),
+            'reference_code' => PreArrivalProfile::generateUniqueReferenceCode(),
+            'status' => 'pending',
+            'visit_reason' => 'Follow-up',
+        ]);
+
+        $this->assertNotSame($first->reference_code, $second->reference_code);
+        $this->assertMatchesRegularExpression('/^[A-Z0-9-]+$/i', $first->reference_code);
+        $this->assertMatchesRegularExpression('/^[A-Z0-9-]+$/i', $second->reference_code);
     }
 
     public function test_patient_cannot_access_staff_telehealth_index(): void
@@ -125,9 +178,13 @@ class PortalPreRegistrationTest extends TestCase
         $dashboard = $this->actingAs($user, 'web')->get('/dashboard');
         $dashboard->assertDontSee('Register Patient');
         $dashboard->assertDontSee('ER Queue');
+        $dashboard->assertDontSee('>Telehealth</a>', false);
+        $dashboard->assertDontSee('Care Delivery');
+        $dashboard->assertDontSee('Hospital Systems');
         $dashboard->assertSee('Pre-register for your visit');
 
         $portal = $this->actingAs($user, 'web')->get('/patient-portal');
+        $portal->assertDontSee('Hospital Systems');
         $portal->assertSee('Pre-register for your visit');
     }
 }

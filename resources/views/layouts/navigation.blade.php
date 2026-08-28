@@ -45,6 +45,14 @@
                             {{ __('Reports') }}
                         </x-nav-link>
                     @endcan
+
+                    @if (auth()->user()->hasRole('patient'))
+                        @can('portal-dashboard')
+                            <x-nav-link :href="route('patients.portal')" :active="request()->routeIs('patients.portal', 'patients.portal.*')">
+                                {{ __('Patient Portal') }}
+                            </x-nav-link>
+                        @endcan
+                    @endif
                 </div>
             </div>
 
@@ -130,6 +138,14 @@
                     {{ __('Reports') }}
                 </x-responsive-nav-link>
             @endcan
+
+            @if (auth()->user()->hasRole('patient'))
+                @can('portal-dashboard')
+                    <x-responsive-nav-link :href="route('patients.portal')" :active="request()->routeIs('patients.portal', 'patients.portal.*')">
+                        {{ __('Patient Portal') }}
+                    </x-responsive-nav-link>
+                @endcan
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

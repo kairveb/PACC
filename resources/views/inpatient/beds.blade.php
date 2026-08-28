@@ -40,6 +40,7 @@
                                 @php
                                     $activeAssignment = $bed->activeAssignment;
                                     $patient = $activeAssignment?->admission?->patient;
+                                    $displayPatient = $bed->status === 'OCCUPIED' ? ($patient?->full_name ?? '—') : 'Available';
                                 @endphp
                                 <div class="p-3 rounded-lg border text-sm
                                     {{ $bed->status === 'AVAILABLE' ? 'bg-green-50 border-green-200' : '' }}
@@ -52,7 +53,7 @@
                                         <span class="font-semibold">Bed {{ $bed->number }}</span>
                                         <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-white border">{{ $bed->status }}</span>
                                     </div>
-                                    <div class="mt-1 text-xs text-slate-600 truncate">{{ $patient->full_name ?? '—' }}</div>
+                                    <div class="mt-1 text-xs text-slate-600 truncate">{{ $displayPatient }}</div>
                                     <form method="POST" action="{{ route('beds.status', $bed) }}" class="mt-2 inline-flex gap-1">
                                         @csrf
                                         <select name="status" class="text-[10px] border border-slate-300 rounded px-1 py-0.5">

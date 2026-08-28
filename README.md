@@ -363,6 +363,7 @@ php artisan migrate
 php artisan db:seed
 npm run build
 php artisan optimize:clear
+php artisan migrate:fresh --seed
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 

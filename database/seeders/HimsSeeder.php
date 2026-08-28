@@ -24,6 +24,7 @@ use App\Models\TriageVital;
 use App\Models\User;
 use App\Models\Ward;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class HimsSeeder extends Seeder
@@ -159,30 +160,31 @@ class HimsSeeder extends Seeder
                 $user->email = $userData['email'];
             }
 
-            $user->fill([
+            $user->forceFill([
                 'name' => $userData['name'],
                 'password' => Hash::make('Password123!'),
                 'email_verified_at' => now(),
-            ]);
-            $user->save();
+            ])->save();
 
             if ($role === 'super-admin' && ! User::where('email', 'super.admin@coor.test')->exists()) {
                 $extraUser = new User();
-                $extraUser->name = 'Super Admin';
-                $extraUser->email = 'super.admin@coor.test';
-                $extraUser->password = Hash::make('Password123!');
-                $extraUser->email_verified_at = now();
-                $extraUser->save();
+                $extraUser->forceFill([
+                    'name' => 'Super Admin',
+                    'email' => 'super.admin@coor.test',
+                    'password' => Hash::make('Password123!'),
+                    'email_verified_at' => now(),
+                ])->save();
                 $extraUser->roles()->syncWithoutDetaching([Role::where('name', 'super-admin')->value('id')]);
             }
 
             if ($role === 'hospital-admin' && ! User::where('email', 'hospital.admin@coor.test')->exists()) {
                 $extraUser = new User();
-                $extraUser->name = 'Hospital Admin';
-                $extraUser->email = 'hospital.admin@coor.test';
-                $extraUser->password = Hash::make('Password123!');
-                $extraUser->email_verified_at = now();
-                $extraUser->save();
+                $extraUser->forceFill([
+                    'name' => 'Hospital Admin',
+                    'email' => 'hospital.admin@coor.test',
+                    'password' => Hash::make('Password123!'),
+                    'email_verified_at' => now(),
+                ])->save();
                 $extraUser->roles()->syncWithoutDetaching([Role::where('name', 'hospital-admin')->value('id')]);
             }
 
@@ -382,13 +384,21 @@ class HimsSeeder extends Seeder
                 ]
             );
 
-            $bed = Bed::where('status', 'AVAILABLE')->first();
+            // Seed exactly one real active bed assignment. The rest of the beds should remain AVAILABLE.
+            DB::table('bed_assignments')->delete();
+            Bed::query()->update(['status' => 'AVAILABLE', 'status_updated_at' => null]);
+
+            $bed = Bed::where('status', 'AVAILABLE')->orderBy('id')->first();
             if ($bed) {
-                BedAssignment::firstOrCreate(
-                    ['admission_id' => $admissionRec->id, 'bed_id' => $bed->id],
-                    ['assigned_by' => $admission->id, 'assigned_at' => now()->subHours(3), 'status' => 'ACTIVE']
-                );
                 $bed->update(['status' => 'OCCUPIED', 'status_updated_at' => now()]);
+
+                BedAssignment::create([
+                    'admission_id' => $admissionRec->id,
+                    'bed_id' => $bed->id,
+                    'assigned_by' => $admission->id,
+                    'assigned_at' => now()->subHours(3),
+                    'status' => 'ACTIVE',
+                ]);
             }
         }
     }

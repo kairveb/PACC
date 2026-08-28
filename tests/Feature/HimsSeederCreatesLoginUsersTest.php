@@ -17,11 +17,23 @@ class HimsSeederCreatesLoginUsersTest extends TestCase
     {
         Artisan::call('db:seed', ['--class' => HimsSeeder::class]);
 
-        $this->assertTrue(User::where('email', 'super-admin@coor.test')->exists());
-        $this->assertTrue(User::where('email', 'hospital-admin@coor.test')->exists());
+        $superAdmin = User::where('email', 'super-admin@coor.test')->first();
+        $patient = User::where('email', 'patient@coor.test')->first();
+
+        $this->assertNotNull($superAdmin);
+        $this->assertNotNull($patient);
+        $this->assertTrue($superAdmin->hasVerifiedEmail());
+        $this->assertTrue($patient->hasVerifiedEmail());
 
         $this->assertTrue(Auth::attempt([
             'email' => 'super-admin@coor.test',
+            'password' => 'Password123!',
+        ]));
+
+        Auth::logout();
+
+        $this->assertTrue(Auth::attempt([
+            'email' => 'patient@coor.test',
             'password' => 'Password123!',
         ]));
     }

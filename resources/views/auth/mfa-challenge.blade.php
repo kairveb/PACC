@@ -1,43 +1,69 @@
-@extends('layouts.guest')
+@extends('layouts.auth')
 
 @section('title', 'Two-Factor Verification | HIMS')
+@section('module', 'auth')
+@section('page', 'mfa-challenge')
 
 @section('content')
-<div class="space-y-6">
-    <div class="space-y-2">
-        <p class="text-sm font-medium uppercase tracking-[0.35em] text-teal-600">Secure verification</p>
-        <h2 class="text-3xl font-semibold text-slate-900">Two-Factor Authentication</h2>
-        <p class="text-sm leading-6 text-slate-600">Enter the 6-digit code from your authenticator app to continue.</p>
-    </div>
+    <main class="login-layout">
+        <section class="login-brand" aria-label="HIMS Main System">
+            <div class="login-brand-content">
+                <div class="login-brand-mark" aria-hidden="true"><i class="ph-fill ph-cross"></i></div>
+                <p class="login-kicker">Hospital Information Management System</p>
+                <h1>HIMS Main System</h1>
+                <p class="login-brand-description">One connected workspace for hospital operations and management modules.</p>
+                <ul class="login-brand-signals" aria-label="System trust information">
+                    <li><i class="ph ph-shield-check" aria-hidden="true"></i><span>Secure Authentication</span></li>
+                    <li><i class="ph ph-identification-card" aria-hidden="true"></i><span>Role-Based Access</span></li>
+                    <li><i class="ph ph-buildings" aria-hidden="true"></i><span>Centralized Hospital Operations</span></li>
+                </ul>
+            </div>
+            <footer class="login-brand-footer"><span>HIMS</span><span>Operations</span></footer>
+        </section>
 
-    @if (session('status'))
-        <x-auth-session-status class="mb-4" :status="session('status')" />
-    @endif
+        <section class="login-panel" aria-labelledby="mfa-title">
+            <div class="login-card">
+                <header class="login-card-header">
+                    <p class="page-kicker">Secure verification</p>
+                    <h2 id="mfa-title">Two-Factor Authentication</h2>
+                    <p class="login-help">Enter the 6-digit code from your authenticator app to continue.</p>
+                </header>
 
-    @if ($errors->any())
-        <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            <p class="font-medium">Please correct the highlighted field below.</p>
-        </div>
-    @endif
+                @if (session('status'))
+                    <x-auth-session-status class="mb-4" :status="session('status')" />
+                @endif
 
-    <form method="POST" action="{{ route('mfa.verify') }}" class="space-y-4" novalidate>
-        @csrf
+                @if ($errors->any())
+                    <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <p class="font-medium">Please correct the highlighted field below.</p>
+                    </div>
+                @endif
 
-        <div>
-            <label for="code" class="mb-2 block text-sm font-medium text-slate-700">Authentication code</label>
-            <input id="code" name="code" type="text" inputmode="numeric" maxlength="6" required autofocus autocomplete="one-time-code" placeholder="000000" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-2xl tracking-[0.5em] text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-100" />
-            @error('code')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
+                <form method="POST" action="{{ route('mfa.verify') }}" id="mfa-form" novalidate>
+                    @csrf
+                    <div class="form-field">
+                        <label for="code">Authentication code</label>
+                        <input id="code" name="code" type="text" inputmode="numeric" maxlength="6" required autofocus autocomplete="one-time-code" placeholder="000000" class="text-center tracking-[0.5em]" />
+                        @error('code')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-        <button type="submit" class="flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
-            Verify & Sign In
-        </button>
-    </form>
+                    <button class="btn-primary login-submit" type="submit"><i class="ph ph-lock-key-open" aria-hidden="true"></i>Verify &amp; Sign In</button>
+                </form>
 
-    <p class="text-center text-sm text-slate-500">
-        Don't have your code? Contact your hospital administrator.
-    </p>
-</div>
+                <div class="login-support" aria-label="Verification help">
+                    <i class="ph ph-question" aria-hidden="true"></i>
+                    <p><strong>Need access help?</strong><span>Contact your hospital administrator.</span></p>
+                </div>
+
+                <aside class="login-access-notice" aria-label="Security notice">
+                    <i class="ph ph-lock-key" aria-hidden="true"></i>
+                    <div><strong>Secure access</strong><span>Your session is protected and monitored according to hospital security policies.</span></div>
+                </aside>
+
+                <footer class="login-card-footer"><span>Authorized users only</span><span>HIMS</span></footer>
+            </div>
+        </section>
+    </main>
 @endsection

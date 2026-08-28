@@ -2,10 +2,12 @@
 
 namespace Tests;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
+    use RefreshDatabase;
     /**
      * Track output buffer level at the start of each test to avoid
      * leaving stray buffers open (which PHPUnit flags as risky).

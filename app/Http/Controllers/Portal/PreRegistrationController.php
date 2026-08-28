@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
 use App\Models\PreArrivalProfile;
+use App\Rules\PhilippineMobilePhone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -38,18 +39,21 @@ class PreRegistrationController extends Controller
             'current_medications' => ['nullable', 'string', 'max:1000'],
             'allergies' => ['nullable', 'string', 'max:1000'],
             'emergency_contact_name' => ['nullable', 'string', 'max:150'],
-            'emergency_contact_phone' => ['nullable', 'string', 'max:30'],
+            'emergency_contact_phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
             'emergency_contact_relationship' => ['nullable', 'string', 'max:100'],
             'address_line1' => ['nullable', 'string', 'max:255'],
             'address_city' => ['nullable', 'string', 'max:100'],
             'address_province' => ['nullable', 'string', 'max:100'],
             'address_postal_code' => ['nullable', 'string', 'max:20'],
-            'contact_phone' => ['nullable', 'string', 'max:30'],
+            'contact_phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
             'contact_email' => ['nullable', 'email', 'max:255'],
         ]);
 
+        $referenceCode = PreArrivalProfile::generateUniqueReferenceCode();
+
         $profile = $patient->preArrivalProfiles()->create([
             'token' => (string) Str::uuid(),
+            'reference_code' => $referenceCode,
             'status' => 'pending',
             'visit_reason' => $data['visit_reason'],
             'initial_notes' => $data['initial_notes'] ?? null,
@@ -73,7 +77,7 @@ class PreRegistrationController extends Controller
             'qr_code_url' => $this->buildQrCode($profile->token),
         ]);
 
-        return redirect()->route('patients.portal')->with('success', 'Your pre-registration details have been saved.');
+        return redirect()->route('patients.portal')->with('success', 'Your pre-registration details have been saved. Reference code: ' . $profile->reference_code . '.');
     }
 
     protected function buildQrCode(string $token): string

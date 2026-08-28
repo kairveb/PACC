@@ -44,10 +44,29 @@
                     <ul class="nav-list">
                         <li><a class="nav-link{{ request()->routeIs('dashboard') ? ' active' : '' }}" href="{{ route('dashboard') }}" aria-label="Dashboard" @if(request()->routeIs('dashboard')) aria-current="page" @endif><i class="ph-fill ph-squares-four" aria-hidden="true"></i><span class="nav-label">Dashboard</span></a></li>
                         @if (auth()->user()->hasRole('patient'))
-                            <li><a class="nav-link{{ request()->routeIs('patients.portal', 'patients.portal.appointments', 'patients.portal.history', 'patients.portal.telehealth') ? ' active' : '' }}" href="{{ route('patients.portal') }}" aria-label="Patient Portal" @if(request()->routeIs('patients.portal', 'patients.portal.appointments', 'patients.portal.history', 'patients.portal.telehealth')) aria-current="page" @endif><i class="ph-fill ph-user-circle" aria-hidden="true"></i><span class="nav-label">Patient Portal</span></a></li>
+                            @can('portal-dashboard')
+                                <li><a class="nav-link{{ request()->routeIs('patients.portal', 'patients.portal.appointments', 'patients.portal.history', 'patients.portal.telehealth') ? ' active' : '' }}" href="{{ route('patients.portal') }}" aria-label="Patient Portal" @if(request()->routeIs('patients.portal', 'patients.portal.appointments', 'patients.portal.history', 'patients.portal.telehealth')) aria-current="page" @endif><i class="ph-fill ph-user-circle" aria-hidden="true"></i><span class="nav-label">Patient Portal</span></a></li>
+                            @endcan
                         @endif
                     </ul>
 
+                    @php
+                        $user = auth()->user();
+                        $showHospitalSystemsSection = ! $user->hasRole('patient');
+
+                        if ($showHospitalSystemsSection) {
+                            $showHospitalSystemsSection = $user->can('view-patients')
+                                || $user->can('view-appointments')
+                                || $user->can('view-encounters')
+                                || $user->can('view-telehealth')
+                                || $user->can('view-er')
+                                || $user->can('view-beds')
+                                || $user->can('view-admissions')
+                                || $user->can('view-reports')
+                                || $user->can('view-audit-logs');
+                        }
+                    @endphp
+                    @if ($showHospitalSystemsSection)
                     <p class="nav-title">Hospital Systems</p>
                     <ul class="nav-list nav-domain-list">
                         @can('view-patients')
@@ -64,7 +83,15 @@
                         </li>
                         @endcan
 
-                        @canAny(['view-appointments', 'view-encounters', 'view-telehealth', 'view-er'])
+                        @php
+                            $isPatientUser = auth()->user()->hasRole('patient');
+                            $careDeliveryVisibleLinks = [];
+                            if (auth()->user()->can('view-appointments')) { $careDeliveryVisibleLinks[] = 'appointments'; }
+                            if (auth()->user()->can('view-encounters')) { $careDeliveryVisibleLinks[] = 'encounters'; }
+                            if (auth()->user()->can('view-telehealth') && auth()->user()->hasAnyRole(['doctor','nurse','super-admin','hospital-admin'])) { $careDeliveryVisibleLinks[] = 'telehealth'; }
+                            if (auth()->user()->can('view-er') && auth()->user()->hasAnyRole(['nurse','doctor','super-admin','hospital-admin','registration'])) { $careDeliveryVisibleLinks[] = 'er'; }
+                        @endphp
+                        @if (! $isPatientUser || ! empty($careDeliveryVisibleLinks))
                         <li class="nav-accordion{{ request()->routeIs('appointments.*', 'outpatient.*', 'encounters.*', 'telehealth.*', 'emergency.*', 'doctors.queue*') ? ' is-expanded is-active' : '' }}">
                             <button class="nav-link nav-link-button nav-accordion__toggle" type="button" aria-expanded="{{ request()->routeIs('appointments.*', 'outpatient.*', 'encounters.*', 'telehealth.*', 'emergency.*', 'doctors.queue*') ? 'true' : 'false' }}" aria-controls="nav-care" aria-label="Care Delivery"><i class="ph-fill ph-heartbeat" aria-hidden="true"></i><span class="nav-label">Care Delivery</span><i class="ph ph-caret-down nav-chevron" aria-hidden="true"></i></button>
                             <ul class="nav-submenu" id="nav-care" @if(!request()->routeIs('appointments.*', 'outpatient.*', 'encounters.*', 'telehealth.*', 'emergency.*', 'doctors.queue*')) hidden @endif>
@@ -80,7 +107,7 @@
                                     @endif
                                 @endcan
                                 @can('view-telehealth')
-                                    @if (auth()->user()->hasAnyRole(['doctor','nurse','super-admin','hospital-admin','patient']))
+                                    @if (auth()->user()->hasAnyRole(['doctor','nurse','super-admin','hospital-admin']))
                                         <li><a href="{{ route('telehealth.index') }}" class="{{ request()->routeIs('telehealth.*') ? 'active' : '' }}">Telehealth</a></li>
                                     @endif
                                 @endcan
@@ -91,7 +118,7 @@
                                 @endcan
                             </ul>
                         </li>
-                        @endcanAny
+                        @endif
 
                         @canAny(['view-beds', 'view-admissions'])
                         <li class="nav-accordion{{ request()->routeIs('beds.*', 'admissions.*', 'inpatient.*') ? ' is-expanded is-active' : '' }}">
@@ -129,6 +156,7 @@
                         </li>
                         @endcanAny
                     </ul>
+                    @endif
                 </nav>
 
                 <footer class="sidebar-footer">
@@ -167,10 +195,12 @@
                     </div>
                     @endcan
                 </div>
+                @if (false)
                 <div class="navbar-right">
                     <button class="icon-btn" type="button" aria-label="Notifications" disabled><i class="ph ph-bell" aria-hidden="true"></i></button>
                     <button class="icon-btn" type="button" aria-label="Messages" disabled><i class="ph ph-envelope-simple" aria-hidden="true"></i></button>
                 </div>
+                @endif
             </header>
 
             <section class="page-wrapper" aria-label="@yield('page-label', 'HIMS workspace')">

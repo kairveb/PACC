@@ -44,117 +44,141 @@
 
         <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             @if ($isRegistration)
-                <a href="{{ route('patients.create') }}" class="rounded-2xl border border-sky-200 bg-sky-50 p-4 transition hover:border-sky-400 hover:bg-sky-100">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600 text-white">
-                        <i class="bi bi-person-plus-fill"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">Register Patient</div>
-                    <div class="mt-1 text-sm text-slate-600">Create a new MRN and intake record</div>
-                </a>
+                @can('create-patients')
+                    <a href="{{ route('patients.create') }}" class="rounded-2xl border border-sky-200 bg-sky-50 p-4 transition hover:border-sky-400 hover:bg-sky-100">
+                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600 text-white">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </div>
+                        <div class="text-base font-semibold text-slate-900">Register Patient</div>
+                        <div class="mt-1 text-sm text-slate-600">Create a new MRN and intake record</div>
+                    </a>
+                @endcan
 
-                <a href="{{ route('patients.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                        <i class="bi bi-search"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">Patient Lookup</div>
-                    <div class="mt-1 text-sm text-slate-600">Find an existing patient quickly</div>
-                </a>
+                @can('view-patients')
+                    <a href="{{ route('patients.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
+                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <div class="text-base font-semibold text-slate-900">Patient Lookup</div>
+                        <div class="mt-1 text-sm text-slate-600">Find an existing patient quickly</div>
+                    </a>
+                @endcan
 
-                <a href="{{ route('appointments.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                        <i class="bi bi-calendar3"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">Appointments</div>
-                    <div class="mt-1 text-sm text-slate-600">Review daily schedule and check-ins</div>
-                </a>
+                @can('view-appointments')
+                    <a href="{{ route('appointments.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
+                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
+                            <i class="bi bi-calendar3"></i>
+                        </div>
+                        <div class="text-base font-semibold text-slate-900">Appointments</div>
+                        <div class="mt-1 text-sm text-slate-600">Review daily schedule and check-ins</div>
+                    </a>
+                @endcan
 
-                <a href="{{ route('emergency.index') }}" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 transition hover:border-rose-400 hover:bg-rose-100">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-rose-600 text-white">
-                        <i class="bi bi-hospital"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">ER Queue</div>
-                    <div class="mt-1 text-sm text-slate-600">Check emergency arrivals and priority levels</div>
-                </a>
+                @can('view-er')
+                    <a href="{{ route('emergency.index') }}" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 transition hover:border-rose-400 hover:bg-rose-100">
+                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-rose-600 text-white">
+                            <i class="bi bi-hospital"></i>
+                        </div>
+                        <div class="text-base font-semibold text-slate-900">ER Queue</div>
+                        <div class="mt-1 text-sm text-slate-600">Check emergency arrivals and priority levels</div>
+                    </a>
+                @endcan
             @elseif ($userRole === 'nurse')
-                <a href="{{ route('triage.create') }}" class="rounded-2xl border border-teal-200 bg-teal-50 p-4 transition hover:border-teal-400 hover:bg-teal-100">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-600 text-white">
-                        <i class="bi bi-heart-pulse"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">New Triage</div>
-                    <div class="mt-1 text-sm text-slate-600">Start patient urgency assessment</div>
-                </a>
+                @can('triage-patients')
+                    <a href="{{ route('triage.create') }}" class="rounded-2xl border border-teal-200 bg-teal-50 p-4 transition hover:border-teal-400 hover:bg-teal-100">
+                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-600 text-white">
+                            <i class="bi bi-heart-pulse"></i>
+                        </div>
+                        <div class="text-base font-semibold text-slate-900">New Triage</div>
+                        <div class="mt-1 text-sm text-slate-600">Start patient urgency assessment</div>
+                    </a>
+                @endcan
 
-                <a href="{{ route('emergency.index') }}" class="rounded-2xl border border-amber-200 bg-amber-50 p-4 transition hover:border-amber-400 hover:bg-amber-100">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white">
-                        <i class="bi bi-clipboard-pulse"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">ER Queue</div>
-                    <div class="mt-1 text-sm text-slate-600">Review waiting patients by severity</div>
-                </a>
+                @can('view-er')
+                    <a href="{{ route('emergency.index') }}" class="rounded-2xl border border-amber-200 bg-amber-50 p-4 transition hover:border-amber-400 hover:bg-amber-100">
+                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white">
+                            <i class="bi bi-clipboard-pulse"></i>
+                        </div>
+                        <div class="text-base font-semibold text-slate-900">ER Queue</div>
+                        <div class="mt-1 text-sm text-slate-600">Review waiting patients by severity</div>
+                    </a>
 
-                <a href="{{ route('emergency.create') }}" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 transition hover:border-rose-400 hover:bg-rose-100">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-rose-600 text-white">
-                        <i class="bi bi-file-medical"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">ER Intake</div>
-                    <div class="mt-1 text-sm text-slate-600">Record arrivals and chief complaints</div>
-                </a>
+                    <a href="{{ route('emergency.create') }}" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 transition hover:border-rose-400 hover:bg-rose-100">
+                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-rose-600 text-white">
+                            <i class="bi bi-file-medical"></i>
+                        </div>
+                        <div class="text-base font-semibold text-slate-900">ER Intake</div>
+                        <div class="mt-1 text-sm text-slate-600">Record arrivals and chief complaints</div>
+                    </a>
+                @endcan
 
-                <a href="{{ route('beds.index') }}" class="rounded-2xl border border-violet-200 bg-violet-50 p-4 transition hover:border-violet-400 hover:bg-violet-100">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white">
-                        <i class="bi bi-bed"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">Bed Board</div>
-                    <div class="mt-1 text-sm text-slate-600">Track available and occupied beds</div>
-                </a>
+                @can('view-beds')
+                    <a href="{{ route('beds.index') }}" class="rounded-2xl border border-violet-200 bg-violet-50 p-4 transition hover:border-violet-400 hover:bg-violet-100">
+                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white">
+                            <i class="bi bi-bed"></i>
+                        </div>
+                        <div class="text-base font-semibold text-slate-900">Bed Board</div>
+                        <div class="mt-1 text-sm text-slate-600">Track available and occupied beds</div>
+                    </a>
+                @endcan
             @elseif ($userRole === 'doctor')
-                <a href="{{ route('doctors.queue') }}" class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition hover:border-emerald-400 hover:bg-emerald-100">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                        <i class="bi bi-clipboard-check"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">Doctor Queue</div>
-                    <div class="mt-1 text-sm text-slate-600">Review urgent patients waiting for review</div>
-                </a>
+                @can('view-encounters')
+                    <a href="{{ route('doctors.queue') }}" class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition hover:border-emerald-400 hover:bg-emerald-100">
+                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
+                            <i class="bi bi-clipboard-check"></i>
+                        </div>
+                        <div class="text-base font-semibold text-slate-900">Doctor Queue</div>
+                        <div class="mt-1 text-sm text-slate-600">Review urgent patients waiting for review</div>
+                    </a>
 
-                <a href="{{ route('encounters.index') }}" class="rounded-2xl border border-sky-200 bg-sky-50 p-4 transition hover:border-sky-400 hover:bg-sky-100">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600 text-white">
-                        <i class="bi bi-journal-medical"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">Encounters</div>
-                    <div class="mt-1 text-sm text-slate-600">Open active patient consultations</div>
-                </a>
+                    <a href="{{ route('encounters.index') }}" class="rounded-2xl border border-sky-200 bg-sky-50 p-4 transition hover:border-sky-400 hover:bg-sky-100">
+                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600 text-white">
+                            <i class="bi bi-journal-medical"></i>
+                        </div>
+                        <div class="text-base font-semibold text-slate-900">Encounters</div>
+                        <div class="mt-1 text-sm text-slate-600">Open active patient consultations</div>
+                    </a>
+                @endcan
 
-                <a href="{{ route('appointments.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                        <i class="bi bi-calendar2-week"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">Today’s Schedule</div>
-                    <div class="mt-1 text-sm text-slate-600">Check all booked visits for the day</div>
-                </a>
+                @can('view-appointments')
+                    <a href="{{ route('appointments.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
+                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
+                            <i class="bi bi-calendar2-week"></i>
+                        </div>
+                        <div class="text-base font-semibold text-slate-900">Today’s Schedule</div>
+                        <div class="mt-1 text-sm text-slate-600">Check all booked visits for the day</div>
+                    </a>
+                @endcan
 
-                <a href="{{ route('patients.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                        <i class="bi bi-people"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">Patient List</div>
-                    <div class="mt-1 text-sm text-slate-600">Jump straight to patient records</div>
-                </a>
+                @can('view-patients')
+                    <a href="{{ route('patients.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
+                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="text-base font-semibold text-slate-900">Patient List</div>
+                        <div class="mt-1 text-sm text-slate-600">Jump straight to patient records</div>
+                    </a>
+                @endcan
             @elseif ($isPatient)
-                <a href="{{ route('portal.pre-register') }}" class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition hover:border-emerald-400 hover:bg-emerald-100">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                        <i class="bi bi-clipboard-check"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">Pre-register for your visit</div>
-                    <div class="mt-1 text-sm text-slate-600">Share your arrival details before you come in</div>
-                </a>
+                @if (auth()->user()->hasRole('patient'))
+                    @can('portal-dashboard')
+                        <a href="{{ route('portal.pre-register') }}" class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition hover:border-emerald-400 hover:bg-emerald-100">
+                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
+                                <i class="bi bi-clipboard-check"></i>
+                            </div>
+                            <div class="text-base font-semibold text-slate-900">Pre-register for your visit</div>
+                            <div class="mt-1 text-sm text-slate-600">Share your arrival details before you come in</div>
+                        </a>
 
-                <a href="{{ route('patients.portal') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
-                    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                        <i class="bi bi-person-circle"></i>
-                    </div>
-                    <div class="text-base font-semibold text-slate-900">Patient Portal</div>
-                    <div class="mt-1 text-sm text-slate-600">View appointments, history, and telehealth</div>
-                </a>
+                        <a href="{{ route('patients.portal') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
+                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            <div class="text-base font-semibold text-slate-900">Patient Portal</div>
+                            <div class="mt-1 text-sm text-slate-600">View appointments, history, and telehealth</div>
+                        </a>
+                    @endcan
+                @endif
             @endif
         </div>
     </section>

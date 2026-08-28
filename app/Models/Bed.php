@@ -42,7 +42,10 @@ class Bed extends Model
 
     public function activeAssignment(): HasOne
     {
-        return $this->hasOne(BedAssignment::class)->where('status', 'ACTIVE');
+        return $this->hasOne(BedAssignment::class)
+            ->where('status', 'ACTIVE')
+            ->orderByDesc('assigned_at')
+            ->orderByDesc('id');
     }
 
     public function activeReservation(): HasOne

@@ -43,6 +43,7 @@ class ArrivalCheckInTest extends TestCase
 
         $profile = $patient->preArrivalProfiles()->create([
             'token' => (string) Str::uuid(),
+            'reference_code' => 'PAC-1234',
             'status' => 'pending',
             'visit_reason' => 'Follow-up for recurring abdominal pain',
             'medical_history' => 'Asthma',
@@ -59,7 +60,7 @@ class ArrivalCheckInTest extends TestCase
             'qr_code_url' => 'https://example.test/qr.png',
         ]);
 
-        $response = $this->actingAs($user, 'web')->get('/emergency/check-in/' . $profile->token);
+        $response = $this->actingAs($user, 'web')->get('/emergency/check-in/reference?reference_code=' . urlencode($profile->reference_code));
 
         $response->assertOk();
         $response->assertSee('Jane Patient');

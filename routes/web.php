@@ -79,6 +79,7 @@ Route::middleware('can:cancel-appointments')->group(function () {
         Route::get('emergency/{visit}', [EmergencyController::class, 'show'])->name('emergency.show');
         Route::post('emergency/{visit}/triage', [EmergencyController::class, 'triage'])->name('emergency.triage');
         Route::post('emergency/queue/{queue}/status', [EmergencyController::class, 'queueStatus'])->name('emergency.queue-status');
+        Route::get('emergency/check-in/reference', [\App\Http\Controllers\ArrivalCheckInController::class, 'lookupByReference'])->name('emergency.checkin.lookup');
         Route::get('emergency/check-in/{token}', [\App\Http\Controllers\ArrivalCheckInController::class, 'show'])->name('emergency.checkin.show');
         Route::post('emergency/check-in', [\App\Http\Controllers\ArrivalCheckInController::class, 'store'])->name('emergency.checkin.store');
     });

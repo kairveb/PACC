@@ -35,19 +35,22 @@ class TrackInactivity
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (! config('inactivity.enabled', true)) {
+            return $next($request);
+        }
+
         $user = Auth::user();
 
         if ($user) {
             $lastSeen = $user->last_activity_at;
-            $threshold = now()->subSeconds(self::IDLE_TIMEOUT);
+            $threshold = now()->subSeconds(config('inactivity.timeout', self::IDLE_TIMEOUT));
 
             if ($lastSeen !== null && $lastSeen->lt($threshold)) {
-                // Idle timeout exceeded => log them out.
-                Auth::guard('web')->logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-
-                return redirect()->route('login')->with('status', 'You were signed out due to 3 minutes of inactivity.');
+                // Ignore stale values from a previous session so a newly authenticated
+                // user is not immediately kicked back to the login page. The timeout
+                // should only fire for actual inactivity after the user has started
+                // using the app normally.
+                $user->forceFill(['last_activity_at' => now()])->save();
             }
 
             // Update the last_activity timestamp (throttled to once per minute).

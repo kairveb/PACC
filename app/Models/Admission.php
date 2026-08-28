@@ -56,7 +56,10 @@ class Admission extends Model
 
     public function activeBedAssignment(): HasOne
     {
-        return $this->hasOne(BedAssignment::class)->where('status', 'ACTIVE');
+        return $this->hasOne(BedAssignment::class)
+            ->where('status', 'ACTIVE')
+            ->orderByDesc('assigned_at')
+            ->orderByDesc('id');
     }
 
     public function discharge(): HasOne

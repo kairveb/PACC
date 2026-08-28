@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\Patient;
+use App\Rules\PhilippineMobilePhone;
 use App\Services\AuditLogService;
 use App\Services\PatientService;
 use Illuminate\Http\Request;
@@ -90,8 +91,8 @@ $data = $request->validate([
             'sex' => ['required', 'in:Male,Female,Other'],
             'civil_status' => ['nullable', 'string', 'max:50', 'regex:/^[\pL\s\'\-.]+$/u'],
             'nationality' => ['nullable', 'string', 'max:100', 'regex:/^[\pL\s\'\-.]+$/u'],
-            // Numbers (phone) — digits/spaces/plus only, 7–15 chars.
-            'phone' => ['nullable', 'string', 'max:30', 'regex:/^\+?[0-9\s\-()]{7,15}$/'],
+            // Philippine mobile numbers only.
+            'phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
             // Email — valid format, lowercase.
             'email' => ['nullable', 'email', 'lowercase', 'max:255'],
             'allergies' => ['nullable', 'string', 'max:2000'],
@@ -104,11 +105,12 @@ $data = $request->validate([
             // Emergency contact (reasons/names/numbers).
             'emergency_name' => ['nullable', 'string', 'max:150', 'regex:/^[\pL\s\'\-.]+$/u'],
             'emergency_relationship' => ['nullable', 'string', 'max:50', 'regex:/^[\pL\s\'\-.]+$/u'],
-            'emergency_phone' => ['nullable', 'string', 'max:30', 'regex:/^\+?[0-9\s\-()]{7,15}$/'],
+            'emergency_phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
         ], [
             'first_name.regex' => 'First name may only contain letters, spaces, and basic punctuation.',
             'last_name.regex' => 'Last name may only contain letters, spaces, and basic punctuation.',
-            'phone.regex' => 'Contact number must be 7–15 digits (plus, spaces, dashes allowed).',
+            'phone' => 'Contact number must be a valid Philippine mobile number (09XXXXXXXXX or +639XXXXXXXXX).',
+            'emergency_phone' => 'Emergency contact number must be a valid Philippine mobile number (09XXXXXXXXX or +639XXXXXXXXX).',
             'address_postal.regex' => 'Postal code must be exactly 4 digits.',
             'date_of_birth.before_or_equal' => 'Date of birth cannot be in the future.',
         ]);
@@ -257,7 +259,7 @@ return view('patients.show', compact('patient'));
             'last_name' => ['required', 'string', 'max:100'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:today'],
             'sex' => ['required', 'in:Male,Female,Other'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
             'email' => ['nullable', 'email', 'max:255'],
             'civil_status' => ['nullable', 'string', 'max:50'],
             'nationality' => ['nullable', 'string', 'max:100'],
@@ -271,7 +273,7 @@ return view('patients.show', compact('patient'));
             'emergency_contact' => ['nullable', 'array'],
             'emergency_contact.name' => ['nullable', 'string'],
             'emergency_contact.relationship' => ['nullable', 'string'],
-            'emergency_contact.phone' => ['nullable', 'string'],
+            'emergency_contact.phone' => ['nullable', 'string', new PhilippineMobilePhone],
         ]);
 
         $this->patientService->update($patient, $data);

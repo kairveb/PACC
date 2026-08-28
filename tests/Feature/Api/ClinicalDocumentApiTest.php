@@ -58,4 +58,22 @@ class ClinicalDocumentApiTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_patient_phone_with_letters_is_rejected(): void
+    {
+        $user = User::where('email', 'registration@coor.test')->firstOrFail();
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/v1/patients', [
+            'first_name' => 'Jane',
+            'last_name' => 'Doe',
+            'date_of_birth' => '1995-03-04',
+            'sex' => 'Female',
+            'phone' => '09ABCD12345',
+            'email' => 'jane.doe@example.test',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['phone']);
+    }
 }

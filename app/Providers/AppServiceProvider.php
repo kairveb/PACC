@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Permission;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,7 +22,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->registerRoleBladeDirective();
         $this->registerPermissionGates();
+    }
+
+    protected function registerRoleBladeDirective(): void
+    {
+        Blade::directive('role', function ($expression) {
+            return "<?php if (auth()->check() && auth()->user()->hasRole({$expression})): ?>";
+        });
+
+        Blade::directive('endrole', function () {
+            return '<?php endif; ?>';
+        });
     }
 
     /**

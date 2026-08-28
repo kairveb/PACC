@@ -6,6 +6,8 @@ use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -42,7 +44,20 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $credentials = $this->only('email', 'password');
+        $user = \App\Models\User::where('email', $credentials['email'] ?? null)->first();
+        Log::debug('LOGIN_DEBUG pre-attempt', [
+            'email' => $credentials['email'] ?? null,
+            'password_present' => ! empty($credentials['password']),
+            'password_length' => strlen((string) ($credentials['password'] ?? '')),
+            'user_exists' => (bool) $user,
+            'hash_check' => $user ? Hash::check((string) ($credentials['password'] ?? ''), $user->password) : false,
+        ]);
+
+        $attempt = Auth::attempt($credentials, $this->boolean('remember'));
+        Log::debug('LOGIN_DEBUG post-attempt', ['attempt' => $attempt]);
+
+        if (! $attempt) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

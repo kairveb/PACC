@@ -24,7 +24,14 @@ class EmergencyApiController extends Controller
         abort_unless(Gate::allows('view-er'), 403, 'You are not authorized.');
 
         $query = ErQueue::with('erVisit.patient')
-            ->orderByRaw("FIELD(priority, 'Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5')")
+            ->orderByRaw("CASE priority
+                WHEN 'Level 1' THEN 1
+                WHEN 'Level 2' THEN 2
+                WHEN 'Level 3' THEN 3
+                WHEN 'Level 4' THEN 4
+                WHEN 'Level 5' THEN 5
+                ELSE 99
+            END")
             ->orderBy('queued_at');
 
         if ($request->filled('status')) {

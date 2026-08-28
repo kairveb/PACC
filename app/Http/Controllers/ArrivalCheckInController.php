@@ -8,6 +8,32 @@ use Illuminate\Support\Facades\Redirect;
 
 class ArrivalCheckInController extends Controller
 {
+    public function lookupByReference(Request $request)
+    {
+        $user = auth()->user();
+
+        if ($user && $user->hasRole('patient')) {
+            abort(403, 'Patients cannot access staff arrival check-in.');
+        }
+
+        $referenceCode = strtoupper(trim((string) $request->query('reference_code', '')));
+
+        if ($referenceCode === '') {
+            return Redirect::route('emergency.index')->with('error', 'Please enter a valid pre-arrival reference code.');
+        }
+
+        $profile = PreArrivalProfile::query()
+            ->with('patient')
+            ->whereRaw('UPPER(reference_code) = ?', [$referenceCode])
+            ->first();
+
+        if (! $profile || ! $profile->isEligibleForCheckIn()) {
+            return Redirect::route('emergency.index')->with('error', 'This pre-arrival reference code is invalid, expired, or has already been used.');
+        }
+
+        return $this->show($profile->token);
+    }
+
     public function show(string $token)
     {
         $user = auth()->user();

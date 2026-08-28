@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Middleware\EnsureRole;
-use App\Http\Middleware\TrackInactivity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,18 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => EnsureRole::class,
-            'inactivity' => TrackInactivity::class,
             'cors' => \App\Http\Middleware\AllowCors::class,
         ]);
 
         $middleware->appendToGroup('api', [
             \App\Http\Middleware\AllowCors::class,
             \App\Http\Middleware\SecureApiHeaders::class,
-        ]);
-
-        // Enforce 3-minute inactivity auto-logout across the authenticated web UI.
-        $middleware->web(append: [
-            TrackInactivity::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

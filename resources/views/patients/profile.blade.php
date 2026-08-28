@@ -56,7 +56,7 @@
 
                 <div>
                     <label class="mb-1 block text-sm font-medium text-slate-700">Phone</label>
-                    <input type="text" name="phone" value="{{ old('phone', $patient->phone) }}" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <input type="tel" name="phone" value="{{ old('phone', $patient->phone) }}" data-phone-input class="w-full rounded-lg border border-slate-300 px-3 py-2" inputmode="numeric" pattern="^(09\d{9}|\+639\d{9})$" placeholder="09XXXXXXXXX or +639XXXXXXXXX">
                 </div>
 
                 <div>
@@ -125,7 +125,7 @@
 
                 <div>
                     <label class="mb-1 block text-sm font-medium text-slate-700">Phone</label>
-                    <input type="text" name="emergency_contact[phone]" value="{{ old('emergency_contact.phone', $contact->phone ?? '') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <input type="tel" name="emergency_contact[phone]" value="{{ old('emergency_contact.phone', $contact->phone ?? '') }}" data-phone-input class="w-full rounded-lg border border-slate-300 px-3 py-2" inputmode="numeric" pattern="^(09\d{9}|\+639\d{9})$" placeholder="09XXXXXXXXX or +639XXXXXXXXX">
                 </div>
             </div>
         </div>
