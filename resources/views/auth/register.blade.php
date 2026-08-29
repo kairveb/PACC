@@ -8,25 +8,27 @@
     <main class="login-layout">
         <section class="login-brand" aria-label="HIMS Main System">
             <div class="login-brand-content">
-                <div class="login-brand-mark" aria-hidden="true"><i class="ph-fill ph-cross"></i></div>
+                <div class="login-brand-mark" aria-hidden="true">
+                    <span class="logo-icon" aria-hidden="true"><i class="ph-fill ph-cross"></i></span>
+                </div>
                 <p class="login-kicker">Hospital Information Management System</p>
                 <h1>HIMS Main System</h1>
-                <p class="login-brand-description">One connected workspace for hospital operations and management modules.</p>
+                <p class="login-brand-description">One connected care environment for patients, staff, and community health services.</p>
                 <ul class="login-brand-signals" aria-label="System trust information">
-                    <li><i class="ph ph-shield-check" aria-hidden="true"></i><span>Secure Authentication</span></li>
-                    <li><i class="ph ph-identification-card" aria-hidden="true"></i><span>Role-Based Access</span></li>
-                    <li><i class="ph ph-buildings" aria-hidden="true"></i><span>Centralized Hospital Operations</span></li>
+                    <li><i class="ph ph-shield-check" aria-hidden="true"></i><span>Secure Care Access</span></li>
+                    <li><i class="ph ph-identification-card" aria-hidden="true"></i><span>Trusted Team Access</span></li>
+                    <li><i class="ph ph-buildings" aria-hidden="true"></i><span>Coordinated Community Care</span></li>
                 </ul>
             </div>
-            <footer class="login-brand-footer"><span>HIMS</span><span>Operations</span></footer>
+            <footer class="login-brand-footer"><span>HIMS</span><span>Care Services</span></footer>
         </section>
 
         <section class="login-panel" aria-labelledby="register-title">
             <div class="login-card">
                 <header class="login-card-header">
                     <p class="page-kicker">Create account</p>
-                    <h2 id="register-title">Set up your HIMS profile</h2>
-                    <p class="login-help">Register for access to the patient access and care coordination system.</p>
+                    <h2 id="register-title">Create your secure HIMS account</h2>
+                    <p class="login-help">Register to access trusted healthcare services and patient-centered support.</p>
                 </header>
 
                 <form method="POST" action="{{ route('register') }}" id="register-form" novalidate>
@@ -66,12 +68,12 @@
 
                 <div class="login-support" aria-label="Registration help">
                     <i class="ph ph-question" aria-hidden="true"></i>
-                    <p><strong>Already registered?</strong><span><a href="{{ route('login') }}" style="color: inherit; text-decoration: underline;">Sign in to your HIMS account</a></span></p>
+                    <p><strong>Already have an account?</strong><span><a href="{{ route('login') }}" style="color: inherit; text-decoration: underline;">Sign in to your HIMS account</a></span></p>
                 </div>
 
                 <aside class="login-access-notice" aria-label="Security notice">
                     <i class="ph ph-lock-key" aria-hidden="true"></i>
-                    <div><strong>Secure access</strong><span>Your session is protected and monitored according to hospital security policies.</span></div>
+                    <div><strong>Secure access</strong><span>Your account is protected to help keep patient information private and accessible only to authorized users.</span></div>
                 </aside>
 
                 <footer class="login-card-footer"><span>Authorized users only</span><span>HIMS</span></footer>

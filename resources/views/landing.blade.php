@@ -8,35 +8,37 @@
     <main class="login-layout">
         <section class="login-brand" aria-label="HIMS Main System">
             <div class="login-brand-content">
-                <div class="login-brand-mark" aria-hidden="true"><i class="ph-fill ph-cross"></i></div>
+                <div class="login-brand-mark" aria-hidden="true">
+                    <span class="logo-icon" aria-hidden="true"><i class="ph-fill ph-cross"></i></span>
+                </div>
                 <p class="login-kicker">Hospital Information Management System</p>
                 <h1>HIMS Main System</h1>
-                <p class="login-brand-description">One connected workspace for hospital operations and management modules.</p>
+                <p class="login-brand-description">One connected care environment for patients, staff, and community health services.</p>
                 <ul class="login-brand-signals" aria-label="System trust information">
-                    <li><i class="ph ph-shield-check" aria-hidden="true"></i><span>Secure Authentication</span></li>
-                    <li><i class="ph ph-identification-card" aria-hidden="true"></i><span>Role-Based Access</span></li>
-                    <li><i class="ph ph-buildings" aria-hidden="true"></i><span>Centralized Hospital Operations</span></li>
+                    <li><i class="ph ph-shield-check" aria-hidden="true"></i><span>Secure Care Access</span></li>
+                    <li><i class="ph ph-identification-card" aria-hidden="true"></i><span>Trusted Team Access</span></li>
+                    <li><i class="ph ph-buildings" aria-hidden="true"></i><span>Coordinated Community Care</span></li>
                 </ul>
             </div>
-            <footer class="login-brand-footer"><span>HIMS</span><span>Operations</span></footer>
+            <footer class="login-brand-footer"><span>HIMS</span><span>Care Services</span></footer>
         </section>
 
         <section class="login-panel" aria-labelledby="landing-title">
             <div class="login-card">
                 <header class="login-card-header">
                     <p class="page-kicker">Connected care</p>
-                    <h2 id="landing-title">HIMS access ready</h2>
-                    <p class="login-help">Streamlined access for patient intake, clinical workflows, and hospital operations.</p>
+                    <h2 id="landing-title">Care that is timely, compassionate, and close to home</h2>
+                    <p class="login-help">Trusted access to patient services, clinical care, and community-focused support.</p>
                 </header>
 
                 <div class="login-support" aria-label="System overview">
                     <i class="ph ph-heart-pulse" aria-hidden="true"></i>
-                    <p><strong>Patient coordination</strong><span>Admissions, telehealth, ER flow, and scheduling in one workspace.</span></p>
+                    <p><strong>Patient coordination</strong><span>From intake to follow-up, we work to deliver prompt, respectful care to every patient and family.</span></p>
                 </div>
 
                 <aside class="login-access-notice" aria-label="Operations overview">
                     <i class="ph ph-clipboard-text" aria-hidden="true"></i>
-                    <div><strong>Operations overview</strong><span>Use the hospital access profile to manage triage, reporting, and care coordination.</span></div>
+                    <div><strong>Accessible services</strong><span>Designed to support safe, efficient care through transparent processes and compassionate service.</span></div>
                 </aside>
 
                 @auth

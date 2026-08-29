@@ -13,6 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="{{ asset('assets/js/core/theme-boot.js') }}"></script>
     <script src="{{ asset('assets/js/auth/session.js') }}"></script>
     <script src="{{ asset('assets/js/auth/guest-guard.js') }}"></script>
