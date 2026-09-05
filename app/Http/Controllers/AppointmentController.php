@@ -69,8 +69,25 @@ class AppointmentController extends Controller
 
         $appointments = $query->paginate(15);
 
+        $patientIds = $appointments->pluck('patient_id')->filter()->unique()->values();
+        if ($request->filled('follow_up') && $request->get('follow_up') === 'due') {
+            $patients = $patientIds->isNotEmpty()
+                ? Patient::whereIn('id', $patientIds)->orderBy('last_name')->get()
+                : collect();
+        } else {
+            $patients = Patient::orderBy('last_name')->get();
+        }
+
+        $providers = Provider::where('active', true)->with('department')->get();
+        $departments = Department::orderBy('name')->get();
+        $appointmentTypes = AppointmentType::orderBy('name')->get();
+
         return view('appointments.index', [
             'appointments' => $appointments,
+            'patients' => $patients,
+            'providers' => $providers,
+            'departments' => $departments,
+            'appointmentTypes' => $appointmentTypes,
             'statuses' => [
                 Appointment::STATUS_PENDING,
                 Appointment::STATUS_CONFIRMED,

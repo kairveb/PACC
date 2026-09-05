@@ -73,9 +73,6 @@
                         <li class="nav-accordion{{ request()->routeIs('patients.*') ? ' is-expanded is-active' : '' }}">
                             <button class="nav-link nav-link-button nav-accordion__toggle" type="button" aria-expanded="{{ request()->routeIs('patients.*') ? 'true' : 'false' }}" aria-controls="nav-patients" aria-label="Patient Management"><i class="ph-fill ph-users-three" aria-hidden="true"></i><span class="nav-label">Patients</span><i class="ph ph-caret-down nav-chevron" aria-hidden="true"></i></button>
                             <ul class="nav-submenu" id="nav-patients" @if(!request()->routeIs('patients.*')) hidden @endif>
-                                @can('create-patients')
-                                    <li><a href="{{ route('patients.create') }}" class="{{ request()->routeIs('patients.create') ? 'active' : '' }}">Register Patient</a></li>
-                                @endcan
                                 @if (auth()->user()->hasAnyRole(['registration','doctor','nurse','super-admin','hospital-admin']))
                                     <li><a href="{{ route('patients.index') }}" class="{{ request()->routeIs('patients.index', 'patients.show', 'patients.vitals') ? 'active' : '' }}">Patient List</a></li>
                                 @endif
@@ -186,15 +183,7 @@
                     <button class="menu-toggle" type="button" aria-label="Collapse sidebar" aria-controls="app-sidebar" aria-expanded="true"><i class="ph ph-list" aria-hidden="true"></i></button>
                     <div class="app-identity"><p class="app-identity-title">HIMS Main System</p><span class="app-identity-subtitle">Patient Access &amp; Care Coordination</span></div>
                 </div>
-                <div class="navbar-center">
-                    @can('view-patients')
-                    <div class="search-wrap">
-                        <label class="search-box" for="global-search"><i class="ph ph-magnifying-glass" aria-hidden="true"></i><span class="visually-hidden">Search HIMS</span><input id="global-search" type="search" placeholder="Search patients, appointments, or modules..." autocomplete="off" aria-controls="search-results" aria-expanded="false">
-                        <kbd aria-hidden="true">/</kbd></label>
-                        <div class="search-results" id="search-results" role="listbox" hidden></div>
-                    </div>
-                    @endcan
-                </div>
+                <div class="navbar-center"></div>
                 @if (false)
                 <div class="navbar-right">
                     <button class="icon-btn" type="button" aria-label="Notifications" disabled><i class="ph ph-bell" aria-hidden="true"></i></button>

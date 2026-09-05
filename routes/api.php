@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\V1\TriageApiController;
 use App\Http\Controllers\Api\V1\WaitlistApiController;
 use App\Http\Controllers\Api\V1\WardApiController;
 use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 /*
 |--------------------------------------------------------------------------
@@ -150,7 +151,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Authenticated routes
-    Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
+    Route::middleware(['web', EnsureFrontendRequestsAreStateful::class, 'auth:sanctum', 'throttle:120,1'])->group(function () {
         Route::post('/auth/logout', [ApiAuthController::class, 'logout']);
         Route::get('/auth/me', [ApiAuthController::class, 'me']);
 

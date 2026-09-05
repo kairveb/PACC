@@ -41,7 +41,20 @@ class EncounterController extends Controller
 
         $encounters = $query->paginate(15);
 
-        return view('encounters.index', compact('encounters'));
+        $patientOptions = Patient::query();
+        if ($user && $user->hasRole('doctor')) {
+            $providerId = $user->provider?->id;
+            if ($providerId) {
+                $patientOptions->whereIn('id', Encounter::where('provider_id', $providerId)->pluck('patient_id'));
+            } else {
+                $patientOptions->whereRaw('0 = 1');
+            }
+        }
+
+        return view('encounters.index', [
+            'encounters' => $encounters,
+            'patientOptions' => $patientOptions->orderBy('last_name')->get(),
+        ]);
     }
 
     public function create(Request $request)

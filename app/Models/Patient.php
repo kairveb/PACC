@@ -14,7 +14,12 @@ class Patient extends Model
 
     protected $guarded = [];
 
-    protected $casts = ['date_of_birth' => 'date', 'verified' => 'boolean'];
+    protected $casts = [
+        'date_of_birth' => 'date',
+        'verified' => 'boolean',
+        'allergies' => 'encrypted',
+        'insurance_number' => 'encrypted',
+    ];
 
     public function user(): BelongsTo
     {

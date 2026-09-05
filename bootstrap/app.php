@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,9 +20,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'cors' => \App\Http\Middleware\AllowCors::class,
         ]);
 
+        $middleware->prependToGroup('web', [
+            \App\Http\Middleware\NoCacheAuthenticatedPages::class,
+        ]);
+
         $middleware->appendToGroup('api', [
             \App\Http\Middleware\AllowCors::class,
             \App\Http\Middleware\SecureApiHeaders::class,
+            EnsureFrontendRequestsAreStateful::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

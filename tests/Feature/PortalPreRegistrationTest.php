@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\HimsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
@@ -70,11 +71,12 @@ class PortalPreRegistrationTest extends TestCase
         $this->assertMatchesRegularExpression('/^(?:[A-Z]{3,4}-)?[A-Z0-9]{4,8}$/i', $profile->reference_code);
 
         $postResponse->assertRedirect(route('patients.portal'));
-        $this->assertDatabaseHas('pre_arrival_profiles', [
-            'patient_id' => $patient->id,
-            'status' => 'pending',
-            'visit_reason' => 'Follow-up for recurring abdominal pain',
-        ]);
+
+        $profileRow = DB::table('pre_arrival_profiles')->where('id', $profile->id)->first();
+        $this->assertSame($patient->id, $profileRow->patient_id);
+        $this->assertSame('pending', $profileRow->status);
+        $this->assertNotSame('Follow-up for recurring abdominal pain', $profileRow->visit_reason);
+        $this->assertSame('Follow-up for recurring abdominal pain', $profile->fresh()->visit_reason);
 
         $this->assertNotEmpty($profile->token);
         $this->assertNotEmpty($profile->qr_code_url);

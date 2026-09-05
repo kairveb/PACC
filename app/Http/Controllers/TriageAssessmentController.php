@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ErVisit;
 use App\Models\Patient;
 use App\Models\PreArrivalProfile;
 use App\Models\TriageAssessment;
@@ -81,8 +82,24 @@ class TriageAssessmentController extends Controller
         $finalPriority = $data['priority_override'] ?? $result['priority'];
         $finalNotes = $data['notes'] ?? $result['recommendation'];
 
+        $visit = ErVisit::firstOrCreate(
+            [
+                'patient_id' => $data['patient_id'],
+                'chief_complaint' => $data['chief_complaint'],
+            ],
+            [
+                'visit_number' => app(\App\Services\TriageService::class)->generateVisitNumber(),
+                'arrived_at' => now(),
+                'arrival_method' => 'Walk-in',
+                'referral_details' => $data['notes'] ?? null,
+                'status' => ErVisit::STATUS_ARRIVED,
+                'created_by' => auth()->id(),
+            ]
+        );
+
         $assessment = TriageAssessment::create([
             'patient_id' => $data['patient_id'],
+            'er_visit_id' => $visit->id,
             'triage_nurse_id' => auth()->id(),
             'triaged_at' => now(),
             'chief_complaint' => $data['chief_complaint'],

@@ -44,9 +44,9 @@
             <p class="mt-3 text-sm text-slate-700">Share your visit details, medical history, and emergency contact before you arrive so check-in is faster and smoother.</p>
 
             @can('portal-dashboard')
-                <a href="{{ route('portal.pre-register') }}" class="mt-5 inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                <button type="button" class="mt-5 inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700" data-bs-toggle="modal" data-bs-target="#preRegistrationModal">
                     Pre-register for your visit
-                </a>
+                </button>
             @endcan
         </div>
 
@@ -143,6 +143,129 @@
                     @endforeach
                 </div>
             @endif
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="preRegistrationModal" tabindex="-1" aria-labelledby="preRegistrationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 shadow-2xl">
+            <div class="modal-header border-b border-slate-200 px-5 py-4">
+                <div>
+                    <h5 class="modal-title text-lg font-semibold text-slate-900" id="preRegistrationModalLabel">Pre-registration</h5>
+                    <p class="mt-1 text-sm text-slate-500">Secure arrival details before your visit</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body px-5 py-5">
+                <form method="POST" action="{{ route('portal.pre-register.store') }}" class="space-y-6">
+                    @csrf
+
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+                        This form is for your pre-arrival information only. Clinical or vital-sign fields are intentionally left blank and will be completed by staff during intake.
+                    </div>
+
+                    <div class="grid gap-5 md:grid-cols-2">
+                        <div class="md:col-span-2">
+                            <h3 class="text-lg font-semibold text-slate-900">Patient details</h3>
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Patient name</label>
+                            <input type="text" value="{{ $patient->full_name }}" disabled class="w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2.5 text-sm text-slate-700">
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Age</label>
+                            <input type="text" value="{{ $patient->age }} years" disabled class="w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2.5 text-sm text-slate-700">
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Phone</label>
+                            <input type="tel" name="contact_phone" value="{{ old('contact_phone', $patient->phone) }}" data-phone-input class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" inputmode="numeric" pattern="^(09\d{9}|\+639\d{9})$" placeholder="09XXXXXXXXX or +639XXXXXXXXX">
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Email</label>
+                            <input type="email" name="contact_email" value="{{ old('contact_email', $patient->email) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Home address</label>
+                            <input type="text" name="address_line1" value="{{ old('address_line1', $patient->addresses->first()?->line1 ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="House number, street, subdivision">
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">City</label>
+                            <input type="text" name="address_city" value="{{ old('address_city', $patient->addresses->first()?->city ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Province</label>
+                            <input type="text" name="address_province" value="{{ old('address_province', $patient->addresses->first()?->province ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Postal code</label>
+                            <input type="text" name="address_postal_code" value="{{ old('address_postal_code', $patient->addresses->first()?->postal_code ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Visit reason</label>
+                            <textarea name="visit_reason" rows="3" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="Briefly describe why you are coming in today.">{{ old('visit_reason') }}</textarea>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Initial notes</label>
+                            <textarea name="initial_notes" rows="3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="Add any context the intake team should know before arrival.">{{ old('initial_notes') }}</textarea>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <h3 class="text-lg font-semibold text-slate-900">Medical history</h3>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Medical history</label>
+                            <textarea name="medical_history" rows="3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="Asthma, hypertension, previous surgeries, chronic conditions...">{{ old('medical_history') }}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Current medications</label>
+                            <textarea name="current_medications" rows="2" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="List medications currently being taken.">{{ old('current_medications') }}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Allergies</label>
+                            <textarea name="allergies" rows="2" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="Penicillin, peanuts, latex...">{{ old('allergies') }}</textarea>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <h3 class="text-lg font-semibold text-slate-900">Emergency contact</h3>
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Contact name</label>
+                            <input type="text" name="emergency_contact_name" value="{{ old('emergency_contact_name', $patient->emergencyContacts->first()?->name ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Relationship</label>
+                            <input type="text" name="emergency_contact_relationship" value="{{ old('emergency_contact_relationship', $patient->emergencyContacts->first()?->relationship ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Emergency contact phone</label>
+                            <input type="tel" name="emergency_contact_phone" value="{{ old('emergency_contact_phone', $patient->emergencyContacts->first()?->phone ?? '') }}" data-phone-input class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" inputmode="numeric" pattern="^(09\d{9}|\+639\d{9})$" placeholder="09XXXXXXXXX or +639XXXXXXXXX">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
+                        <button type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">Save pre-registration</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

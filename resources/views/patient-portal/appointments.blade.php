@@ -8,7 +8,7 @@
 @section('content')
 <div class="card rounded-2xl border bg-white p-6 shadow-sm">
     @if ($appointments->isEmpty())
-        <p class="text-sm text-slate-500">No appointments found.</p>
+        <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">No appointments scheduled yet.</div>
     @else
         <div class="space-y-3">
             @foreach ($appointments as $appointment)

@@ -28,7 +28,7 @@ class TrackInactivity
      * When running under the `web` middleware group, the session is available
      * so we can regenerate the token after auto-logout.
      */
-    public const IDLE_TIMEOUT = 180; // 3 minutes in seconds
+    public const IDLE_TIMEOUT = 900; // 15 minutes in seconds
 
     /**
      * Handle an incoming request.

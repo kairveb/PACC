@@ -11,6 +11,20 @@ class PreArrivalProfile extends Model
 
     protected $casts = [
         'arrived_at' => 'datetime',
+        'visit_reason' => 'encrypted',
+        'initial_notes' => 'encrypted',
+        'medical_history' => 'encrypted',
+        'current_medications' => 'encrypted',
+        'allergies' => 'encrypted',
+        'emergency_contact_name' => 'encrypted',
+        'emergency_contact_phone' => 'encrypted',
+        'emergency_contact_relationship' => 'encrypted',
+        'address_line1' => 'encrypted',
+        'address_city' => 'encrypted',
+        'address_province' => 'encrypted',
+        'address_postal_code' => 'encrypted',
+        'contact_phone' => 'encrypted',
+        'contact_email' => 'encrypted',
     ];
 
     public static function generateUniqueReferenceCode(): string

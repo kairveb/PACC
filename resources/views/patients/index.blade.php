@@ -28,7 +28,7 @@
                 <h2 class="text-lg font-semibold text-slate-900">Patient directory</h2>
                 <p class="text-sm text-slate-600">Search and manage patient records</p>
             </div>
-            <a href="{{ route('patients.create') }}" class="rounded-2xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Register Patient</a>
+            <button type="button" class="rounded-2xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700" data-bs-toggle="modal" data-bs-target="#registerPatientModal">Register Patient</button>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full">
@@ -55,7 +55,7 @@
                             </td>
                             <td class="text-slate-500">{{ $patient->created_at->format('M d, Y') }}</td>
                             <td>
-                                <a href="{{ route('patients.show', $patient) }}" class="text-sm font-semibold text-teal-600 hover:text-teal-700">View 360°</a>
+                                <button type="button" class="text-sm font-semibold text-teal-600 hover:text-teal-700" data-bs-toggle="modal" data-bs-target="#patientOverviewModal-{{ $patient->id }}">View 360°</button>
                             </td>
                         </tr>
                     @empty
@@ -66,6 +66,59 @@
         </div>
         <div class="border-t border-slate-200 p-4">
             {{ $patients->links() }}
+        </div>
+    </div>
+
+    @foreach ($patients as $patient)
+        <div class="modal fade" id="patientOverviewModal-{{ $patient->id }}" tabindex="-1" aria-labelledby="patientOverviewModalLabel-{{ $patient->id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-2xl">
+                    <div class="modal-header border-b border-slate-200 px-5 py-4">
+                        <div>
+                            <h5 class="modal-title text-lg font-semibold text-slate-900" id="patientOverviewModalLabel-{{ $patient->id }}">Patient overview</h5>
+                            <p class="mt-1 text-sm text-slate-500">{{ $patient->full_name ?? '—' }} · {{ $patient->mrn }}</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body px-5 py-5">
+                        <div class="space-y-4 text-sm text-slate-700">
+                            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                <div><span class="text-slate-500">Age / sex:</span> <span class="font-medium">{{ $patient->age }} / {{ $patient->sex }}</span></div>
+                                <div><span class="text-slate-500">Status:</span> <span class="status-pill {{ $patient->verified ? 'success' : 'warning' }} ml-1">{{ $patient->verified ? 'Verified' : 'Pending' }}</span></div>
+                                <div><span class="text-slate-500">Phone:</span> <span class="font-medium">{{ $patient->phone ?? '—' }}</span></div>
+                                <div><span class="text-slate-500">Email:</span> <span class="font-medium">{{ $patient->email ?? '—' }}</span></div>
+                            </div>
+                            @if ($patient->allergies)
+                                <div class="rounded-xl border border-red-200 bg-red-50 p-3 text-red-700">
+                                    <div class="text-xs font-semibold uppercase tracking-[0.12em] text-red-600">Alerts</div>
+                                    <div class="mt-1">{{ $patient->allergies }}</div>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="mt-5 flex justify-end gap-3">
+                            <a href="{{ route('patients.show', $patient) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100">Open details</a>
+                            <button type="button" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-900" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
+
+    <div class="modal fade" id="registerPatientModal" tabindex="-1" aria-labelledby="registerPatientModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-2xl">
+                <div class="modal-header border-b border-slate-200 px-5 py-4">
+                    <div>
+                        <h5 class="modal-title text-lg font-semibold text-slate-900" id="registerPatientModalLabel">Register Patient</h5>
+                        <p class="mt-1 text-sm text-slate-500">Patient demographics and contact info</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-white px-5 py-5">
+                    @include('patients.partials.registration-form')
+                </div>
+            </div>
         </div>
     </div>
 </div>

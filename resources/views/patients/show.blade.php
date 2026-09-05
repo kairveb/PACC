@@ -21,7 +21,7 @@
                 <a href="{{ route('patients.vitals', $patient) }}" class="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">View Vitals</a>
             @endcan
             @can('create-appointments')
-                <a href="{{ route('appointments.create') }}?patient_id={{ $patient->id }}" class="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700">Book Appointment</a>
+                <a href="{{ route('appointments.index') }}" class="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700">Book Appointment</a>
             @endcan
         </div>
     </div>
@@ -216,7 +216,7 @@
                             <td class="py-2 pr-4"><span class="px-2 py-1 text-xs rounded-full bg-slate-100">{{ $adm->status }}</span></td>
                             <td class="py-2 pr-4">{{ $adm->admitted_at?->format('M d, Y') ?? '—' }}</td>
                             <td class="py-2 pr-4">{{ $bed?->label ?? '—' }}</td>
-                            <td class="py-2"><a href="{{ route('admissions.show', $adm) }}" class="text-teal-600 text-xs font-medium">View</a></td>
+                            <td class="py-2"><button type="button" class="text-teal-600 text-xs font-medium" data-bs-toggle="modal" data-bs-target="#patientAdmissionStatusModal-{{ $adm->id }}">View</button></td>
                         </tr>
                         @empty
                         <tr><td colspan="5" class="py-4 text-center text-slate-400">No admissions.</td></tr>
@@ -239,4 +239,38 @@
         </div>
     </div>
 </div>
+
+@foreach ($patient->admissions as $adm)
+    @php
+        $activeAssignment = $adm->bedAssignments->where('status', 'ACTIVE')->first();
+        $bed = $activeAssignment?->bed;
+    @endphp
+    <div class="modal fade" id="patientAdmissionStatusModal-{{ $adm->id }}" tabindex="-1" aria-labelledby="patientAdmissionStatusModalLabel-{{ $adm->id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-2xl">
+                <div class="modal-header border-b border-slate-200 px-5 py-4">
+                    <div>
+                        <h5 class="modal-title text-lg font-semibold text-slate-900" id="patientAdmissionStatusModalLabel-{{ $adm->id }}">Admission details</h5>
+                        <p class="mt-1 text-sm text-slate-500">{{ $adm->admission_number }} · {{ $patient->full_name }}</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-5 py-5">
+                    <div class="space-y-4 text-sm text-slate-700">
+                        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <div><span class="text-slate-500">Status:</span> <span class="ml-1 px-2 py-1 text-xs rounded-full bg-slate-100">{{ $adm->status }}</span></div>
+                            <div><span class="text-slate-500">Bed:</span> <span class="font-medium">{{ $bed?->label ?? '—' }}</span></div>
+                            <div><span class="text-slate-500">Admitted:</span> <span class="font-medium">{{ $adm->admitted_at?->format('M d, Y g:i A') ?? '—' }}</span></div>
+                            <div><span class="text-slate-500">Reason:</span> <span class="font-medium">{{ $adm->reason ?? '—' }}</span></div>
+                        </div>
+                    </div>
+                    <div class="mt-5 flex justify-end gap-3">
+                        <a href="{{ route('admissions.show', $adm) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100">Open details</a>
+                        <button type="button" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-900" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endforeach
 @endsection

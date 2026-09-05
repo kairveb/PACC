@@ -32,7 +32,7 @@
                 <h2 class="text-lg font-semibold text-slate-900">Appointment schedule</h2>
                 <p class="text-sm text-slate-600">Appointment and Scheduling System (ASS)</p>
             </div>
-            <a href="{{ route('appointments.create') }}" class="rounded-2xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Book Appointment</a>
+            <button type="button" class="rounded-2xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700" data-bs-toggle="modal" data-bs-target="#appointmentModal">Book Appointment</button>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full">
@@ -64,17 +64,70 @@
                                 @include('partials.status-badge', ['label' => $apt->status, 'variant' => App\Support\QueueStatus::appointmentVariant($apt->status)])
                             </td>
                             <td>
-                                <a href="{{ route('appointments.show', $apt) }}" class="text-sm font-semibold text-teal-600 hover:text-teal-700">View</a>
+                                <button type="button" class="text-sm font-semibold text-teal-600 hover:text-teal-700" data-bs-toggle="modal" data-bs-target="#appointmentStatusModal-{{ $apt->id }}">View</button>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="py-8 text-center text-slate-400">No appointments found.</td></tr>
+                        <tr><td colspan="7" class="py-10 text-center text-slate-500">No appointments scheduled yet.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
         <div class="border-t border-slate-200 p-4">
             {{ $appointments->links() }}
+        </div>
+    </div>
+</div>
+
+@foreach ($appointments as $apt)
+    <div class="modal fade" id="appointmentStatusModal-{{ $apt->id }}" tabindex="-1" aria-labelledby="appointmentStatusModalLabel-{{ $apt->id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-2xl">
+                <div class="modal-header border-b border-slate-200 px-5 py-4">
+                    <div>
+                        <h5 class="modal-title text-lg font-semibold text-slate-900" id="appointmentStatusModalLabel-{{ $apt->id }}">Appointment details</h5>
+                        <p class="mt-1 text-sm text-slate-500">{{ $apt->appointment_number }} · {{ $apt->patient->full_name ?? '—' }}</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-5 py-5">
+                    <div class="space-y-4 text-sm text-slate-700">
+                        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <div><span class="text-slate-500">Provider:</span> <span class="font-medium">{{ $apt->provider->full_name ?? '—' }}</span></div>
+                            <div><span class="text-slate-500">Type:</span> <span class="font-medium">{{ $apt->appointmentType->name ?? '—' }}</span></div>
+                            <div><span class="text-slate-500">Date/time:</span> <span class="font-medium">{{ $apt->starts_at->format('M d, Y g:i A') }}</span></div>
+                            <div><span class="text-slate-500">Status:</span> <span class="ml-1">@include('partials.status-badge', ['label' => $apt->status, 'variant' => App\Support\QueueStatus::appointmentVariant($apt->status)])</span></div>
+                        </div>
+                        @if ($apt->reason)
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                <div class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Reason</div>
+                                <div class="mt-2 text-slate-700">{{ $apt->reason }}</div>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="mt-5 flex justify-end gap-3">
+                        <a href="{{ route('appointments.show', $apt) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100">Open details</a>
+                        <button type="button" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-900" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endforeach
+
+<div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 bg-white shadow-2xl">
+            <div class="modal-header border-b border-slate-200 bg-white px-5 py-4">
+                <div>
+                    <h5 class="modal-title text-lg font-semibold text-slate-900" id="appointmentModalLabel">Book Appointment</h5>
+                    <p class="mt-1 text-sm text-slate-500">Select provider, time slot, and visit details</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-white px-5 py-5">
+                @include('appointments.partials.booking-form')
+            </div>
         </div>
     </div>
 </div>

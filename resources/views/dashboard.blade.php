@@ -45,13 +45,13 @@
         <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             @if ($isRegistration)
                 @can('create-patients')
-                    <a href="{{ route('patients.create') }}" class="rounded-2xl border border-sky-200 bg-sky-50 p-4 transition hover:border-sky-400 hover:bg-sky-100">
+                    <button type="button" class="w-full rounded-2xl border border-sky-200 bg-sky-50 p-4 text-left transition hover:border-sky-400 hover:bg-sky-100" data-bs-toggle="modal" data-bs-target="#registerPatientModal">
                         <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600 text-white">
                             <i class="bi bi-person-plus-fill"></i>
                         </div>
                         <div class="text-base font-semibold text-slate-900">Register Patient</div>
                         <div class="mt-1 text-sm text-slate-600">Create a new MRN and intake record</div>
-                    </a>
+                    </button>
                 @endcan
 
                 @can('view-patients')
@@ -85,12 +85,12 @@
                 @endcan
             @elseif ($userRole === 'nurse')
                 @can('triage-patients')
-                    <a href="{{ route('triage.create') }}" class="rounded-2xl border border-teal-200 bg-teal-50 p-4 transition hover:border-teal-400 hover:bg-teal-100">
+                    <a href="{{ route('emergency.index') }}" class="rounded-2xl border border-teal-200 bg-teal-50 p-4 transition hover:border-teal-400 hover:bg-teal-100">
                         <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-600 text-white">
                             <i class="bi bi-heart-pulse"></i>
                         </div>
-                        <div class="text-base font-semibold text-slate-900">New Triage</div>
-                        <div class="mt-1 text-sm text-slate-600">Start patient urgency assessment</div>
+                        <div class="text-base font-semibold text-slate-900">Triage Board</div>
+                        <div class="mt-1 text-sm text-slate-600">Open the ER triage intake workflow</div>
                     </a>
                 @endcan
 
@@ -103,7 +103,7 @@
                         <div class="mt-1 text-sm text-slate-600">Review waiting patients by severity</div>
                     </a>
 
-                    <a href="{{ route('emergency.create') }}" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 transition hover:border-rose-400 hover:bg-rose-100">
+                    <a href="{{ route('emergency.index') }}" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 transition hover:border-rose-400 hover:bg-rose-100">
                         <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-rose-600 text-white">
                             <i class="bi bi-file-medical"></i>
                         </div>
@@ -162,13 +162,13 @@
             @elseif ($isPatient)
                 @if (auth()->user()->hasRole('patient'))
                     @can('portal-dashboard')
-                        <a href="{{ route('portal.pre-register') }}" class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition hover:border-emerald-400 hover:bg-emerald-100">
+                        <button type="button" class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-left transition hover:border-emerald-400 hover:bg-emerald-100" data-bs-toggle="modal" data-bs-target="#preRegistrationModal">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
                                 <i class="bi bi-clipboard-check"></i>
                             </div>
                             <div class="text-base font-semibold text-slate-900">Pre-register for your visit</div>
                             <div class="mt-1 text-sm text-slate-600">Share your arrival details before you come in</div>
-                        </a>
+                        </button>
 
                         <a href="{{ route('patients.portal') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
                             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
@@ -182,6 +182,151 @@
             @endif
         </div>
     </section>
+
+    @if ($isPatient)
+        @can('portal-dashboard')
+            <div class="modal fade" id="preRegistrationModal" tabindex="-1" aria-labelledby="preRegistrationModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-content border-0 shadow-2xl">
+                        <div class="modal-header border-b border-slate-200 px-5 py-4">
+                            <div>
+                                <h5 class="modal-title text-lg font-semibold text-slate-900" id="preRegistrationModalLabel">Pre-registration</h5>
+                                <p class="mt-1 text-sm text-slate-500">Secure arrival details before your visit</p>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body px-5 py-5">
+                            <form method="POST" action="{{ route('portal.pre-register.store') }}" class="space-y-6">
+                                @csrf
+
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+                                    This form is for your pre-arrival information only. Clinical or vital-sign fields are intentionally left blank and will be completed by staff during intake.
+                                </div>
+
+                                <div class="grid gap-5 md:grid-cols-2">
+                                    <div class="md:col-span-2">
+                                        <h3 class="text-lg font-semibold text-slate-900">Patient details</h3>
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Patient name</label>
+                                        <input type="text" value="{{ $user->patient?->full_name ?? $user->name }}" disabled class="w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2.5 text-sm text-slate-700">
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Age</label>
+                                        <input type="text" value="{{ $user->patient?->age ?? 0 }} years" disabled class="w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2.5 text-sm text-slate-700">
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Phone</label>
+                                        <input type="tel" name="contact_phone" value="{{ old('contact_phone', $user->patient?->phone) }}" data-phone-input class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" inputmode="numeric" pattern="^(09\d{9}|\+639\d{9})$" placeholder="09XXXXXXXXX or +639XXXXXXXXX">
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Email</label>
+                                        <input type="email" name="contact_email" value="{{ old('contact_email', $user->patient?->email) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                                    </div>
+
+                                    <div class="md:col-span-2">
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Home address</label>
+                                        <input type="text" name="address_line1" value="{{ old('address_line1', $user->patient?->primaryAddress()?->line1 ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="House number, street, subdivision">
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">City</label>
+                                        <input type="text" name="address_city" value="{{ old('address_city', $user->patient?->primaryAddress()?->city ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Province</label>
+                                        <input type="text" name="address_province" value="{{ old('address_province', $user->patient?->primaryAddress()?->province ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Postal code</label>
+                                        <input type="text" name="address_postal_code" value="{{ old('address_postal_code', $user->patient?->primaryAddress()?->postal_code ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                                    </div>
+
+                                    <div class="md:col-span-2">
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Visit reason</label>
+                                        <textarea name="visit_reason" rows="3" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="Briefly describe why you are coming in today.">{{ old('visit_reason') }}</textarea>
+                                    </div>
+
+                                    <div class="md:col-span-2">
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Initial notes</label>
+                                        <textarea name="initial_notes" rows="3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="Add any context the intake team should know before arrival.">{{ old('initial_notes') }}</textarea>
+                                    </div>
+
+                                    <div class="md:col-span-2">
+                                        <h3 class="text-lg font-semibold text-slate-900">Medical history</h3>
+                                    </div>
+
+                                    <div class="md:col-span-2">
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Medical history</label>
+                                        <textarea name="medical_history" rows="3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="Asthma, hypertension, previous surgeries, chronic conditions...">{{ old('medical_history') }}</textarea>
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Current medications</label>
+                                        <textarea name="current_medications" rows="2" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="List medications currently being taken.">{{ old('current_medications') }}</textarea>
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Allergies</label>
+                                        <textarea name="allergies" rows="2" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="Penicillin, peanuts, latex...">{{ old('allergies') }}</textarea>
+                                    </div>
+
+                                    <div class="md:col-span-2">
+                                        <h3 class="text-lg font-semibold text-slate-900">Emergency contact</h3>
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Contact name</label>
+                                        <input type="text" name="emergency_contact_name" value="{{ old('emergency_contact_name', $user->patient?->emergencyContacts->first()?->name ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Relationship</label>
+                                        <input type="text" name="emergency_contact_relationship" value="{{ old('emergency_contact_relationship', $user->patient?->emergencyContacts->first()?->relationship ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                                    </div>
+
+                                    <div class="md:col-span-2">
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Emergency contact phone</label>
+                                        <input type="tel" name="emergency_contact_phone" value="{{ old('emergency_contact_phone', $user->patient?->emergencyContacts->first()?->phone ?? '') }}" data-phone-input class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" inputmode="numeric" pattern="^(09\d{9}|\+639\d{9})$" placeholder="09XXXXXXXXX or +639XXXXXXXXX">
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
+                                    <button type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">Save pre-registration</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endcan
+    @endif
+
+    @if (! $isPatient)
+        <div class="modal fade" id="registerPatientModal" tabindex="-1" aria-labelledby="registerPatientModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-2xl">
+                    <div class="modal-header border-b border-slate-200 px-5 py-4">
+                        <div>
+                            <h5 class="modal-title text-lg font-semibold text-slate-900" id="registerPatientModalLabel">Register Patient</h5>
+                            <p class="mt-1 text-sm text-slate-500">Patient demographics and contact info</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body px-5 py-5">
+                        @include('patients.partials.registration-form')
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     @if (in_array($userRole, ['super-admin', 'hospital-admin']))
         <section class="panel-card p-6 lg:p-8">
@@ -197,41 +342,41 @@
 
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
             @can('create-patients')
-            <a href="{{ route('patients.create') }}" class="panel-card group flex flex-col items-start gap-3 p-5 transition hover:-translate-y-1 hover:border-teal-400">
+            <button type="button" class="panel-card group flex w-full flex-col items-start gap-3 p-5 text-left transition hover:-translate-y-1 hover:border-teal-400" data-bs-toggle="modal" data-bs-target="#registerPatientModal">
                 <div class="rounded-2xl bg-teal-50 p-3 text-teal-600"><i class="bi bi-person-plus-fill text-xl"></i></div>
                 <div>
                     <div class="font-semibold text-slate-800">Register Patient</div>
                     <div class="text-xs text-slate-500 mt-0.5">New SPRS intake</div>
                 </div>
                 <span class="text-sm font-semibold text-teal-600 group-hover:translate-x-1 transition-transform">Open →</span>
-            </a>
+            </button>
             @endcan
             @can('create-appointments')
-            <a href="{{ route('appointments.create') }}" class="panel-card group flex flex-col items-start gap-3 p-5 transition hover:-translate-y-1 hover:border-sky-400">
+            <a href="{{ route('appointments.index') }}" class="panel-card group flex flex-col items-start gap-3 p-5 transition hover:-translate-y-1 hover:border-sky-400">
                 <div class="rounded-2xl bg-sky-50 p-3 text-sky-600"><i class="bi bi-calendar-plus text-xl"></i></div>
                 <div>
-                    <div class="font-semibold text-slate-800">Book Appointment</div>
-                    <div class="text-xs text-slate-500 mt-0.5">Schedule a visit</div>
+                    <div class="font-semibold text-slate-800">Appointments</div>
+                    <div class="text-xs text-slate-500 mt-0.5">Review and schedule visits</div>
                 </div>
                 <span class="text-sm font-semibold text-sky-600 group-hover:translate-x-1 transition-transform">Open →</span>
             </a>
             @endcan
             @can('view-er')
-            <a href="{{ route('emergency.create') }}" class="panel-card group flex flex-col items-start gap-3 p-5 transition hover:-translate-y-1 hover:border-rose-400">
+            <a href="{{ route('emergency.index') }}" class="panel-card group flex flex-col items-start gap-3 p-5 transition hover:-translate-y-1 hover:border-rose-400">
                 <div class="rounded-2xl bg-rose-50 p-3 text-rose-600"><i class="bi bi-hospital text-xl"></i></div>
                 <div>
-                    <div class="font-semibold text-slate-800">New ER Visit</div>
+                    <div class="font-semibold text-slate-800">ER queue</div>
                     <div class="text-xs text-slate-500 mt-0.5">Emergency intake</div>
                 </div>
                 <span class="text-sm font-semibold text-rose-600 group-hover:translate-x-1 transition-transform">Open →</span>
             </a>
             @endcan
             @can('view-admissions')
-            <a href="{{ route('admissions.create') }}" class="panel-card group flex flex-col items-start gap-3 p-5 transition hover:-translate-y-1 hover:border-violet-400">
+            <a href="{{ route('admissions.index') }}" class="panel-card group flex flex-col items-start gap-3 p-5 transition hover:-translate-y-1 hover:border-violet-400">
                 <div class="rounded-2xl bg-violet-50 p-3 text-violet-600"><i class="bi bi-box-arrow-in-right text-xl"></i></div>
                 <div>
-                    <div class="font-semibold text-slate-800">New Admission</div>
-                    <div class="text-xs text-slate-500 mt-0.5">Request admission</div>
+                    <div class="font-semibold text-slate-800">Admissions</div>
+                    <div class="text-xs text-slate-500 mt-0.5">Review inpatient requests</div>
                 </div>
                 <span class="text-sm font-semibold text-violet-600 group-hover:translate-x-1 transition-transform">Open →</span>
             </a>
@@ -477,7 +622,7 @@
                     <p class="text-xs font-semibold uppercase tracking-[0.25em] text-teal-600">Recommended next step</p>
                     <h3 class="mt-2 text-lg font-semibold text-slate-900">Start triage for the next waiting patient</h3>
                 </div>
-                <a href="{{ route('triage.create') }}" class="inline-flex items-center justify-center rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Open triage</a>
+                <a href="{{ route('emergency.index') }}" class="inline-flex items-center justify-center rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Open triage</a>
             </div>
         </section>
 

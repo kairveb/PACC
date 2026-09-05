@@ -53,7 +53,7 @@
                 <h2 class="text-lg font-semibold text-slate-900">Incoming patient priority queue</h2>
                 <p class="text-sm text-slate-600">Patients are automatically ranked by AI triage urgency.</p>
             </div>
-            <a href="{{ route('triage.create') }}" class="rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700">New triage</a>
+            <a href="{{ route('emergency.index') }}" class="rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700">Open triage</a>
         </div>
 
         <div class="overflow-x-auto">
@@ -121,7 +121,7 @@
                             </td>
                             <td class="px-5 py-4">
                                 <div class="flex flex-col items-start gap-2">
-                                    <a href="{{ route('doctors.queue.show', $assessment) }}" class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700">Open patient</a>
+                                    <button type="button" class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700" data-bs-toggle="modal" data-bs-target="#doctorQueueAssessmentModal-{{ $assessment->id }}">Open patient</button>
 
                                     <div class="flex items-center gap-2">
                                         @if (($assessment->status ?? '') !== 'SEEN' && ($assessment->status ?? '') !== 'IN_CONSULT')
@@ -152,6 +152,40 @@
         </div>
     </div>
 </div>
+
+@foreach ($queue as $assessment)
+    <div class="modal fade" id="doctorQueueAssessmentModal-{{ $assessment->id }}" tabindex="-1" aria-labelledby="doctorQueueAssessmentModalLabel-{{ $assessment->id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-2xl">
+                <div class="modal-header border-b border-slate-200 px-5 py-4">
+                    <div>
+                        <h5 class="modal-title text-lg font-semibold text-slate-900" id="doctorQueueAssessmentModalLabel-{{ $assessment->id }}">Patient triage overview</h5>
+                        <p class="mt-1 text-sm text-slate-500">{{ $assessment->patient?->full_name ?? 'Unknown patient' }} · {{ $assessment->patient?->mrn ?? '—' }}</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-5 py-5">
+                    <div class="space-y-4 text-sm text-slate-700">
+                        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <div><span class="text-slate-500">Priority:</span> <span class="ml-1 status-pill {{ App\Support\PriorityColor::variant((int) ($assessment->priority_score ?? 5)) }}">{{ App\Support\PriorityColor::label((int) ($assessment->priority_score ?? 5)) }}</span></div>
+                            <div><span class="text-slate-500">Status:</span> <span class="ml-1 status-pill {{ App\Support\QueueStatus::variant($assessment->status ?? null) }}">{{ App\Support\QueueStatus::label($assessment->status ?? null) }}</span></div>
+                            <div><span class="text-slate-500">Pain score:</span> <span class="font-medium">{{ $assessment->pain_score ?? '—' }}/10</span></div>
+                            <div><span class="text-slate-500">Time:</span> <span class="font-medium">{{ $assessment->triaged_at?->format('M d, Y g:i A') ?? '—' }}</span></div>
+                        </div>
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                            <div class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Chief complaint</div>
+                            <div class="mt-2">{{ $assessment->chief_complaint ?? 'No complaint recorded' }}</div>
+                        </div>
+                    </div>
+                    <div class="mt-5 flex justify-end gap-3">
+                        <a href="{{ route('doctors.queue.show', $assessment) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100">Open details</a>
+                        <button type="button" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-900" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endforeach
 
 @push('scripts')
 <script>

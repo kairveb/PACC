@@ -61,6 +61,28 @@ class TriageAiEvaluationHookTest extends TestCase
         $this->assertStringContainsString('pre-arrival', strtolower(implode(' ', $result['reasons'])));
     }
 
+    public function test_triage_score_endpoint_accepts_blood_pressure_strings_for_ai_analysis(): void
+    {
+        $role = \App\Models\Role::firstOrCreate(['name' => 'nurse'], ['label' => 'Nurse']);
+        $permission = \App\Models\Permission::firstOrCreate(['name' => 'triage-patients'], ['label' => 'Triage Patients']);
+        $role->permissions()->syncWithoutDetaching([$permission->id]);
+        $user = User::factory()->create();
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
+        $response = $this->actingAs($user, 'web')
+            ->postJson('/api/v1/triage/score', [
+                'chief_complaint' => 'Chest pain',
+                'pain_score' => 9,
+                'vitals' => ['blood_pressure' => '120/80', 'spo2' => 92],
+                'symptoms' => ['shortness of breath'],
+            ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('data.priority', 'Urgent');
+        $response->assertJsonPath('data.severity_score', 85);
+        $this->assertNotEmpty($response->json('data.reasons'));
+    }
+
     public function test_walk_in_triage_without_pre_arrival_profile_uses_standard_rule_based_scoring(): void
     {
         $user = User::factory()->create([
@@ -145,6 +167,56 @@ class TriageAiEvaluationHookTest extends TestCase
         $response->assertStatus(302);
         $response->assertSessionHasErrors('ai_confirmed');
         $this->assertSame($startCount, \App\Models\TriageAssessment::count());
+    }
+
+    public function test_triage_assessment_creates_linked_er_visit_when_saving(): void
+    {
+        $nurse = User::factory()->create([
+            'email' => 'triage.linked.visit.' . Str::uuid() . '@example.test',
+            'password' => Hash::make('Password123!'),
+            'email_verified_at' => now(),
+        ]);
+
+        $role = \App\Models\Role::firstOrCreate(
+            ['name' => 'nurse'],
+            ['label' => 'Nurse']
+        );
+        $permission = \App\Models\Permission::firstOrCreate(
+            ['name' => 'triage-patients'],
+            ['label' => 'Triage Patients']
+        );
+        $role->permissions()->syncWithoutDetaching([$permission->id]);
+        $nurse->roles()->syncWithoutDetaching([$role->id]);
+        $this->actingAs($nurse);
+
+        $patient = Patient::create([
+            'user_id' => $nurse->id,
+            'mrn' => 'MRN-TRIAGE-LINKED-' . Str::uuid()->toString(),
+            'first_name' => 'Rosa',
+            'last_name' => 'Dela Cruz',
+            'date_of_birth' => '1996-07-18',
+            'sex' => 'Female',
+            'verified' => true,
+        ]);
+
+        $response = $this->from(route('triage.create'))->post(route('triage.store'), [
+            'patient_id' => $patient->id,
+            'chief_complaint' => 'Chest pain',
+            'symptoms' => 'chest pain, shortness of breath',
+            'pain_score' => 9,
+            'blood_pressure' => '120/80',
+            'heart_rate' => 104,
+            'respiratory_rate' => 22,
+            'temperature' => 37.2,
+            'spo2' => 95,
+            'notes' => 'the patient is having a chest pain.',
+            'ai_confirmed' => '1',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('er_visits', ['patient_id' => $patient->id]);
+        $this->assertDatabaseHas('triage_assessments', ['patient_id' => $patient->id]);
+        $this->assertNotNull(TriageAssessment::where('patient_id', $patient->id)->first()->er_visit_id ?? null);
     }
 
     public function test_emergency_inline_triage_requires_explicit_confirmation_before_finalizing(): void

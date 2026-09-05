@@ -57,6 +57,26 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('dashboard', absolute: false));
     }
 
+    public function test_authenticated_pages_are_marked_no_cache_and_logout_invalidates_session(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/dashboard');
+
+        $response->assertOk();
+
+        $cacheControl = $response->headers->get('Cache-Control', '');
+        $this->assertStringContainsString('no-store', $cacheControl);
+        $this->assertStringContainsString('no-cache', $cacheControl);
+        $this->assertStringContainsString('must-revalidate', $cacheControl);
+
+        $response = $this->actingAs($user)->post('/logout');
+
+        $this->assertGuest();
+        $response->assertRedirect('/');
+        $this->get('/dashboard')->assertRedirect('/login');
+    }
+
     public function test_users_can_logout(): void
     {
         $user = User::factory()->create();

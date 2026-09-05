@@ -74,7 +74,7 @@ class PatientController extends Controller
 
     public function create()
     {
-        return view('patients.create');
+        return redirect()->route('patients.index');
     }
 
     public function store(Request $request)

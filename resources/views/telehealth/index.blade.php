@@ -91,7 +91,7 @@
                             <td class="py-3 px-4 font-mono text-xs">{{ $session->join_url ? 'Secure room' : ($session->zoom_meeting_id ?? 'Not configured') }}</td>
                             <td class="py-3 px-4"><span class="px-2 py-1 text-xs rounded-full {{ $isLive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700' }}">{{ $session->displayStatus() }}</span></td>
                             <td class="py-3 px-4 flex gap-2">
-                                <a href="{{ route('telehealth.show', $session) }}" class="text-teal-600 text-xs font-medium">View</a>
+                                <button type="button" class="text-teal-600 text-xs font-medium" data-bs-toggle="modal" data-bs-target="#telehealthStatusModal-{{ $session->id }}">View</button>
                                 @if ($session->join_url)
                                     <a href="{{ $session->join_url }}" target="_blank" rel="noopener noreferrer" class="join-room-link text-blue-600 text-xs font-medium {{ $isLive ? '' : 'pointer-events-none opacity-50' }}">{{ $isLive ? 'Join room' : 'Awaiting start' }}</a>
                                 @else
@@ -108,6 +108,36 @@
         <div class="p-4 border-t border-slate-200">{{ $sessions->links() }}</div>
     </div>
 </div>
+
+@foreach ($sessions as $session)
+    <div class="modal fade" id="telehealthStatusModal-{{ $session->id }}" tabindex="-1" aria-labelledby="telehealthStatusModalLabel-{{ $session->id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-2xl">
+                <div class="modal-header border-b border-slate-200 px-5 py-4">
+                    <div>
+                        <h5 class="modal-title text-lg font-semibold text-slate-900" id="telehealthStatusModalLabel-{{ $session->id }}">Session details</h5>
+                        <p class="mt-1 text-sm text-slate-500">{{ $session->appointment->patient->full_name ?? '—' }} · {{ $session->appointment->provider->full_name ?? '—' }}</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-5 py-5">
+                    <div class="space-y-4 text-sm text-slate-700">
+                        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <div><span class="text-slate-500">Start:</span> <span class="font-medium">{{ $session->start_time?->format('M d, Y g:i A') ?? '—' }}</span></div>
+                            <div><span class="text-slate-500">Status:</span> <span class="ml-1 px-2 py-1 text-xs rounded-full {{ in_array($session->status, [\App\Models\TelehealthSession::STATUS_ACTIVE, \App\Models\TelehealthSession::STATUS_ONGOING], true) ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700' }}">{{ $session->displayStatus() }}</span></div>
+                            <div><span class="text-slate-500">Meeting:</span> <span class="font-medium">{{ $session->join_url ? 'Secure room' : ($session->zoom_meeting_id ?? 'Not configured') }}</span></div>
+                            <div><span class="text-slate-500">Provider:</span> <span class="font-medium">{{ $session->appointment->provider->full_name ?? '—' }}</span></div>
+                        </div>
+                    </div>
+                    <div class="mt-5 flex justify-end gap-3">
+                        <a href="{{ route('telehealth.show', $session) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100">Open details</a>
+                        <button type="button" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-900" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endforeach
 
 @push('scripts')
 <script>

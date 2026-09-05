@@ -9,7 +9,7 @@
             <h1 class="text-2xl font-bold text-slate-800">Bed Board</h1>
             <p class="text-sm text-slate-500 mt-1">Inpatient and Bed Management System (IBMS)</p>
         </div>
-        <a href="{{ route('admissions.create') }}" class="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700">New Admission</a>
+        <a href="{{ route('admissions.index') }}" class="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700">Admissions</a>
     </div>
 
     {{-- Bed status summary --}}
@@ -54,16 +54,39 @@
                                         <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-white border">{{ $bed->status }}</span>
                                     </div>
                                     <div class="mt-1 text-xs text-slate-600 truncate">{{ $displayPatient }}</div>
-                                    <form method="POST" action="{{ route('beds.status', $bed) }}" class="mt-2 inline-flex gap-1">
-                                        @csrf
-                                        <select name="status" class="text-[10px] border border-slate-300 rounded px-1 py-0.5">
-                                            <option value="AVAILABLE">Available</option>
-                                            <option value="CLEANING">Cleaning</option>
-                                            <option value="MAINTENANCE">Maintenance</option>
-                                            <option value="BLOCKED">Blocked</option>
-                                        </select>
-                                        <button type="submit" class="text-[10px] bg-slate-800 text-white rounded px-1.5 py-0.5">Set</button>
-                                    </form>
+                                    <button type="button" class="mt-2 w-full rounded-lg bg-slate-800 px-2 py-1.5 text-[10px] font-semibold text-white hover:bg-slate-700" data-bs-toggle="modal" data-bs-target="#bedStatusModal-{{ $bed->id }}">Update status</button>
+                                </div>
+
+                                <div class="modal fade" id="bedStatusModal-{{ $bed->id }}" tabindex="-1" aria-labelledby="bedStatusModalLabel-{{ $bed->id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 bg-white shadow-2xl">
+                                            <div class="modal-header border-b border-slate-200 bg-white px-5 py-4">
+                                                <div>
+                                                    <h5 class="modal-title text-lg font-semibold text-slate-900" id="bedStatusModalLabel-{{ $bed->id }}">Update Bed Status</h5>
+                                                    <p class="mt-1 text-sm text-slate-500">Bed {{ $bed->number }} · {{ $bed->room->ward->name ?? 'Ward' }}</p>
+                                                </div>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body bg-white px-5 py-5">
+                                                <form method="POST" action="{{ route('beds.status', $bed) }}" class="space-y-4">
+                                                    @csrf
+                                                    <div>
+                                                        <label for="bed-status-{{ $bed->id }}" class="mb-1 block text-sm font-medium text-slate-700">Status</label>
+                                                        <select id="bed-status-{{ $bed->id }}" name="status" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
+                                                            <option value="AVAILABLE" {{ $bed->status === 'AVAILABLE' ? 'selected' : '' }}>Available</option>
+                                                            <option value="CLEANING" {{ $bed->status === 'CLEANING' ? 'selected' : '' }}>Cleaning</option>
+                                                            <option value="MAINTENANCE" {{ $bed->status === 'MAINTENANCE' ? 'selected' : '' }}>Maintenance</option>
+                                                            <option value="BLOCKED" {{ $bed->status === 'BLOCKED' ? 'selected' : '' }}>Blocked</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="flex items-center justify-end gap-3 pt-2">
+                                                        <button type="button" class="rounded-xl border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="rounded-xl bg-slate-800 px-6 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Save status</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             @endforeach
                         </div>

@@ -8,11 +8,11 @@
             if (session?.token) {
                 return session.token;
             }
-
-            return sessionStorage.getItem('himsMainSessionToken') || '';
         } catch {
-            return '';
+            // Ignore missing session storage so same-origin cookie auth can work normally.
         }
+
+        return '';
     };
 
     const buildUrl = (path = '') => {
@@ -25,6 +25,10 @@
     const request = async (path, options = {}) => {
         const method = String(options.method || 'GET').toUpperCase();
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        const xsrfCookie = document.cookie
+            .split('; ')
+            .find((cookie) => cookie.startsWith('XSRF-TOKEN='));
+        const xsrfToken = xsrfCookie ? decodeURIComponent(xsrfCookie.split('=')[1] || '') : '';
         const rawBody = Object.prototype.hasOwnProperty.call(options, 'body') ? options.body : undefined;
         const isFormData = typeof FormData !== 'undefined' && rawBody instanceof FormData;
         const authToken = getBearerToken();
@@ -36,6 +40,10 @@
 
         if (csrfToken && !headers['X-CSRF-TOKEN']) {
             headers['X-CSRF-TOKEN'] = csrfToken;
+        }
+
+        if (xsrfToken && !headers['X-XSRF-TOKEN']) {
+            headers['X-XSRF-TOKEN'] = xsrfToken;
         }
 
         if (authToken && !headers.Authorization) {

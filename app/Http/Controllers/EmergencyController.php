@@ -33,8 +33,9 @@ class EmergencyController extends Controller
 
         $visits = ErVisit::with('patient')->orderBy('arrived_at', 'desc')->limit(10)->get();
         $patients = Patient::orderBy('last_name')->get();
+        $providers = Provider::where('active', true)->orderBy('display_name')->get();
 
-        return view('emergency.index', compact('queue', 'visits', 'patients'));
+        return view('emergency.index', compact('queue', 'visits', 'patients', 'providers'));
     }
 
     public function create(Request $request)

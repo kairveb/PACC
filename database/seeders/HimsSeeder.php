@@ -284,10 +284,12 @@ class HimsSeeder extends Seeder
             ['code' => 'ICU', 'name' => 'Intensive Care Unit', 'type' => 'ICU'],
         ];
 
-        foreach ($wards as $w) {
+        foreach ($wards as $index => $w) {
             $ward = Ward::firstOrCreate(['code' => $w['code']], ['name' => $w['name'], 'type' => $w['type']]);
 
-            for ($roomNum = 201; $roomNum <= 202; $roomNum++) {
+            $roomStart = 201 + ($index * 100);
+
+            for ($roomNum = $roomStart; $roomNum <= $roomStart + 1; $roomNum++) {
                 $room = Room::firstOrCreate(['ward_id' => $ward->id, 'number' => (string) $roomNum], ['type' => 'Standard']);
 
                 foreach (['A', 'B', 'C'] as $bedLetter) {
