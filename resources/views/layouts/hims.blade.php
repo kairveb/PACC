@@ -135,23 +135,24 @@
                         </li>
                         @endcanAny
 
-                        @canAny(['view-reports', 'view-audit-logs'])
+                        @php
+                            $canViewReports = $user->can('view-reports') && $user->hasAnyRole(['doctor', 'super-admin', 'hospital-admin']);
+                            $canViewAuditLogs = $user->can('view-audit-logs') && $user->hasAnyRole(['super-admin', 'hospital-admin']);
+                            $showOperationsMenu = $canViewReports || $canViewAuditLogs;
+                        @endphp
+                        @if ($showOperationsMenu)
                         <li class="nav-accordion{{ request()->routeIs('reports.*', 'audit.*') ? ' is-expanded is-active' : '' }}">
                             <button class="nav-link nav-link-button nav-accordion__toggle" type="button" aria-expanded="{{ request()->routeIs('reports.*', 'audit.*') ? 'true' : 'false' }}" aria-controls="nav-ops" aria-label="Operations"><i class="ph-fill ph-chart-pie-slice" aria-hidden="true"></i><span class="nav-label">Operations</span><i class="ph ph-caret-down nav-chevron" aria-hidden="true"></i></button>
                             <ul class="nav-submenu" id="nav-ops" @if(!request()->routeIs('reports.*', 'audit.*')) hidden @endif>
-                                @can('view-reports')
-                                    @if (auth()->user()->hasAnyRole(['super-admin','hospital-admin','doctor','nurse','registration']))
-                                        <li><a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">Reports</a></li>
-                                    @endif
-                                @endcan
-                                @can('view-audit-logs')
-                                    @if (auth()->user()->hasAnyRole(['super-admin','hospital-admin']))
-                                        <li><a href="{{ route('audit.index') }}" class="{{ request()->routeIs('audit.*') ? 'active' : '' }}">Audit Logs</a></li>
-                                    @endif
-                                @endcan
+                                @if ($canViewReports)
+                                    <li><a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">Reports</a></li>
+                                @endif
+                                @if ($canViewAuditLogs)
+                                    <li><a href="{{ route('audit.index') }}" class="{{ request()->routeIs('audit.*') ? 'active' : '' }}">Audit Logs</a></li>
+                                @endif
                             </ul>
                         </li>
-                        @endcanAny
+                        @endif
                     </ul>
                     @endif
                 </nav>

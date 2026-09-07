@@ -39,4 +39,31 @@ class SchedulingServiceGenerateSlotsTest extends TestCase
         $this->assertSame(2, $count);
         $this->assertSame(2, AppointmentSlot::where('provider_id', $provider->id)->count());
     }
+
+    public function test_available_slots_generate_from_schedule_when_slots_are_missing_for_the_date(): void
+    {
+        $service = new SchedulingService();
+
+        $user = User::factory()->create();
+        $provider = Provider::create([
+            'user_id' => $user->id,
+            'department_id' => null,
+            'display_name' => 'Dr. Elena Santos',
+            'active' => true,
+        ]);
+
+        ProviderSchedule::create([
+            'provider_id' => $provider->id,
+            'day_of_week' => Carbon::parse('2026-09-08')->dayOfWeek,
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
+            'slot_duration' => 30,
+            'unavailable_date' => null,
+        ]);
+
+        $slots = $service->availableSlots($provider->id, '08/09/2026');
+
+        $this->assertNotEmpty($slots);
+        $this->assertSame('2026-09-08', $slots->first()->starts_at->format('Y-m-d'));
+    }
 }

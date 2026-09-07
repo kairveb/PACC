@@ -112,28 +112,52 @@ class AppointmentController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'patient_id' => ['required', 'exists:patients,id'],
-            'provider_id' => ['required', 'exists:providers,id'],
-            'department_id' => ['nullable', 'exists:departments,id'],
-            'appointment_type_id' => ['nullable', 'exists:appointment_types,id'],
-            'starts_at' => ['required', 'date'],
-            'duration' => ['nullable', 'integer', 'min:5', 'max:240'],
-            'reason' => ['nullable', 'string'],
-        ]);
-
         try {
+            $data = $request->validate([
+                'patient_id' => ['required', 'exists:patients,id'],
+                'provider_id' => ['required', 'exists:providers,id'],
+                'department_id' => ['nullable', 'exists:departments,id'],
+                'appointment_type_id' => ['nullable', 'exists:appointment_types,id'],
+                'starts_at' => ['required', 'date'],
+                'duration' => ['nullable', 'integer', 'min:5', 'max:240'],
+                'reason' => ['nullable', 'string'],
+            ]);
+
             $appointment = $this->appointments->book($data, auth()->id());
+            $appointment->load(['patient', 'provider', 'department', 'appointmentType', 'statusHistories.user', 'encounter', 'telehealthSession']);
+
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Appointment booked successfully.',
+                    'appointment_id' => $appointment->id,
+                    'html' => view('appointments.modal-detail', compact('appointment'))->render(),
+                ]);
+            }
+
             return redirect()->route('appointments.show', $appointment)
                 ->with('success', 'Appointment booked successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->validator->errors()->first(),
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+
             return back()->withInput()->withErrors($e->errors());
         }
     }
 
-    public function show(Appointment $appointment)
+    public function show(Request $request, Appointment $appointment)
     {
         $appointment->load(['patient', 'provider', 'department', 'appointmentType', 'statusHistories.user', 'encounter', 'telehealthSession']);
+
+        if ($request->boolean('modal') || $request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+            return view('appointments.modal-detail', compact('appointment'));
+        }
+
         return view('appointments.show', compact('appointment'));
     }
 
@@ -149,12 +173,21 @@ class AppointmentController extends Controller
         return response()->json(['data' => $slots]);
     }
 
-    public function checkIn(Appointment $appointment)
+    public function checkIn(Request $request, Appointment $appointment)
     {
         try {
             $this->appointments->checkIn($appointment, auth()->id());
+
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Patient checked in successfully.']);
+            }
+
             return back()->with('success', 'Patient checked in successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->validator->errors()->first(), 'errors' => $e->errors()], 422);
+            }
+
             return back()->withErrors($e->errors());
         }
     }
@@ -164,8 +197,17 @@ class AppointmentController extends Controller
         $data = $request->validate(['reason' => ['nullable', 'string']]);
         try {
             $this->appointments->cancel($appointment, auth()->id(), $data['reason'] ?? null);
+
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Appointment cancelled.']);
+            }
+
             return back()->with('success', 'Appointment cancelled.');
         } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->validator->errors()->first(), 'errors' => $e->errors()], 422);
+            }
+
             return back()->withErrors($e->errors());
         }
     }
@@ -179,18 +221,36 @@ class AppointmentController extends Controller
 
         try {
             $this->appointments->reschedule($appointment, $data, auth()->id());
+
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Appointment rescheduled.']);
+            }
+
             return back()->with('success', 'Appointment rescheduled.');
         } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->validator->errors()->first(), 'errors' => $e->errors()], 422);
+            }
+
             return back()->withInput()->withErrors($e->errors());
         }
     }
 
-    public function markNoShow(Appointment $appointment)
+    public function markNoShow(Request $request, Appointment $appointment)
     {
         try {
             $this->appointments->markNoShow($appointment, auth()->id());
+
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Marked as no-show.']);
+            }
+
             return back()->with('success', 'Marked as no-show.');
         } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->validator->errors()->first(), 'errors' => $e->errors()], 422);
+            }
+
             return back()->withErrors($e->errors());
         }
     }

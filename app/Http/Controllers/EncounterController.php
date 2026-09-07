@@ -34,6 +34,11 @@ class EncounterController extends Controller
         if ($request->get('type')) {
             $query->where('type', $request->get('type'));
         }
+
+        if ($request->get('status')) {
+            $query->where('status', $request->get('status'));
+        }
+
         if ($request->get('q')) {
             $term = $request->get('q');
             $query->whereHas('patient', fn ($p) => $p->where('first_name', 'like', "%{$term}%")->orWhere('last_name', 'like', "%{$term}%"));

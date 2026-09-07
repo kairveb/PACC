@@ -59,7 +59,6 @@
       const role = String(values.get("role") || "").trim();
       const session = {
         authenticated: true,
-        token: payload?.data?.token,
         user: {
           id: user?.id,
           name: String(values.get("name") || user?.name || "").trim(),
@@ -69,7 +68,6 @@
         },
       };
       window.HimsSession.create(session.user);
-      sessionStorage.setItem("himsMainSessionToken", payload?.data?.token || "");
       form.reset();
       window.location.replace("/dashboard");
     } catch (loginError) {

@@ -17,9 +17,9 @@ class EmergencyController extends Controller
     {
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $queue = ErQueue::with(['erVisit.patient', 'provider'])
+        $query = ErQueue::with(['erVisit.patient', 'provider'])
             ->orderByRaw("CASE priority
                 WHEN 'Level 1' THEN 1
                 WHEN 'Level 2' THEN 2
@@ -28,8 +28,27 @@ class EmergencyController extends Controller
                 WHEN 'Level 5' THEN 5
                 ELSE 99
             END")
-            ->orderBy('queued_at')
-            ->paginate(20);
+            ->orderBy('queued_at');
+
+        if ($request->filled('q')) {
+            $term = trim($request->q);
+            $query->whereHas('erVisit.patient', function ($patientQuery) use ($term) {
+                $patientQuery->where(function ($nameQuery) use ($term) {
+                    $nameQuery->where('first_name', 'like', "%{$term}%")
+                        ->orWhere('last_name', 'like', "%{$term}%");
+                })->orWhere('mrn', 'like', "%{$term}%");
+            });
+        }
+
+        if ($request->filled('priority')) {
+            $query->where('priority', $request->priority);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $queue = $query->paginate(20);
 
         $visits = ErVisit::with('patient')->orderBy('arrived_at', 'desc')->limit(10)->get();
         $patients = Patient::orderBy('last_name')->get();

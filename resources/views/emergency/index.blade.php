@@ -42,71 +42,9 @@
         </div>
     </div>
 
-    <div class="panel-card p-6">
-        <div class="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-rose-600">AI triage module</p>
-                <h2 class="mt-1 text-2xl font-semibold text-slate-900">Fast ER triage intake</h2>
-            </div>
-            <button type="button" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700" data-bs-toggle="modal" data-bs-target="#triageModal">Open triage dashboard</button>
-        </div>
-
-        <div class="mb-6 flex justify-start">
-            <button type="button" class="inline-flex items-center justify-center rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700" data-bs-toggle="modal" data-bs-target="#checkinLookupModal">Look up patient</button>
-        </div>
-
-        <form method="POST" action="{{ route('triage.store') }}" class="grid gap-5 lg:grid-cols-[1.4fr_0.6fr]">
-            @csrf
-            <div class="space-y-4">
-                <div>
-                    <label for="triage_patient_id" class="mb-1.5 block text-sm font-medium text-slate-700">Patient</label>
-                    <select id="triage_patient_id" name="patient_id" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">
-                        <option value="">Select patient</option>
-                        @foreach ($patients as $patient)
-                            <option value="{{ $patient->id }}">{{ $patient->full_name }} — {{ $patient->mrn }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label for="triage_complaint" class="mb-1.5 block text-sm font-medium text-slate-700">Chief complaint</label>
-                    <textarea id="triage_complaint" name="chief_complaint" rows="3" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100" placeholder="Difficulty breathing, chest pain, severe abdominal pain"></textarea>
-                </div>
-
-                <div class="grid gap-4 md:grid-cols-2">
-                    <div>
-                        <label for="triage_symptoms" class="mb-1.5 block text-sm font-medium text-slate-700">Symptoms</label>
-                        <input id="triage_symptoms" name="symptoms" type="text" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100" placeholder="e.g. chest pain, fever, dizziness">
-                    </div>
-                    <div>
-                        <label for="triage_pain_score" class="mb-1.5 block text-sm font-medium text-slate-700">Pain score</label>
-                        <input id="triage_pain_score" name="pain_score" type="number" min="0" max="10" value="0" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">
-                    </div>
-                    <div>
-                        <label for="triage_heart_rate" class="mb-1.5 block text-sm font-medium text-slate-700">Heart rate</label>
-                        <input id="triage_heart_rate" name="heart_rate" type="number" min="0" max="220" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100" placeholder="72">
-                    </div>
-                    <div>
-                        <label for="triage_spo2" class="mb-1.5 block text-sm font-medium text-slate-700">SpO₂</label>
-                        <input id="triage_spo2" name="spo2" type="number" min="0" max="100" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100" placeholder="98">
-                    </div>
-                </div>
-            </div>
-
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div class="mb-3 flex items-center justify-between gap-3">
-                    <h3 class="text-lg font-semibold text-slate-900">AI recommendation</h3>
-                    <span class="rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600">Live</span>
-                </div>
-                <div id="triage_preview" class="min-h-[140px] rounded-xl border border-dashed border-slate-300 bg-white p-3 text-sm leading-6 text-slate-600">
-                    Enter a complaint and vitals to generate a triage recommendation.
-                </div>
-                <div class="mt-4 flex flex-col gap-3 sm:flex-row">
-                    <button type="button" id="run_ai_triage" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700">Generate</button>
-                    <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700">Save triage</button>
-                </div>
-            </div>
-        </form>
+    <div class="flex flex-wrap items-center justify-end gap-3 pb-2">
+        <button type="button" class="inline-flex items-center justify-center rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700" data-bs-toggle="modal" data-bs-target="#checkinLookupModal">Look up patient</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700" data-bs-toggle="modal" data-bs-target="#triageModal">Open triage dashboard</button>
     </div>
 
     <div class="panel-card overflow-hidden">
@@ -115,19 +53,91 @@
                 <h2 class="text-lg font-semibold text-slate-900">Active ER queue</h2>
                 <p class="text-sm text-slate-600">Review patient arrival, urgency, and waiting time at a glance.</p>
             </div>
-            <button type="button" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700" data-bs-toggle="modal" data-bs-target="#intakeModal">New ER Intake</button>
+            <div class="flex items-center gap-2">
+                @if (request()->hasAny(['q', 'priority', 'status']))
+                    <a href="{{ route('emergency.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Clear filters</a>
+                @endif
+                <button type="button" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700" data-bs-toggle="modal" data-bs-target="#intakeModal">New ER Intake</button>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="min-w-full text-left">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50/80">
-                        <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Patient</th>
+                        <th class="relative px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                            <div class="flex items-center gap-2">
+                                <span>Patient</span>
+                                <button type="button" data-filter-trigger data-filter-target="queue-patient-filter" aria-expanded="false" class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter patient">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="queue-patient-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="priority" value="{{ request('priority') }}">
+                                    <input type="hidden" name="status" value="{{ request('status') }}">
+                                    <input type="text" name="q" value="{{ request('q') }}" placeholder="Search patient or MRN..." class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
                         <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Arrived</th>
                         <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Waiting</th>
-                        <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Priority</th>
+                        <th class="relative px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                            <div class="flex items-center gap-2">
+                                <span>Priority</span>
+                                <button type="button" data-filter-trigger data-filter-target="queue-priority-filter" aria-expanded="false" class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter priority">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="queue-priority-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="q" value="{{ request('q') }}">
+                                    <input type="hidden" name="status" value="{{ request('status') }}">
+                                    <select name="priority" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                        <option value="">All priorities</option>
+                                        @foreach (['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5'] as $priority)
+                                            <option value="{{ $priority }}" {{ request('priority') === $priority ? 'selected' : '' }}>{{ $priority }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
                         <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Complaint</th>
-                        <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Status</th>
+                        <th class="relative px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                            <div class="flex items-center gap-2">
+                                <span>Status</span>
+                                <button type="button" data-filter-trigger data-filter-target="queue-status-filter" aria-expanded="false" class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter status">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="queue-status-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="q" value="{{ request('q') }}">
+                                    <input type="hidden" name="priority" value="{{ request('priority') }}">
+                                    <select name="status" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                        <option value="">All statuses</option>
+                                        @foreach (['WAITING', 'IN_TREATMENT', 'DONE'] as $status)
+                                            <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>{{ $status === 'WAITING' ? 'Waiting' : ($status === 'IN_TREATMENT' ? 'In Treatment' : 'Done') }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
                         <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 text-right">Action</th>
                     </tr>
                 </thead>
@@ -203,6 +213,40 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const triggers = document.querySelectorAll('[data-filter-trigger]');
+        const panels = document.querySelectorAll('.filter-panel');
+
+        const closePanels = () => {
+            panels.forEach((panel) => panel.classList.add('hidden'));
+            triggers.forEach((trigger) => trigger.setAttribute('aria-expanded', 'false'));
+        };
+
+        triggers.forEach((trigger) => {
+            trigger.addEventListener('click', function (event) {
+                event.stopPropagation();
+                const targetId = trigger.getAttribute('data-filter-target');
+                const panel = document.getElementById(targetId);
+                const isOpen = !panel.classList.contains('hidden');
+
+                closePanels();
+
+                if (!isOpen) {
+                    panel.classList.remove('hidden');
+                    trigger.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('[data-filter-trigger]') && !event.target.closest('.filter-panel')) {
+                closePanels();
+            }
+        });
+    });
+</script>
 
 @foreach ($queue as $q)
     <div class="modal fade" id="queueStatusModal-{{ $q->id }}" tabindex="-1" aria-labelledby="queueStatusModalLabel-{{ $q->id }}" aria-hidden="true">

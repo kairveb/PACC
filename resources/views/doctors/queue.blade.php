@@ -53,15 +53,61 @@
                 <h2 class="text-lg font-semibold text-slate-900">Incoming patient priority queue</h2>
                 <p class="text-sm text-slate-600">Patients are automatically ranked by AI triage urgency.</p>
             </div>
-            <a href="{{ route('emergency.index') }}" class="rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700">Open triage</a>
+            <div class="flex items-center gap-2">
+                @if (request()->hasAny(['q', 'priority']))
+                    <a href="{{ route('doctors.queue') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Clear filters</a>
+                @endif
+                <a href="{{ route('emergency.index') }}" class="rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700">Open triage</a>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="min-w-full">
                 <thead>
                     <tr>
-                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Priority</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Patient</th>
+                        <th class="relative px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <div class="flex items-center gap-2">
+                                <span>Priority</span>
+                                <button type="button" data-filter-trigger data-filter-target="doctor-priority-filter" aria-expanded="false" class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter priority">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="doctor-priority-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="q" value="{{ request('q') }}">
+                                    <select name="priority" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                        <option value="">All priority levels</option>
+                                        @foreach ([1 => 'Level 1', 2 => 'Level 2', 3 => 'Level 3', 4 => 'Level 4', 5 => 'Level 5'] as $value => $label)
+                                            <option value="{{ $value }}" {{ request('priority') == (string) $value ? 'selected' : '' }}>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
+                        <th class="relative px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <div class="flex items-center gap-2">
+                                <span>Patient</span>
+                                <button type="button" data-filter-trigger data-filter-target="doctor-patient-filter" aria-expanded="false" class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter patient">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="doctor-patient-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="priority" value="{{ request('priority') }}">
+                                    <input type="text" name="q" value="{{ request('q') }}" placeholder="Search patient or MRN..." class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Complaint</th>
                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Vitals</th>
                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Pain</th>
@@ -186,6 +232,40 @@
         </div>
     </div>
 @endforeach
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const triggers = document.querySelectorAll('[data-filter-trigger]');
+        const panels = document.querySelectorAll('.filter-panel');
+
+        const closePanels = () => {
+            panels.forEach((panel) => panel.classList.add('hidden'));
+            triggers.forEach((trigger) => trigger.setAttribute('aria-expanded', 'false'));
+        };
+
+        triggers.forEach((trigger) => {
+            trigger.addEventListener('click', function (event) {
+                event.stopPropagation();
+                const targetId = trigger.getAttribute('data-filter-target');
+                const panel = document.getElementById(targetId);
+                const isOpen = !!panel && !panel.classList.contains('hidden');
+
+                closePanels();
+
+                if (!isOpen && panel) {
+                    panel.classList.remove('hidden');
+                    trigger.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('[data-filter-trigger]') && !event.target.closest('.filter-panel')) {
+                closePanels();
+            }
+        });
+    });
+</script>
 
 @push('scripts')
 <script>

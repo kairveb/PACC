@@ -4,30 +4,52 @@
 
 @section('content')
 <div class="space-y-6">
-    <div>
-        <h1 class="text-2xl font-bold text-slate-800">Audit Logs</h1>
-        <p class="text-sm text-slate-500 mt-1">System accountability and security</p>
-    </div>
+    <div class="panel-card overflow-hidden">
+        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900">Audit Logs</h2>
+                <p class="text-sm text-slate-600">System accountability and security</p>
+            </div>
+            <div class="flex items-center gap-2">
+                @if (request()->hasAny(['action']))
+                    <a href="{{ route('audit.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Clear filters</a>
+                @endif
+            </div>
+        </div>
 
-    <div class="bg-white rounded-xl border border-slate-200 p-4">
-        <form method="GET" class="flex gap-3">
-            <select name="action" class="px-3 py-2 text-sm border border-slate-300 rounded-lg">
-                <option value="">All actions</option>
-                @foreach ($actions as $action)
-                    <option value="{{ $action }}" {{ request('action') === $action ? 'selected' : '' }}>{{ $action }}</option>
-                @endforeach
-            </select>
-            <button type="submit" class="px-4 py-2 text-sm bg-slate-800 text-white rounded-lg">Filter</button>
-            <a href="{{ route('audit.index') }}" class="px-4 py-2 text-sm border border-slate-300 rounded-lg">Reset</a>
-        </form>
-    </div>
-
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full text-sm">
                 <thead>
-                    <tr class="text-left text-xs uppercase text-slate-500 bg-slate-50 border-b border-slate-200">
-                        <th class="py-3 px-4">User</th><th class="py-3 px-4">Action</th><th class="py-3 px-4">Resource</th><th class="py-3 px-4">Resource ID</th><th class="py-3 px-4">Result</th><th class="py-3 px-4">IP</th><th class="py-3 px-4">Time</th>
+                    <tr>
+                        <th class="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">User</th>
+                        <th class="relative py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <div class="flex items-center gap-2">
+                                <span>Action</span>
+                                <button type="button" data-filter-trigger data-filter-target="audit-action-filter" aria-expanded="false" class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter audit action">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="audit-action-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <select name="action" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                        <option value="">All actions</option>
+                                        @foreach ($actions as $action)
+                                            <option value="{{ $action }}" {{ request('action') === $action ? 'selected' : '' }}>{{ $action }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
+                        <th class="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Resource</th>
+                        <th class="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Resource ID</th>
+                        <th class="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Result</th>
+                        <th class="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">IP</th>
+                        <th class="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Time</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,4 +72,38 @@
         <div class="p-4 border-t border-slate-200">{{ $logs->links() }}</div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const triggers = document.querySelectorAll('[data-filter-trigger]');
+        const panels = document.querySelectorAll('.filter-panel');
+
+        const closePanels = () => {
+            panels.forEach((panel) => panel.classList.add('hidden'));
+            triggers.forEach((trigger) => trigger.setAttribute('aria-expanded', 'false'));
+        };
+
+        triggers.forEach((trigger) => {
+            trigger.addEventListener('click', function (event) {
+                event.stopPropagation();
+                const targetId = trigger.getAttribute('data-filter-target');
+                const panel = document.getElementById(targetId);
+                const isOpen = !!panel && !panel.classList.contains('hidden');
+
+                closePanels();
+
+                if (!isOpen && panel) {
+                    panel.classList.remove('hidden');
+                    trigger.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('[data-filter-trigger]') && !event.target.closest('.filter-panel')) {
+                closePanels();
+            }
+        });
+    });
+</script>
 @endsection

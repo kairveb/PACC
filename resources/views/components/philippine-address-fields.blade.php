@@ -131,11 +131,23 @@
 
                 const loadPhilippineAddressData = async () => {
                     try {
+                        const xsrfToken = document.cookie
+                            .split('; ')
+                            .find((cookie) => cookie.startsWith('XSRF-TOKEN='))
+                            ? decodeURIComponent(document.cookie
+                                .split('; ')
+                                .find((cookie) => cookie.startsWith('XSRF-TOKEN='))
+                                ?.split('=')[1] || '')
+                            : '';
+
                         const response = await fetch('/api/v1/address-data/philippines', {
                             headers: {
                                 'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                                'X-XSRF-TOKEN': xsrfToken,
                                 'X-Requested-With': 'XMLHttpRequest',
                             },
+                            credentials: 'same-origin',
                         });
 
                         if (!response.ok) {

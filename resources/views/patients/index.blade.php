@@ -7,40 +7,130 @@
 
 @section('content')
 <div class="space-y-6">
-    <div class="panel-card p-5">
-        <form method="GET" class="flex flex-wrap gap-3">
-            <input type="text" name="q" value="{{ request('q') }}" placeholder="Search by MRN, name, phone, email..." class="flex-1 min-w-[250px]">
-            <input type="date" name="date_of_birth" value="{{ request('date_of_birth') }}">
-            <select name="sex">
-                <option value="">All sexes</option>
-                <option value="Male" {{ request('sex') === 'Male' ? 'selected' : '' }}>Male</option>
-                <option value="Female" {{ request('sex') === 'Female' ? 'selected' : '' }}>Female</option>
-                <option value="Other" {{ request('sex') === 'Other' ? 'selected' : '' }}>Other</option>
-            </select>
-            <button type="submit" class="bg-slate-900">Search</button>
-            <a href="{{ route('patients.index') }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Reset</a>
-        </form>
-    </div>
-
     <div class="panel-card overflow-hidden">
         <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
             <div>
                 <h2 class="text-lg font-semibold text-slate-900">Patient directory</h2>
                 <p class="text-sm text-slate-600">Search and manage patient records</p>
             </div>
-            <button type="button" class="rounded-2xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700" data-bs-toggle="modal" data-bs-target="#registerPatientModal">Register Patient</button>
+            <div class="flex items-center gap-2">
+                @if (request()->hasAny(['q', 'date_of_birth', 'sex']))
+                    <a href="{{ route('patients.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Clear filters</a>
+                @endif
+                <button type="button" class="rounded-2xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700" data-bs-toggle="modal" data-bs-target="#registerPatientModal">Register Patient</button>
+            </div>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full">
                 <thead>
                     <tr>
-                        <th class="text-left">MRN</th>
-                        <th class="text-left">Name</th>
-                        <th class="text-left">Age/Sex</th>
-                        <th class="text-left">Contact</th>
-                        <th class="text-left">Status</th>
-                        <th class="text-left">Registered</th>
-                        <th class="text-left"></th>
+                        <th class="relative text-left align-top">
+                            <div class="flex items-center gap-2">
+                                <span>MRN</span>
+                                <button type="button" data-filter-trigger data-filter-target="mrn-filter" aria-expanded="false" class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter MRN">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="mrn-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="date_of_birth" value="{{ request('date_of_birth') }}">
+                                    <input type="hidden" name="sex" value="{{ request('sex') }}">
+                                    <input type="text" name="q" value="{{ request('q') }}" placeholder="Search MRN, name, phone, email..." class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
+                        <th class="relative text-left align-top">
+                            <div class="flex items-center gap-2">
+                                <span>Name</span>
+                                <button type="button" data-filter-trigger data-filter-target="name-filter" aria-expanded="false" class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter name">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="name-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="date_of_birth" value="{{ request('date_of_birth') }}">
+                                    <input type="hidden" name="sex" value="{{ request('sex') }}">
+                                    <input type="text" name="q" value="{{ request('q') }}" placeholder="Search patient name..." class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
+                        <th class="relative text-left align-top">
+                            <div class="flex items-center gap-2">
+                                <span>Age/Sex</span>
+                                <button type="button" data-filter-trigger data-filter-target="sex-filter" aria-expanded="false" class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter sex">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="sex-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="q" value="{{ request('q') }}">
+                                    <input type="hidden" name="date_of_birth" value="{{ request('date_of_birth') }}">
+                                    <select name="sex" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                        <option value="">All sexes</option>
+                                        <option value="Male" {{ request('sex') === 'Male' ? 'selected' : '' }}>Male</option>
+                                        <option value="Female" {{ request('sex') === 'Female' ? 'selected' : '' }}>Female</option>
+                                        <option value="Other" {{ request('sex') === 'Other' ? 'selected' : '' }}>Other</option>
+                                    </select>
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
+                        <th class="relative text-left align-top">
+                            <div class="flex items-center gap-2">
+                                <span>Contact</span>
+                                <button type="button" data-filter-trigger data-filter-target="contact-filter" aria-expanded="false" class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter contact">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="contact-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="date_of_birth" value="{{ request('date_of_birth') }}">
+                                    <input type="hidden" name="sex" value="{{ request('sex') }}">
+                                    <input type="text" name="q" value="{{ request('q') }}" placeholder="Search phone or email..." class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
+                        <th class="text-left align-top">Status</th>
+                        <th class="relative text-left align-top">
+                            <div class="flex items-center gap-2">
+                                <span>Registered</span>
+                                <button type="button" data-filter-trigger data-filter-target="dob-filter" aria-expanded="false" class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter DOB">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="dob-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="q" value="{{ request('q') }}">
+                                    <input type="hidden" name="sex" value="{{ request('sex') }}">
+                                    <input type="date" name="date_of_birth" value="{{ request('date_of_birth') }}" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
+                        <th class="text-left align-top"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -104,6 +194,40 @@
             </div>
         </div>
     @endforeach
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const triggers = document.querySelectorAll('[data-filter-trigger]');
+            const panels = document.querySelectorAll('.filter-panel');
+
+            const closePanels = () => {
+                panels.forEach((panel) => panel.classList.add('hidden'));
+                triggers.forEach((trigger) => trigger.setAttribute('aria-expanded', 'false'));
+            };
+
+            triggers.forEach((trigger) => {
+                trigger.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    const targetId = trigger.getAttribute('data-filter-target');
+                    const panel = document.getElementById(targetId);
+                    const isOpen = !panel.classList.contains('hidden');
+
+                    closePanels();
+
+                    if (!isOpen) {
+                        panel.classList.remove('hidden');
+                        trigger.setAttribute('aria-expanded', 'true');
+                    }
+                });
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!event.target.closest('[data-filter-trigger]') && !event.target.closest('.filter-panel')) {
+                    closePanels();
+                }
+            });
+        });
+    </script>
 
     <div class="modal fade" id="registerPatientModal" tabindex="-1" aria-labelledby="registerPatientModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">

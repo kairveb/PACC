@@ -40,11 +40,11 @@
                         </x-nav-link>
                     @endcan
 
-                    @can('view-reports')
+                    @if (auth()->user()->can('view-reports') && auth()->user()->hasAnyRole(['doctor', 'super-admin', 'hospital-admin']))
                         <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                             {{ __('Reports') }}
                         </x-nav-link>
-                    @endcan
+                    @endif
 
                     @if (auth()->user()->hasRole('patient'))
                         @can('portal-dashboard')

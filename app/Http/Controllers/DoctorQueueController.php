@@ -9,7 +9,7 @@ use Illuminate\View\View;
 
 class DoctorQueueController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $query = TriageAssessment::with(['patient', 'vitals'])
             ->whereNotNull('patient_id');
@@ -18,6 +18,23 @@ class DoctorQueueController extends Controller
         if ($user && $user->hasRole('doctor')) {
             $query->whereIn('status', ['WAITING', 'SEEN', 'IN_CONSULT'])
                 ->whereNotNull('priority_score');
+        }
+
+        if ($request->filled('q')) {
+            $term = trim($request->q);
+            $query->where(function ($patientQuery) use ($term) {
+                $patientQuery->whereHas('patient', function ($patient) use ($term) {
+                    $patient->where(function ($nameQuery) use ($term) {
+                        $nameQuery->where('first_name', 'like', "%{$term}%")
+                            ->orWhere('last_name', 'like', "%{$term}%")
+                            ->orWhere('mrn', 'like', "%{$term}%");
+                    });
+                });
+            });
+        }
+
+        if ($request->filled('priority')) {
+            $query->where('priority_score', (int) $request->priority);
         }
 
         $queue = $query->orderByRaw("CASE

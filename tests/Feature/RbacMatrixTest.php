@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\HimsSeeder;
@@ -63,6 +64,153 @@ class RbacMatrixTest extends TestCase
         $this->actingAs($patient, 'web')->get('/triage')->assertForbidden();
         $this->actingAs($patient, 'web')->get('/reports')->assertForbidden();
         $this->actingAs($patient, 'web')->get('/audit-logs')->assertForbidden();
+    }
+
+    public function test_sidebar_menu_respects_role_access_matrix(): void
+    {
+        $this->seed(HimsSeeder::class);
+
+        $roles = [
+            'super-admin' => ['show' => ['Operations', 'Reports', 'Audit Logs'], 'hide' => []],
+            'hospital-admin' => ['show' => ['Operations', 'Reports', 'Audit Logs'], 'hide' => []],
+            'doctor' => ['show' => ['Operations', 'Reports'], 'hide' => ['Audit Logs']],
+            'nurse' => ['show' => [], 'hide' => ['Operations', 'Reports', 'Audit Logs']],
+            'registration' => ['show' => [], 'hide' => ['Operations', 'Reports', 'Audit Logs']],
+            'patient' => ['show' => [], 'hide' => ['Operations', 'Reports', 'Audit Logs']],
+        ];
+
+        foreach ($roles as $roleName => $expectations) {
+            $user = User::whereHas('roles', fn ($query) => $query->where('name', $roleName))->firstOrFail();
+            $response = $this->actingAs($user, 'web')->get('/dashboard');
+            $response->assertOk();
+
+            foreach ($expectations['show'] as $text) {
+                $response->assertSee($text);
+            }
+
+            foreach ($expectations['hide'] as $text) {
+                $response->assertDontSee($text);
+            }
+        }
+    }
+
+    public function test_audit_logs_can_filter_by_action(): void
+    {
+        $this->seed(HimsSeeder::class);
+
+        $admin = User::whereHas('roles', fn ($query) => $query->where('name', 'hospital-admin'))->firstOrFail();
+
+        \App\Models\AuditLog::create([
+            'user_id' => $admin->id,
+            'action' => 'login',
+            'resource_type' => 'auth',
+            'resource_id' => $admin->id,
+            'result' => 'success',
+            'ip_address' => '127.0.0.1',
+            'metadata' => ['role' => 'hospital-admin'],
+        ]);
+        \App\Models\AuditLog::create([
+            'user_id' => $admin->id,
+            'action' => 'logout',
+            'resource_type' => 'auth',
+            'resource_id' => $admin->id,
+            'result' => 'success',
+            'ip_address' => '127.0.0.1',
+            'metadata' => ['role' => 'hospital-admin'],
+        ]);
+
+        $response = $this->actingAs($admin, 'web')->get('/audit-logs?action=login');
+
+        $response->assertOk();
+        $response->assertViewHas('logs', function ($logs) {
+            return $logs->count() === 1
+                && $logs->first()->action === 'login'
+                && $logs->pluck('action')->filter(fn ($action) => $action === 'logout')->isEmpty();
+        });
+    }
+
+    public function test_pre_registration_route_respects_patient_only_access_with_super_admin_bypass(): void
+    {
+        $this->seed(HimsSeeder::class);
+
+        $patientUser = User::whereHas('roles', fn ($query) => $query->where('name', 'patient'))->firstOrFail();
+        $patientUser->forceFill(['email_verified_at' => now()])->save();
+
+        Patient::firstOrCreate(
+            ['user_id' => $patientUser->id],
+            [
+                'mrn' => 'MRN-RBAC-PATIENT',
+                'first_name' => 'Rbac',
+                'last_name' => 'Patient',
+                'date_of_birth' => '1990-01-01',
+                'sex' => 'Female',
+                'phone' => '09170000077',
+                'email' => 'rbac.patient@example.test',
+                'verified' => true,
+            ]
+        );
+
+        $this->actingAs($patientUser, 'web')->get('/portal/pre-register')->assertOk();
+        $this->actingAs($patientUser, 'web')->post('/portal/pre-register', [
+            'visit_reason' => 'Follow-up consultation',
+            'initial_notes' => 'Routine review',
+            'medical_history' => 'No major concerns',
+            'current_medications' => 'None',
+            'allergies' => 'None',
+            'emergency_contact_name' => 'Jane Contact',
+            'emergency_contact_phone' => '09170000099',
+            'emergency_contact_relationship' => 'Spouse',
+            'address_line1' => '123 Sample Street',
+            'address_city' => 'Quezon City',
+            'address_province' => 'Metro Manila',
+            'address_postal_code' => '1100',
+            'contact_phone' => '09170000077',
+            'contact_email' => 'rbac.patient@example.test',
+        ])->assertRedirect(route('patients.portal'));
+
+        foreach (['registration', 'nurse', 'doctor', 'hospital-admin'] as $roleName) {
+            $user = User::whereHas('roles', fn ($query) => $query->where('name', $roleName))->firstOrFail();
+
+            $this->actingAs($user, 'web')->get('/portal/pre-register')->assertForbidden();
+            $this->actingAs($user, 'web')->post('/portal/pre-register', [
+                'visit_reason' => 'Should not be allowed',
+            ])->assertForbidden();
+        }
+
+        $superAdmin = User::whereHas('roles', fn ($query) => $query->where('name', 'super-admin'))->firstOrFail();
+        $superAdmin->forceFill(['email_verified_at' => now()])->save();
+
+        Patient::firstOrCreate(
+            ['user_id' => $superAdmin->id],
+            [
+                'mrn' => 'MRN-RBAC-SUPER',
+                'first_name' => 'Rbac',
+                'last_name' => 'Admin',
+                'date_of_birth' => '1988-02-02',
+                'sex' => 'Male',
+                'phone' => '09170000088',
+                'email' => 'rbac.superadmin@example.test',
+                'verified' => true,
+            ]
+        );
+
+        $this->actingAs($superAdmin, 'web')->get('/portal/pre-register')->assertOk();
+        $this->actingAs($superAdmin, 'web')->post('/portal/pre-register', [
+            'visit_reason' => 'Super-admin pre-registration',
+            'initial_notes' => 'Bypass test',
+            'medical_history' => 'No issues',
+            'current_medications' => 'None',
+            'allergies' => 'None',
+            'emergency_contact_name' => 'Admin Contact',
+            'emergency_contact_phone' => '09170000098',
+            'emergency_contact_relationship' => 'Sibling',
+            'address_line1' => '5 Admin Street',
+            'address_city' => 'Manila',
+            'address_province' => 'Metro Manila',
+            'address_postal_code' => '1000',
+            'contact_phone' => '09170000088',
+            'contact_email' => 'rbac.superadmin@example.test',
+        ])->assertRedirect(route('patients.portal'));
     }
 
     public function test_the_expected_role_permission_matrix_is_seeded(): void

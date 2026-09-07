@@ -1,23 +1,106 @@
 @extends('layouts.hims')
 
 @section('title', 'Outpatient Encounters')
+@section('page-kicker', 'Care Delivery')
+@section('page-title', 'Outpatient Encounters')
+@section('page-badge', 'TOCS')
 
 @section('content')
 <div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-800">Outpatient Encounters</h1>
-            <p class="text-sm text-slate-500 mt-1">Telehealth and Outpatient Care System (TOCS)</p>
+    <div class="panel-card overflow-hidden">
+        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900">Encounter list</h2>
+                <p class="text-sm text-slate-600">Telehealth and Outpatient Care System (TOCS)</p>
+            </div>
+            <div class="flex items-center gap-2">
+                @if (request()->hasAny(['q', 'type', 'status']))
+                    <a href="{{ route('outpatient.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Clear filters</a>
+                @endif
+                <button type="button" class="rounded-2xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700" data-bs-toggle="modal" data-bs-target="#encounterModal">New Encounter</button>
+            </div>
         </div>
-        <button type="button" class="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700" data-bs-toggle="modal" data-bs-target="#encounterModal">New Encounter</button>
-    </div>
 
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
+            <table class="min-w-full">
                 <thead>
-                    <tr class="text-left text-xs uppercase text-slate-500 bg-slate-50 border-b border-slate-200">
-                        <th class="py-3 px-4">Number</th><th class="py-3 px-4">Patient</th><th class="py-3 px-4">Provider</th><th class="py-3 px-4">Date/Time</th><th class="py-3 px-4">Type</th><th class="py-3 px-4">Status</th>
+                    <tr>
+                        <th class="text-left align-top">Number</th>
+                        <th class="relative text-left align-top">
+                            <div class="flex items-center gap-2">
+                                <span>Patient</span>
+                                <button type="button" data-filter-trigger data-filter-target="encounter-patient-filter" aria-expanded="false" class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter patient">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="encounter-patient-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="type" value="{{ request('type') }}">
+                                    <input type="hidden" name="status" value="{{ request('status') }}">
+                                    <input type="text" name="q" value="{{ request('q') }}" placeholder="Search patient name..." class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
+                        <th class="text-left align-top">Provider</th>
+                        <th class="relative text-left align-top">
+                            <div class="flex items-center gap-2">
+                                <span>Date/Time</span>
+                            </div>
+                        </th>
+                        <th class="relative text-left align-top">
+                            <div class="flex items-center gap-2">
+                                <span>Type</span>
+                                <button type="button" data-filter-trigger data-filter-target="encounter-type-filter" aria-expanded="false" class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter encounter type">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="encounter-type-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="q" value="{{ request('q') }}">
+                                    <input type="hidden" name="status" value="{{ request('status') }}">
+                                    <select name="type" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                        <option value="">All encounter types</option>
+                                        <option value="OUTPATIENT" {{ request('type') === 'OUTPATIENT' ? 'selected' : '' }}>Outpatient</option>
+                                        <option value="TELEHEALTH" {{ request('type') === 'TELEHEALTH' ? 'selected' : '' }}>Telehealth</option>
+                                        <option value="EMERGENCY" {{ request('type') === 'EMERGENCY' ? 'selected' : '' }}>Emergency</option>
+                                    </select>
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
+                        <th class="relative text-left align-top">
+                            <div class="flex items-center gap-2">
+                                <span>Status</span>
+                                <button type="button" data-filter-trigger data-filter-target="encounter-status-filter" aria-expanded="false" class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700" aria-label="Filter status">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                                        <path fill-rule="evenodd" d="M2.75 4.5A.75.75 0 0 1 3.5 3.75h13a.75.75 0 0 1 0 1.5h-13a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75Zm2.5 5.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="encounter-status-filter" class="filter-panel hidden absolute left-0 top-full z-20 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                                <form method="GET" class="space-y-3">
+                                    <input type="hidden" name="q" value="{{ request('q') }}">
+                                    <input type="hidden" name="type" value="{{ request('type') }}">
+                                    <select name="status" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                        <option value="">All statuses</option>
+                                        <option value="OPEN" {{ request('status') === 'OPEN' ? 'selected' : '' }}>Open</option>
+                                        <option value="COMPLETED" {{ request('status') === 'COMPLETED' ? 'selected' : '' }}>Completed</option>
+                                    </select>
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -39,6 +122,40 @@
         <div class="p-4 border-t border-slate-200">{{ $encounters->links() }}</div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const triggers = document.querySelectorAll('[data-filter-trigger]');
+        const panels = document.querySelectorAll('.filter-panel');
+
+        const closePanels = () => {
+            panels.forEach((panel) => panel.classList.add('hidden'));
+            triggers.forEach((trigger) => trigger.setAttribute('aria-expanded', 'false'));
+        };
+
+        triggers.forEach((trigger) => {
+            trigger.addEventListener('click', function (event) {
+                event.stopPropagation();
+                const targetId = trigger.getAttribute('data-filter-target');
+                const panel = document.getElementById(targetId);
+                const isOpen = !panel.classList.contains('hidden');
+
+                closePanels();
+
+                if (!isOpen) {
+                    panel.classList.remove('hidden');
+                    trigger.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('[data-filter-trigger]') && !event.target.closest('.filter-panel')) {
+                closePanels();
+            }
+        });
+    });
+</script>
 
 <div class="modal fade" id="encounterModal" tabindex="-1" aria-labelledby="encounterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl">

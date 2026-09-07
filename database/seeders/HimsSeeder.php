@@ -229,6 +229,18 @@ class HimsSeeder extends Seeder
             ['provider_id' => $provider->id, 'day_of_week' => 3],
             ['start_time' => '08:00:00', 'end_time' => '17:00:00', 'slot_duration' => 30]
         );
+        ProviderSchedule::firstOrCreate(
+            ['provider_id' => $provider->id, 'day_of_week' => 4],
+            ['start_time' => '08:00:00', 'end_time' => '17:00:00', 'slot_duration' => 30]
+        );
+        ProviderSchedule::firstOrCreate(
+            ['provider_id' => $provider->id, 'day_of_week' => 5],
+            ['start_time' => '08:00:00', 'end_time' => '17:00:00', 'slot_duration' => 30]
+        );
+        ProviderSchedule::firstOrCreate(
+            ['provider_id' => $provider->id, 'day_of_week' => 6],
+            ['start_time' => '08:00:00', 'end_time' => '17:00:00', 'slot_duration' => 30]
+        );
 
         AppointmentType::firstOrCreate(['name' => 'Outpatient'], ['default_duration' => 30, 'telehealth' => false]);
         AppointmentType::firstOrCreate(['name' => 'Telehealth'], ['default_duration' => 30, 'telehealth' => true]);

@@ -23,6 +23,11 @@ class Provider extends Model
         return $this->belongsTo(Department::class);
     }
 
+    public function getFullNameAttribute(): string
+    {
+        return trim((string) ($this->display_name ?? $this->user?->name ?? ''));
+    }
+
     public function specialties(): BelongsToMany
     {
         return $this->belongsToMany(Specialty::class, 'provider_specialties');

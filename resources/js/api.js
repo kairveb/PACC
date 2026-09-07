@@ -2,19 +2,6 @@
     const appConfig = window.__APP_CONFIG__ || {};
     const baseUrl = String(appConfig.apiBaseUrl || '').replace(/\/+$/, '');
 
-    const getBearerToken = () => {
-        try {
-            const session = window.HimsSession?.read?.();
-            if (session?.token) {
-                return session.token;
-            }
-        } catch {
-            // Ignore missing session storage so same-origin cookie auth can work normally.
-        }
-
-        return '';
-    };
-
     const buildUrl = (path = '') => {
         if (!path) return path;
         if (/^https?:\/\//i.test(path)) return path;
@@ -31,7 +18,6 @@
         const xsrfToken = xsrfCookie ? decodeURIComponent(xsrfCookie.split('=')[1] || '') : '';
         const rawBody = Object.prototype.hasOwnProperty.call(options, 'body') ? options.body : undefined;
         const isFormData = typeof FormData !== 'undefined' && rawBody instanceof FormData;
-        const authToken = getBearerToken();
 
         const headers = {
             Accept: 'application/json',
@@ -44,10 +30,6 @@
 
         if (xsrfToken && !headers['X-XSRF-TOKEN']) {
             headers['X-XSRF-TOKEN'] = xsrfToken;
-        }
-
-        if (authToken && !headers.Authorization) {
-            headers.Authorization = `Bearer ${authToken}`;
         }
 
         if (!isFormData && rawBody !== undefined && rawBody !== null && !headers['Content-Type']) {

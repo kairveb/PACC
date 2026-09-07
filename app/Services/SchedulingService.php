@@ -72,7 +72,47 @@ class SchedulingService
      */
     public function availableSlots(int $providerId, string $date, ?int $appointmentTypeId = null)
     {
-        return $this->buildAvailableSlotsQuery($providerId, $date, $appointmentTypeId)->get();
+        $normalizedDate = $this->normalizeDate($date);
+        $slots = $this->buildAvailableSlotsQuery($providerId, $normalizedDate, $appointmentTypeId)->get();
+
+        if ($slots->isNotEmpty()) {
+            return $slots;
+        }
+
+        $this->generateMissingSlotsForDate($providerId, $normalizedDate);
+
+        return $this->buildAvailableSlotsQuery($providerId, $normalizedDate, $appointmentTypeId)->get();
+    }
+
+    protected function normalizeDate(string $date): string
+    {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return $date;
+        }
+
+        if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $date)) {
+            return Carbon::createFromFormat('d/m/Y', $date)->format('Y-m-d');
+        }
+
+        if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $date)) {
+            return Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d');
+        }
+
+        return Carbon::parse($date)->format('Y-m-d');
+    }
+
+    protected function generateMissingSlotsForDate(int $providerId, string $date): void
+    {
+        $targetDate = Carbon::parse($date);
+
+        $schedules = ProviderSchedule::where('provider_id', $providerId)->get();
+        foreach ($schedules as $schedule) {
+            if (!$this->shouldGenerateForDate($schedule, $targetDate)) {
+                continue;
+            }
+
+            $this->generateSlots($schedule, $targetDate->copy()->format('Y-m-d'), $targetDate->copy()->format('Y-m-d'));
+        }
     }
 
     protected function buildAvailableSlotsQuery(int $providerId, string $date, ?int $appointmentTypeId = null)

@@ -110,6 +110,15 @@
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': token || '',
+                        'X-XSRF-TOKEN': document.cookie
+                            .split('; ')
+                            .find((cookie) => cookie.startsWith('XSRF-TOKEN='))
+                            ?.split('=')[1]
+                            ? decodeURIComponent(document.cookie
+                                .split('; ')
+                                .find((cookie) => cookie.startsWith('XSRF-TOKEN='))
+                                ?.split('=')[1] || '')
+                            : '',
                         'X-Requested-With': 'XMLHttpRequest',
                     },
                     body: JSON.stringify(payload),

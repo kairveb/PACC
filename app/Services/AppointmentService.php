@@ -179,7 +179,8 @@ class AppointmentService
     public function reschedule(Appointment $appointment, array $data, ?int $userId = null): Appointment
     {
         $startsAt = Carbon::parse($data['starts_at']);
-        $endsAt = $startsAt->copy()->addMinutes($data['duration'] ?? 30);
+        $duration = isset($data['duration']) ? (int) $data['duration'] : 30;
+        $endsAt = $startsAt->copy()->addMinutes($duration);
 
         if ($this->scheduling->providerHasConflict($appointment->provider_id, $startsAt, $endsAt, $appointment->id)) {
             throw ValidationException::withMessages([
