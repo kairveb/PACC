@@ -282,6 +282,39 @@ class RbacMatrixTest extends TestCase
         $frontDeskResponse->assertDontSee('Bed occupancy');
     }
 
+    public function test_inpatient_sidebar_is_hidden_when_no_inpatient_children_are_visible_for_the_role(): void
+    {
+        $this->seed(HimsSeeder::class);
+
+        $roles = [
+            'doctor' => ['show' => false, 'items' => ['Bed Board', 'Admissions']],
+            'nurse' => ['show' => true, 'items' => ['Bed Board', 'Admissions']],
+            'registration' => ['show' => false, 'items' => ['Bed Board', 'Admissions']],
+            'patient' => ['show' => false, 'items' => ['Bed Board', 'Admissions']],
+            'hospital-admin' => ['show' => true, 'items' => ['Bed Board', 'Admissions']],
+            'super-admin' => ['show' => true, 'items' => ['Bed Board', 'Admissions']],
+        ];
+
+        foreach ($roles as $roleName => $expectations) {
+            $user = User::whereHas('roles', fn ($query) => $query->where('name', $roleName))->firstOrFail();
+            $response = $this->actingAs($user, 'web')->get('/dashboard');
+
+            $response->assertOk();
+
+            if ($expectations['show']) {
+                $response->assertSee('Inpatient');
+                foreach ($expectations['items'] as $item) {
+                    $response->assertSee($item);
+                }
+            } else {
+                $response->assertDontSee('Inpatient');
+                foreach ($expectations['items'] as $item) {
+                    $response->assertDontSee($item);
+                }
+            }
+        }
+    }
+
     public function test_doctor_and_nurse_see_only_role_scoped_data(): void
     {
         $this->seed(HimsSeeder::class);

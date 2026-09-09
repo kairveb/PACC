@@ -151,7 +151,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Authenticated routes
-    Route::middleware(['web', EnsureFrontendRequestsAreStateful::class, 'auth:sanctum', 'throttle:120,1'])->group(function () {
+    Route::middleware([EnsureFrontendRequestsAreStateful::class, 'auth:sanctum', \App\Http\Middleware\TrackInactivity::class, 'throttle:120,1'])->group(function () {
         Route::post('/auth/logout', [ApiAuthController::class, 'logout']);
         Route::get('/auth/me', [ApiAuthController::class, 'me']);
 

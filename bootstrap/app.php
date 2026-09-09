@@ -24,6 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\NoCacheAuthenticatedPages::class,
         ]);
 
+        $middleware->appendToGroup('web', [
+            \App\Http\Middleware\TrackInactivity::class,
+        ]);
+
         $middleware->appendToGroup('api', [
             \App\Http\Middleware\AllowCors::class,
             \App\Http\Middleware\SecureApiHeaders::class,

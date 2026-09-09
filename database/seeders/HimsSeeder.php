@@ -141,50 +141,39 @@ class HimsSeeder extends Seeder
         ];
 
         foreach ($users as $role => $userData) {
-            $emailCandidates = array_unique([
-                $userData['email'],
-                $role . '@coor.test',
-                str_replace('-', '.', $role) . '@coor.test',
-            ]);
-
-            $user = null;
-            foreach ($emailCandidates as $candidate) {
-                $user = User::where('email', $candidate)->first();
-                if ($user) {
-                    break;
-                }
-            }
-
-            if (! $user) {
-                $user = new User();
-                $user->email = $userData['email'];
-            }
-
-            $user->forceFill([
-                'name' => $userData['name'],
-                'password' => Hash::make('Password123!'),
-                'email_verified_at' => now(),
-            ])->save();
-
-            if ($role === 'super-admin' && ! User::where('email', 'super.admin@coor.test')->exists()) {
-                $extraUser = new User();
-                $extraUser->forceFill([
-                    'name' => 'Super Admin',
-                    'email' => 'super.admin@coor.test',
+            $user = User::updateOrCreate(
+                ['email' => $userData['email']],
+                [
+                    'name' => $userData['name'],
                     'password' => Hash::make('Password123!'),
                     'email_verified_at' => now(),
-                ])->save();
+                    'last_activity_at' => now(),
+                ]
+            );
+
+            if ($role === 'super-admin') {
+                $extraUser = User::updateOrCreate(
+                    ['email' => 'super.admin@coor.test'],
+                    [
+                        'name' => 'Super Admin',
+                        'password' => Hash::make('Password123!'),
+                        'email_verified_at' => now(),
+                        'last_activity_at' => now(),
+                    ]
+                );
                 $extraUser->roles()->syncWithoutDetaching([Role::where('name', 'super-admin')->value('id')]);
             }
 
-            if ($role === 'hospital-admin' && ! User::where('email', 'hospital.admin@coor.test')->exists()) {
-                $extraUser = new User();
-                $extraUser->forceFill([
-                    'name' => 'Hospital Admin',
-                    'email' => 'hospital.admin@coor.test',
-                    'password' => Hash::make('Password123!'),
-                    'email_verified_at' => now(),
-                ])->save();
+            if ($role === 'hospital-admin') {
+                $extraUser = User::updateOrCreate(
+                    ['email' => 'hospital.admin@coor.test'],
+                    [
+                        'name' => 'Hospital Admin',
+                        'password' => Hash::make('Password123!'),
+                        'email_verified_at' => now(),
+                        'last_activity_at' => now(),
+                    ]
+                );
                 $extraUser->roles()->syncWithoutDetaching([Role::where('name', 'hospital-admin')->value('id')]);
             }
 

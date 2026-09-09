@@ -117,23 +117,28 @@
                         </li>
                         @endif
 
-                        @canAny(['view-beds', 'view-admissions'])
+                        @php
+                            $inpatientVisibleLinks = [];
+                            if ($user->can('view-beds') && $user->hasAnyRole(['nurse', 'super-admin', 'hospital-admin'])) {
+                                $inpatientVisibleLinks[] = 'beds';
+                            }
+                            if ($user->can('view-admissions') && $user->hasAnyRole(['nurse', 'super-admin', 'hospital-admin'])) {
+                                $inpatientVisibleLinks[] = 'admissions';
+                            }
+                        @endphp
+                        @if (! empty($inpatientVisibleLinks))
                         <li class="nav-accordion{{ request()->routeIs('beds.*', 'admissions.*', 'inpatient.*') ? ' is-expanded is-active' : '' }}">
                             <button class="nav-link nav-link-button nav-accordion__toggle" type="button" aria-expanded="{{ request()->routeIs('beds.*', 'admissions.*', 'inpatient.*') ? 'true' : 'false' }}" aria-controls="nav-inpatient" aria-label="Inpatient Services"><i class="ph-fill ph-bed" aria-hidden="true"></i><span class="nav-label">Inpatient</span><i class="ph ph-caret-down nav-chevron" aria-hidden="true"></i></button>
                             <ul class="nav-submenu" id="nav-inpatient" @if(!request()->routeIs('beds.*', 'admissions.*', 'inpatient.*')) hidden @endif>
-                                @can('view-beds')
-                                    @if (auth()->user()->hasAnyRole(['nurse','super-admin','hospital-admin']))
-                                        <li><a href="{{ route('beds.index') }}" class="{{ request()->routeIs('beds.index', 'inpatient.index') ? 'active' : '' }}">Bed Board</a></li>
-                                    @endif
-                                @endcan
-                                @can('view-admissions')
-                                    @if (auth()->user()->hasAnyRole(['nurse','super-admin','hospital-admin']))
-                                        <li><a href="{{ route('admissions.index') }}" class="{{ request()->routeIs('admissions.*') ? 'active' : '' }}">Admissions</a></li>
-                                    @endif
-                                @endcan
+                                @if (in_array('beds', $inpatientVisibleLinks, true))
+                                    <li><a href="{{ route('beds.index') }}" class="{{ request()->routeIs('beds.index', 'inpatient.index') ? 'active' : '' }}">Bed Board</a></li>
+                                @endif
+                                @if (in_array('admissions', $inpatientVisibleLinks, true))
+                                    <li><a href="{{ route('admissions.index') }}" class="{{ request()->routeIs('admissions.*') ? 'active' : '' }}">Admissions</a></li>
+                                @endif
                             </ul>
                         </li>
-                        @endcanAny
+                        @endif
 
                         @php
                             $canViewReports = $user->can('view-reports') && $user->hasAnyRole(['doctor', 'super-admin', 'hospital-admin']);

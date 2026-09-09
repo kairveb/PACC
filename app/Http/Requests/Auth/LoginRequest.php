@@ -57,10 +57,14 @@ class LoginRequest extends FormRequest
 
         RateLimiter::clear($this->throttleKey());
 
+        $user = Auth::user();
+        if ($user) {
+            $user->forceFill(['last_activity_at' => now()])->save();
+        }
+
         // If the authenticated user has MFA enabled we do NOT finalize the
         // session here. Instead we stash their identity in the session and
         // require a TOTP code on the challenge screen before login completes.
-        $user = Auth::user();
         if ($user && $user->hasMfaEnabled()) {
             $this->session()->put('mfa', [
                 'id' => $user->getKey(),

@@ -69,6 +69,11 @@ class AuthenticatedSessionController extends Controller
         // Fully authenticate the user.
         Auth::loginUsingId($user['id']);
 
+        $authenticatedUser = Auth::user();
+        if ($authenticatedUser) {
+            $authenticatedUser->forceFill(['last_activity_at' => now()])->save();
+        }
+
         $request->session()->forget('mfa');
         $request->session()->regenerate();
         $request->session()->put('mfa_verified', now()->timestamp);
