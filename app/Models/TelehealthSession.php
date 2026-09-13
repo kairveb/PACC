@@ -54,12 +54,13 @@ class TelehealthSession extends Model
 
     public function secureJoinToken(): string
     {
+        // Must only use fields that never change after creation: updated_at/join_url would be
+        // mutated by the very save() that persists this token, invalidating it immediately.
         $payload = implode('|', [
             (string) $this->id,
             (string) ($this->appointment_id ?? 0),
             (string) ($this->start_time?->timestamp ?? 0),
-            (string) ($this->updated_at?->timestamp ?? 0),
-            (string) ($this->join_url ?? ''),
+            (string) ($this->created_at?->timestamp ?? 0),
         ]);
 
         return hash_hmac('sha256', $payload, config('app.key'));

@@ -18,7 +18,7 @@ class AppointmentPolicy
             return true;
         }
 
-        if ($user->isPatient() && $user->patient()?->id === $appointment->patient_id) {
+        if ($user->isPatient() && $user->patient?->id === $appointment->patient_id) {
             return true;
         }
 
@@ -46,7 +46,7 @@ class AppointmentPolicy
             return true;
         }
 
-        if ($user->isPatient() && $user->patient()?->id === $appointment->patient_id) {
+        if ($user->isPatient() && $user->patient?->id === $appointment->patient_id) {
             return in_array($appointment->status, ['PENDING', 'CONFIRMED']);
         }
 

@@ -54,5 +54,9 @@ class TelehealthServiceCreateTest extends TestCase
         $this->assertSame(TelehealthSession::STATUS_SCHEDULED, $session->status);
         $this->assertNotNull($session->join_url);
         $this->assertStringContainsString('/telehealth/' . $session->id . '/join', $session->join_url);
+
+        // The token embedded in join_url must still verify after persistence, not just at generation time.
+        parse_str(parse_url($session->join_url, PHP_URL_QUERY) ?? '', $query);
+        $this->assertTrue($service->verifyJoinToken($session->fresh(), $query['token'] ?? null));
     }
 }

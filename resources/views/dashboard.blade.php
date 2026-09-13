@@ -511,7 +511,7 @@
         </section>
 
         <div class="grid gap-4 md:grid-cols-2">
-            <a href="{{ route('appointments.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-sky-400">
+            <a href="{{ route('patients.portal.appointments') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-sky-400">
                 <div class="flex items-center justify-between">
                     <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-600"><i class="bi bi-calendar-check text-xl"></i></div>
                     <span class="status-pill info">Booked</span>
@@ -519,7 +519,7 @@
                 <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $myAppointments->count() }}</div>
                 <div class="mt-1 text-sm text-slate-600">Appointments</div>
             </a>
-            <a href="{{ route('appointments.index', ['follow_up' => 'due']) }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-emerald-400">
+            <a href="{{ route('patients.portal.appointments') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-emerald-400">
                 <div class="flex items-center justify-between">
                     <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600"><i class="bi bi-bell text-xl"></i></div>
                     <span class="status-pill success">Ready</span>

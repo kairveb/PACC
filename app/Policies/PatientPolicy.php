@@ -18,7 +18,7 @@ class PatientPolicy
             return true;
         }
 
-        if ($user->isPatient() && $user->patient()?->id === $patient->id) {
+        if ($user->isPatient() && $user->patient?->id === $patient->id) {
             return true;
         }
 
@@ -36,7 +36,7 @@ class PatientPolicy
             return true;
         }
 
-        if ($user->isPatient() && $user->patient()?->id === $patient->id) {
+        if ($user->isPatient() && $user->patient?->id === $patient->id) {
             return true;
         }
 
