@@ -286,7 +286,9 @@ class TriageAndTelehealthParityTest extends TestCase
                 'message' => 'This is your telehealth reminder.',
             ]);
 
-        $response->assertOk();
+        $response->assertOk()
+            ->assertJsonPath('message', 'Reminder email sent to reminder@example.test.')
+            ->assertJsonPath('data.patient_email', 'reminder@example.test');
         Mail::assertSentCount(1);
     }
 

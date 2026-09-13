@@ -129,6 +129,27 @@
         </div>
 
         <div class="card rounded-2xl border bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+                <h3 class="text-lg font-semibold text-slate-900">My prescriptions</h3>
+                <span class="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700">{{ $prescriptions->count() }}</span>
+            </div>
+            @if ($prescriptions->isEmpty())
+                <p class="mt-4 text-sm text-slate-500">No prescriptions saved yet.</p>
+            @else
+                <div class="mt-4 space-y-3">
+                    @foreach ($prescriptions as $prescription)
+                        <div class="rounded-xl border border-slate-200 p-3">
+                            <p class="font-medium text-slate-900">{{ $prescription->medication_name }}</p>
+                            <p class="mt-1 text-sm text-slate-600">{{ $prescription->dosage }}</p>
+                            <p class="mt-2 text-sm text-slate-700">{{ $prescription->instructions }}</p>
+                            <p class="mt-2 text-xs text-slate-500">Prescribed {{ $prescription->prescribed_at?->format('M d, Y g:i A') ?? 'recently' }}</p>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        <div class="card rounded-2xl border bg-white p-6 shadow-sm">
             <h3 class="text-lg font-semibold text-slate-900">Recent medical history</h3>
             @if ($recentEncounters->isEmpty())
                 <p class="mt-4 text-sm text-slate-500">No prior visits recorded.</p>

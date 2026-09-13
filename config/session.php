@@ -34,7 +34,11 @@ return [
 
     'lifetime' => (int) env('SESSION_LIFETIME', 120),
 
-    'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
+    // Closing the entire browser process ends the session, while a single tab
+    // closing does not. Browsers share the same session cookie across all tabs and
+    // windows in the same browser session, so browser-level shutdown is the only
+    // reliable way to invalidate it. This is a browser limitation, not a bug.
+    'expire_on_close' => true,
 
     /*
     |--------------------------------------------------------------------------

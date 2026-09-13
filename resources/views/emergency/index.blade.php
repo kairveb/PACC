@@ -8,43 +8,43 @@
 @section('content')
 <div class="space-y-6">
     <div class="grid gap-4 md:grid-cols-4">
-        <div class="panel-card p-5">
+        <a href="{{ route('emergency.index', ['priority' => 'Level 1']) }}" class="panel-card block p-5 transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-sm">
             <div class="flex items-center justify-between">
                 <div class="text-sm font-semibold text-rose-600">L1</div>
                 <span class="status-pill danger">Critical</span>
             </div>
             <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $queue->where('priority', 'Level 1')->count() }}</div>
             <p class="mt-2 text-sm text-slate-500">Level 1 · Critical</p>
-        </div>
-        <div class="panel-card p-5">
+        </a>
+        <a href="{{ route('emergency.index', ['priority' => 'Level 2']) }}" class="panel-card block p-5 transition hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-sm">
             <div class="flex items-center justify-between">
                 <div class="text-sm font-semibold text-amber-600">L2</div>
                 <span class="status-pill warning">Emergent</span>
             </div>
             <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $queue->where('priority', 'Level 2')->count() }}</div>
             <p class="mt-2 text-sm text-slate-500">Level 2 · Emergent</p>
-        </div>
-        <div class="panel-card p-5">
+        </a>
+        <a href="{{ route('emergency.index', ['priority' => 'Level 3']) }}" class="panel-card block p-5 transition hover:-translate-y-0.5 hover:border-teal-200 hover:shadow-sm">
             <div class="flex items-center justify-between">
                 <div class="text-sm font-semibold text-teal-600">L3</div>
                 <span class="status-pill info">Queue</span>
             </div>
             <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $queue->where('priority', 'Level 3')->count() }}</div>
             <p class="mt-2 text-sm text-slate-500">Level 3 · Prompt</p>
-        </div>
-        <div class="panel-card p-5">
+        </a>
+        <a href="{{ route('emergency.index', ['status' => 'live']) }}" class="panel-card block p-5 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-sm">
             <div class="flex items-center justify-between">
                 <div class="text-sm font-semibold text-slate-700">ER</div>
                 <span class="status-pill success">Live</span>
             </div>
-            <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $queue->count() }}</div>
-            <p class="mt-2 text-sm text-slate-500">Patients in queue</p>
-        </div>
+            <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $queue->whereIn('status', [\App\Models\ErQueue::STATUS_WAITING, \App\Models\ErQueue::STATUS_IN_TREATMENT])->count() }}</div>
+            <p class="mt-2 text-sm text-slate-500">Active queue</p>
+        </a>
     </div>
 
     <div class="flex flex-wrap items-center justify-end gap-3 pb-2">
-        <button type="button" class="inline-flex items-center justify-center rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700" data-bs-toggle="modal" data-bs-target="#checkinLookupModal">Look up patient</button>
-        <button type="button" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700" data-bs-toggle="modal" data-bs-target="#triageModal">Open triage dashboard</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700" data-bs-toggle="modal" data-bs-target="#checkinLookupModal">Pre-arrival lookup</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700" data-bs-toggle="modal" data-bs-target="#triageModal">Patient Triage Intake</button>
     </div>
 
     <div class="panel-card overflow-hidden">

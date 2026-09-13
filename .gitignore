@@ -33,3 +33,10 @@ Thumbs.db
 
 storage/framework/sessions/*
 !storage/framework/sessions/.gitignore
+
+# Local debug/temp artifacts - never commit
+.nurse_*
+tmp_*
+output-appointment.txt
+phpunit-full.txt
+repair-output.txt

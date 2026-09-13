@@ -145,7 +145,7 @@
                             </td>
                             <td class="text-slate-500">{{ $patient->created_at->format('M d, Y') }}</td>
                             <td>
-                                <button type="button" class="text-sm font-semibold text-teal-600 hover:text-teal-700" data-bs-toggle="modal" data-bs-target="#patientOverviewModal-{{ $patient->id }}">View 360°</button>
+                                <button type="button" class="text-sm font-semibold text-teal-600 hover:text-teal-700" data-bs-toggle="modal" data-bs-target="#patientOverviewModal-{{ $patient->id }}">Patient overview</button>
                             </td>
                         </tr>
                     @empty
@@ -186,7 +186,7 @@
                             @endif
                         </div>
                         <div class="mt-5 flex justify-end gap-3">
-                            <a href="{{ route('patients.show', $patient) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100">Open details</a>
+                            <a href="{{ route('patients.show', $patient) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100">Open patient record</a>
                             <button type="button" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-900" data-bs-dismiss="modal">Close</button>
                         </div>
                     </div>

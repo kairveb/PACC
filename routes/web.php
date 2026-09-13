@@ -99,8 +99,8 @@ Route::middleware('can:cancel-appointments')->group(function () {
 
     // Inpatient / Beds / Admissions
     Route::middleware(['can:view-beds', 'role:nurse,super-admin,hospital-admin'])->group(function () {
-        Route::get('inpatient', [InpatientController::class, 'wards'])->name('inpatient.index');
-        Route::get('beds', [InpatientController::class, 'wards'])->name('beds.index');
+        Route::get('inpatient', [InpatientController::class, 'overview'])->name('inpatient.index');
+        Route::get('beds', [InpatientController::class, 'beds'])->name('beds.index');
         Route::get('admissions', [InpatientController::class, 'admissions'])->name('admissions.index');
         Route::get('admissions/create', [InpatientController::class, 'createAdmission'])->name('admissions.create');
         Route::post('admissions', [InpatientController::class, 'storeAdmission'])->name('admissions.store');

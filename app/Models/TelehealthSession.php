@@ -31,6 +31,11 @@ class TelehealthSession extends Model
         return $this->hasMany(TelehealthParticipant::class);
     }
 
+    public function prescriptions(): HasMany
+    {
+        return $this->hasMany(Prescription::class);
+    }
+
     public function isLive(): bool
     {
         return in_array($this->status, [self::STATUS_ACTIVE, self::STATUS_ONGOING], true);

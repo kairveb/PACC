@@ -81,6 +81,11 @@ class Patient extends Model
         return $this->hasMany(ClinicalDocument::class);
     }
 
+    public function prescriptions(): HasMany
+    {
+        return $this->hasMany(Prescription::class);
+    }
+
     public function preArrivalProfiles(): HasMany
     {
         return $this->hasMany(PreArrivalProfile::class);

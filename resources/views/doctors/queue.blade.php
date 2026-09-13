@@ -8,41 +8,41 @@
 @section('content')
 <div class="space-y-6">
     <div class="grid gap-4 md:grid-cols-4">
-        <div class="panel-card p-5">
+        <a href="{{ route('doctors.queue', ['priority' => 1]) }}" class="panel-card block p-5 transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-sm">
             <div class="flex items-center justify-between">
                 <div class="text-sm font-semibold text-rose-600">Level 1</div>
                 <span class="status-pill danger">Red</span>
             </div>
             <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $summary['level_1'] ?? 0 }}</div>
             <p class="mt-2 text-sm text-slate-500">Emergency</p>
-        </div>
+        </a>
 
-        <div class="panel-card p-5">
+        <a href="{{ route('doctors.queue', ['priority' => 2]) }}" class="panel-card block p-5 transition hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-sm">
             <div class="flex items-center justify-between">
                 <div class="text-sm font-semibold text-amber-600">Level 2</div>
                 <span class="status-pill warning">Yellow</span>
             </div>
             <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $summary['level_2'] ?? 0 }}</div>
             <p class="mt-2 text-sm text-slate-500">Urgent</p>
-        </div>
+        </a>
 
-        <div class="panel-card p-5">
+        <a href="{{ route('doctors.queue', ['priority' => 3]) }}" class="panel-card block p-5 transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-sm">
             <div class="flex items-center justify-between">
                 <div class="text-sm font-semibold text-orange-600">Level 3</div>
                 <span class="status-pill info">Orange</span>
             </div>
             <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $summary['level_3'] ?? 0 }}</div>
             <p class="mt-2 text-sm text-slate-500">Prompt</p>
-        </div>
+        </a>
 
-        <div class="panel-card p-5">
+        <a href="{{ route('doctors.queue', ['status' => 'live']) }}" class="panel-card block p-5 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-sm">
             <div class="flex items-center justify-between">
-                <div class="text-sm font-semibold text-slate-700">Total</div>
-                <span class="status-pill success">Live</span>
+                <div class="text-sm font-semibold text-slate-700">Live</div>
+                <span class="status-pill success">Active</span>
             </div>
-            <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $summary['total'] ?? 0 }}</div>
+            <div class="mt-4 text-3xl font-semibold text-slate-900">{{ $summary['live'] ?? 0 }}</div>
             <p class="mt-2 text-sm text-slate-500">Awaiting review</p>
-        </div>
+        </a>
     </div>
 
     @include('partials.status-legend')

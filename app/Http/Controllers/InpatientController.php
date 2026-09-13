@@ -20,7 +20,15 @@ class InpatientController extends Controller
     ) {
     }
 
-public function wards()
+public function overview()
+    {
+        $wards = Ward::with(['rooms.beds.activeAssignment.admission.patient'])->get();
+        $bedStats = Bed::selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
+        $admissions = Admission::with(['patient', 'bedAssignments.bed.room.ward'])->orderBy('created_at', 'desc')->limit(5)->get();
+        return view('inpatient.overview', compact('wards', 'bedStats', 'admissions'));
+    }
+
+    public function beds()
     {
         $wards = Ward::with(['rooms.beds.activeAssignment.admission.patient'])->get();
         $bedStats = Bed::selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');

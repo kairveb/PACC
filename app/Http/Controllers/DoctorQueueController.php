@@ -37,6 +37,16 @@ class DoctorQueueController extends Controller
             $query->where('priority_score', (int) $request->priority);
         }
 
+        $statusFilter = $request->input('status');
+        if ($statusFilter !== null && $statusFilter !== '') {
+            $statusValue = strtolower((string) $statusFilter);
+            if (in_array($statusValue, ['live', 'active'], true)) {
+                $query->whereIn('status', ['WAITING', 'SEEN', 'IN_CONSULT']);
+            } else {
+                $query->where('status', $statusFilter);
+            }
+        }
+
         $queue = $query->orderByRaw("CASE
                 WHEN priority_score IS NULL THEN 99
                 WHEN priority_score = 1 THEN 1
@@ -53,6 +63,7 @@ class DoctorQueueController extends Controller
             'level_2' => $queue->where('priority_score', 2)->count(),
             'level_3' => $queue->where('priority_score', 3)->count(),
             'total' => $queue->count(),
+            'live' => $queue->filter(fn ($item) => in_array($item->status, ['WAITING', 'SEEN', 'IN_CONSULT'], true))->count(),
         ];
 
         return view('doctors.queue', compact('queue', 'summary'));

@@ -53,10 +53,19 @@ class AppServiceProvider extends ServiceProvider
             // Database may not be migrated yet (e.g., during install). Skip gracefully.
         }
 
+        Gate::define('portal-dashboard', fn ($user) => $user->hasRole('patient'));
+        Gate::define('view-own-medical-history', fn ($user) => $user->hasRole('patient'));
+        Gate::define('view-own-appointments', fn ($user) => $user->hasRole('patient'));
+        Gate::define('view-own-telehealth', fn ($user) => $user->hasRole('patient'));
+
         // Super admin bypass and dynamic permission checks for seeded permissions.
         Gate::before(function ($user, $ability) {
             if ($user->isSuperAdmin()) {
                 return true;
+            }
+
+            if (in_array($ability, ['portal-dashboard', 'view-own-medical-history', 'view-own-appointments', 'view-own-telehealth'], true)) {
+                return $user->hasRole('patient');
             }
 
             try {

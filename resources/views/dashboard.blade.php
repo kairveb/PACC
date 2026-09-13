@@ -20,168 +20,6 @@
 @endphp
 
 <div class="space-y-6">
-    <section class="panel-card p-6">
-        <div class="flex items-center justify-between gap-3">
-            <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.3em] text-sky-600">Quick Start</p>
-                <h3 class="mt-2 text-xl font-semibold text-slate-900">
-                    @if ($isRegistration)
-                        Front Desk Tasks
-                    @elseif ($isNurse)
-                        Triage & ER Workflow
-                    @elseif ($isDoctor)
-                        Clinical Review
-                    @elseif ($isPatient)
-                        My Care Overview
-                    @elseif ($isAdmin)
-                        Operations Overview
-                    @else
-                        Restricted Access
-                    @endif
-                </h3>
-            </div>
-        </div>
-
-        <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            @if ($isRegistration)
-                @can('create-patients')
-                    <button type="button" class="w-full rounded-2xl border border-sky-200 bg-sky-50 p-4 text-left transition hover:border-sky-400 hover:bg-sky-100" data-bs-toggle="modal" data-bs-target="#registerPatientModal">
-                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600 text-white">
-                            <i class="bi bi-person-plus-fill"></i>
-                        </div>
-                        <div class="text-base font-semibold text-slate-900">Register Patient</div>
-                        <div class="mt-1 text-sm text-slate-600">Create a new MRN and intake record</div>
-                    </button>
-                @endcan
-
-                @can('view-patients')
-                    <a href="{{ route('patients.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
-                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                            <i class="bi bi-search"></i>
-                        </div>
-                        <div class="text-base font-semibold text-slate-900">Patient Lookup</div>
-                        <div class="mt-1 text-sm text-slate-600">Find an existing patient quickly</div>
-                    </a>
-                @endcan
-
-                @can('view-appointments')
-                    <a href="{{ route('appointments.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
-                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                            <i class="bi bi-calendar3"></i>
-                        </div>
-                        <div class="text-base font-semibold text-slate-900">Appointments</div>
-                        <div class="mt-1 text-sm text-slate-600">Review daily schedule and check-ins</div>
-                    </a>
-                @endcan
-
-                @can('view-er')
-                    <a href="{{ route('emergency.index') }}" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 transition hover:border-rose-400 hover:bg-rose-100">
-                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-rose-600 text-white">
-                            <i class="bi bi-hospital"></i>
-                        </div>
-                        <div class="text-base font-semibold text-slate-900">ER Queue</div>
-                        <div class="mt-1 text-sm text-slate-600">Check emergency arrivals and priority levels</div>
-                    </a>
-                @endcan
-            @elseif ($userRole === 'nurse')
-                @can('triage-patients')
-                    <a href="{{ route('emergency.index') }}" class="rounded-2xl border border-teal-200 bg-teal-50 p-4 transition hover:border-teal-400 hover:bg-teal-100">
-                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-600 text-white">
-                            <i class="bi bi-heart-pulse"></i>
-                        </div>
-                        <div class="text-base font-semibold text-slate-900">Triage Board</div>
-                        <div class="mt-1 text-sm text-slate-600">Open the ER triage intake workflow</div>
-                    </a>
-                @endcan
-
-                @can('view-er')
-                    <a href="{{ route('emergency.index') }}" class="rounded-2xl border border-amber-200 bg-amber-50 p-4 transition hover:border-amber-400 hover:bg-amber-100">
-                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white">
-                            <i class="bi bi-clipboard-pulse"></i>
-                        </div>
-                        <div class="text-base font-semibold text-slate-900">ER Queue</div>
-                        <div class="mt-1 text-sm text-slate-600">Review waiting patients by severity</div>
-                    </a>
-
-                    <a href="{{ route('emergency.index') }}" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 transition hover:border-rose-400 hover:bg-rose-100">
-                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-rose-600 text-white">
-                            <i class="bi bi-file-medical"></i>
-                        </div>
-                        <div class="text-base font-semibold text-slate-900">ER Intake</div>
-                        <div class="mt-1 text-sm text-slate-600">Record arrivals and chief complaints</div>
-                    </a>
-                @endcan
-
-                @can('view-beds')
-                    <a href="{{ route('beds.index') }}" class="rounded-2xl border border-violet-200 bg-violet-50 p-4 transition hover:border-violet-400 hover:bg-violet-100">
-                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white">
-                            <i class="bi bi-bed"></i>
-                        </div>
-                        <div class="text-base font-semibold text-slate-900">Bed Board</div>
-                        <div class="mt-1 text-sm text-slate-600">Track available and occupied beds</div>
-                    </a>
-                @endcan
-            @elseif ($userRole === 'doctor')
-                @can('view-encounters')
-                    <a href="{{ route('doctors.queue') }}" class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition hover:border-emerald-400 hover:bg-emerald-100">
-                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                            <i class="bi bi-clipboard-check"></i>
-                        </div>
-                        <div class="text-base font-semibold text-slate-900">Doctor Queue</div>
-                        <div class="mt-1 text-sm text-slate-600">Review urgent patients waiting for review</div>
-                    </a>
-
-                    <a href="{{ route('encounters.index') }}" class="rounded-2xl border border-sky-200 bg-sky-50 p-4 transition hover:border-sky-400 hover:bg-sky-100">
-                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600 text-white">
-                            <i class="bi bi-journal-medical"></i>
-                        </div>
-                        <div class="text-base font-semibold text-slate-900">Encounters</div>
-                        <div class="mt-1 text-sm text-slate-600">Open active patient consultations</div>
-                    </a>
-                @endcan
-
-                @can('view-appointments')
-                    <a href="{{ route('appointments.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
-                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                            <i class="bi bi-calendar2-week"></i>
-                        </div>
-                        <div class="text-base font-semibold text-slate-900">Today’s Schedule</div>
-                        <div class="mt-1 text-sm text-slate-600">Check all booked visits for the day</div>
-                    </a>
-                @endcan
-
-                @can('view-patients')
-                    <a href="{{ route('patients.index') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
-                        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                            <i class="bi bi-people"></i>
-                        </div>
-                        <div class="text-base font-semibold text-slate-900">Patient List</div>
-                        <div class="mt-1 text-sm text-slate-600">Jump straight to patient records</div>
-                    </a>
-                @endcan
-            @elseif ($isPatient)
-                @if (auth()->user()->hasRole('patient'))
-                    @can('portal-dashboard')
-                        <button type="button" class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-left transition hover:border-emerald-400 hover:bg-emerald-100" data-bs-toggle="modal" data-bs-target="#preRegistrationModal">
-                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                                <i class="bi bi-clipboard-check"></i>
-                            </div>
-                            <div class="text-base font-semibold text-slate-900">Pre-register for your visit</div>
-                            <div class="mt-1 text-sm text-slate-600">Share your arrival details before you come in</div>
-                        </button>
-
-                        <a href="{{ route('patients.portal') }}" class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300">
-                            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                                <i class="bi bi-person-circle"></i>
-                            </div>
-                            <div class="text-base font-semibold text-slate-900">Patient Portal</div>
-                            <div class="mt-1 text-sm text-slate-600">View appointments, history, and telehealth</div>
-                        </a>
-                    @endcan
-                @endif
-            @endif
-        </div>
-    </section>
 
     @if ($isPatient)
         @can('portal-dashboard')
@@ -340,85 +178,64 @@
             </div>
         </section>
 
-        <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            @can('create-patients')
-            <button type="button" class="panel-card group flex w-full flex-col items-start gap-3 p-5 text-left transition hover:-translate-y-1 hover:border-teal-400" data-bs-toggle="modal" data-bs-target="#registerPatientModal">
-                <div class="rounded-2xl bg-teal-50 p-3 text-teal-600"><i class="bi bi-person-plus-fill text-xl"></i></div>
-                <div>
-                    <div class="font-semibold text-slate-800">Register Patient</div>
-                    <div class="text-xs text-slate-500 mt-0.5">New SPRS intake</div>
-                </div>
-                <span class="text-sm font-semibold text-teal-600 group-hover:translate-x-1 transition-transform">Open →</span>
-            </button>
-            @endcan
-            @can('create-appointments')
-            <a href="{{ route('appointments.index') }}" class="panel-card group flex flex-col items-start gap-3 p-5 transition hover:-translate-y-1 hover:border-sky-400">
-                <div class="rounded-2xl bg-sky-50 p-3 text-sky-600"><i class="bi bi-calendar-plus text-xl"></i></div>
-                <div>
-                    <div class="font-semibold text-slate-800">Appointments</div>
-                    <div class="text-xs text-slate-500 mt-0.5">Review and schedule visits</div>
-                </div>
-                <span class="text-sm font-semibold text-sky-600 group-hover:translate-x-1 transition-transform">Open →</span>
-            </a>
-            @endcan
-            @can('view-er')
-            <a href="{{ route('emergency.index') }}" class="panel-card group flex flex-col items-start gap-3 p-5 transition hover:-translate-y-1 hover:border-rose-400">
-                <div class="rounded-2xl bg-rose-50 p-3 text-rose-600"><i class="bi bi-hospital text-xl"></i></div>
-                <div>
-                    <div class="font-semibold text-slate-800">ER queue</div>
-                    <div class="text-xs text-slate-500 mt-0.5">Emergency intake</div>
-                </div>
-                <span class="text-sm font-semibold text-rose-600 group-hover:translate-x-1 transition-transform">Open →</span>
-            </a>
-            @endcan
-            @can('view-admissions')
-            <a href="{{ route('admissions.index') }}" class="panel-card group flex flex-col items-start gap-3 p-5 transition hover:-translate-y-1 hover:border-violet-400">
-                <div class="rounded-2xl bg-violet-50 p-3 text-violet-600"><i class="bi bi-box-arrow-in-right text-xl"></i></div>
-                <div>
-                    <div class="font-semibold text-slate-800">Admissions</div>
-                    <div class="text-xs text-slate-500 mt-0.5">Review inpatient requests</div>
-                </div>
-                <span class="text-sm font-semibold text-violet-600 group-hover:translate-x-1 transition-transform">Open →</span>
-            </a>
-            @endcan
-        </div>
-
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div class="panel-card p-5">
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <a href="{{ route('patients.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-teal-400">
                 <div class="flex items-center justify-between">
-                    <div class="rounded-2xl bg-teal-50 p-3 text-teal-600"><i class="bi bi-person-plus-fill text-xl"></i></div>
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-teal-600"><i class="bi bi-person-plus-fill text-xl"></i></div>
                     <span class="status-pill success">Active</span>
                 </div>
                 <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $todayPatients }}</div>
                 <div class="mt-1 text-sm text-slate-600">Patients registered today</div>
-            </div>
+            </a>
 
-            <div class="panel-card p-5">
+            <a href="{{ route('appointments.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-sky-400">
                 <div class="flex items-center justify-between">
-                    <div class="rounded-2xl bg-sky-50 p-3 text-sky-600"><i class="bi bi-calendar-check-fill text-xl"></i></div>
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-600"><i class="bi bi-calendar-check-fill text-xl"></i></div>
                     <span class="status-pill info">Booked</span>
                 </div>
                 <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $todayAppointments }}</div>
                 <div class="mt-1 text-sm text-slate-600">Appointments scheduled</div>
-            </div>
+            </a>
 
-            <div class="panel-card p-5">
+            <a href="{{ route('telehealth.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-violet-400">
                 <div class="flex items-center justify-between">
-                    <div class="rounded-2xl bg-violet-50 p-3 text-violet-600"><i class="bi bi-camera-video-fill text-xl"></i></div>
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-600"><i class="bi bi-camera-video-fill text-xl"></i></div>
                     <span class="status-pill warning">Live</span>
                 </div>
                 <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $telehealthAppointments }}</div>
                 <div class="mt-1 text-sm text-slate-600">Telehealth sessions</div>
-            </div>
+            </a>
 
-            <div class="panel-card p-5">
+            @can('view-er')
+            <a href="{{ route('emergency.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-rose-400">
                 <div class="flex items-center justify-between">
-                    <div class="rounded-2xl bg-amber-50 p-3 text-amber-600"><i class="bi bi-hospital-fill text-xl"></i></div>
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600"><i class="bi bi-hospital text-xl"></i></div>
+                    <span class="status-pill danger">Active</span>
+                </div>
+                <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $erQueue->count() }}</div>
+                <div class="mt-1 text-sm text-slate-600">Patients in ER queue</div>
+            </a>
+            @endcan
+
+            @can('view-admissions')
+            <a href="{{ route('admissions.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-violet-400">
+                <div class="flex items-center justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-600"><i class="bi bi-box-arrow-in-right text-xl"></i></div>
+                    <span class="status-pill warning">Pending</span>
+                </div>
+                <div class="mt-6 text-3xl font-semibold text-slate-900">{{ ($pendingAdmissions ?? collect())->count() }}</div>
+                <div class="mt-1 text-sm text-slate-600">Admission requests</div>
+            </a>
+            @endcan
+
+            <a href="{{ route('inpatient.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-amber-400">
+                <div class="flex items-center justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600"><i class="bi bi-hospital-fill text-xl"></i></div>
                     <span class="status-pill danger">In use</span>
                 </div>
                 <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $occupiedBeds }}</div>
                 <div class="mt-1 text-sm text-slate-600">Occupied beds</div>
-            </div>
+            </a>
         </div>
 
         <div class="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
@@ -561,18 +378,30 @@
         </section>
 
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <div class="panel-card p-5">
-                <div class="text-sm text-slate-500">Appointments today</div>
-                <div class="mt-3 text-3xl font-semibold text-slate-900">{{ $myAppointments->count() }}</div>
-            </div>
-            <div class="panel-card p-5">
-                <div class="text-sm text-slate-500">Patients seen</div>
-                <div class="mt-3 text-3xl font-semibold text-slate-900">{{ $myPatientCount }}</div>
-            </div>
-            <div class="panel-card p-5">
-                <div class="text-sm text-slate-500">Follow-up due</div>
-                <div class="mt-3 text-3xl font-semibold text-slate-900">{{ $followUpDue->count() }}</div>
-            </div>
+            <a href="{{ route('appointments.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-sky-400">
+                <div class="flex items-center justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-600"><i class="bi bi-calendar-event text-xl"></i></div>
+                    <span class="status-pill info">Today</span>
+                </div>
+                <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $myAppointments->count() }}</div>
+                <div class="mt-1 text-sm text-slate-600">Appointments today</div>
+            </a>
+            <a href="{{ route('patients.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-emerald-400">
+                <div class="flex items-center justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600"><i class="bi bi-person-check text-xl"></i></div>
+                    <span class="status-pill success">Seen</span>
+                </div>
+                <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $myPatientCount }}</div>
+                <div class="mt-1 text-sm text-slate-600">Patients seen</div>
+            </a>
+            <a href="{{ route('appointments.index', ['follow_up' => 'due']) }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-amber-400">
+                <div class="flex items-center justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600"><i class="bi bi-alarm text-xl"></i></div>
+                    <span class="status-pill warning">Due</span>
+                </div>
+                <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $followUpDue->count() }}</div>
+                <div class="mt-1 text-sm text-slate-600">Follow-up due</div>
+            </a>
         </div>
 
         <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -638,16 +467,38 @@
         </section>
 
         <div class="grid gap-4 md:grid-cols-2">
-            <div class="panel-card p-5">
-                <div class="text-sm text-slate-500">Waiting triage</div>
-                <div class="mt-3 text-3xl font-semibold text-slate-900">{{ $triageQueue->count() }}</div>
-            </div>
-            <div class="panel-card p-5">
-                <div class="text-sm text-slate-500">Pending admissions</div>
-                <div class="mt-3 text-3xl font-semibold text-slate-900">{{ $pendingAdmissions->count() }}</div>
-            </div>
+            <a href="{{ route('emergency.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-rose-400">
+                <div class="flex items-center justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600"><i class="bi bi-clipboard-pulse text-xl"></i></div>
+                    <span class="status-pill danger">Wait</span>
+                </div>
+                <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $triageQueue->count() }}</div>
+                <div class="mt-1 text-sm text-slate-600">Waiting triage</div>
+            </a>
+            <a href="{{ route('admissions.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-violet-400">
+                <div class="flex items-center justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-600"><i class="bi bi-building text-xl"></i></div>
+                    <span class="status-pill warning">Pending</span>
+                </div>
+                <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $pendingAdmissions->count() }}</div>
+                <div class="mt-1 text-sm text-slate-600">Pending admissions</div>
+            </a>
         </div>
     @elseif ($userRole === 'patient')
+        <section class="panel-card border-l-4 border-emerald-500 p-5">
+            <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-600">Pre-registration</p>
+                    <h3 class="mt-2 text-lg font-semibold text-slate-900">Pre-register for your visit</h3>
+                </div>
+                @can('portal-dashboard')
+                    <button type="button" class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700" data-bs-toggle="modal" data-bs-target="#preRegistrationModal">
+                        Pre-register for your visit
+                    </button>
+                @endcan
+            </div>
+        </section>
+
         <section class="panel-card p-6 lg:p-8">
             <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                 <div>
@@ -658,6 +509,25 @@
                 <div class="metric-pill">Upcoming</div>
             </div>
         </section>
+
+        <div class="grid gap-4 md:grid-cols-2">
+            <a href="{{ route('appointments.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-sky-400">
+                <div class="flex items-center justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-600"><i class="bi bi-calendar-check text-xl"></i></div>
+                    <span class="status-pill info">Booked</span>
+                </div>
+                <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $myAppointments->count() }}</div>
+                <div class="mt-1 text-sm text-slate-600">Appointments</div>
+            </a>
+            <a href="{{ route('appointments.index', ['follow_up' => 'due']) }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-emerald-400">
+                <div class="flex items-center justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600"><i class="bi bi-bell text-xl"></i></div>
+                    <span class="status-pill success">Ready</span>
+                </div>
+                <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $myFollowUps->count() }}</div>
+                <div class="mt-1 text-sm text-slate-600">Follow-up plans</div>
+            </a>
+        </div>
 
         <div class="panel-card p-6">
             <div class="space-y-3">
@@ -684,14 +554,22 @@
         </section>
 
         <div class="grid gap-4 md:grid-cols-2">
-            <div class="panel-card p-5">
-                <div class="text-sm text-slate-500">Scheduled today</div>
-                <div class="mt-3 text-3xl font-semibold text-slate-900">{{ $registrationDeskQueue->count() }}</div>
-            </div>
-            <div class="panel-card p-5">
-                <div class="text-sm text-slate-500">Checked in today</div>
-                <div class="mt-3 text-3xl font-semibold text-slate-900">{{ $checkedInToday }}</div>
-            </div>
+            <a href="{{ route('appointments.index') }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-sky-400">
+                <div class="flex items-center justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-600"><i class="bi bi-calendar2-week text-xl"></i></div>
+                    <span class="status-pill info">Today</span>
+                </div>
+                <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $registrationDeskQueue->count() }}</div>
+                <div class="mt-1 text-sm text-slate-600">Scheduled today</div>
+            </a>
+            <a href="{{ route('appointments.index', ['status' => 'CHECKED_IN']) }}" class="panel-card h-full min-h-[220px] p-5 transition hover:-translate-y-1 hover:border-emerald-400">
+                <div class="flex items-center justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600"><i class="bi bi-person-check text-xl"></i></div>
+                    <span class="status-pill success">Checked</span>
+                </div>
+                <div class="mt-6 text-3xl font-semibold text-slate-900">{{ $checkedInToday }}</div>
+                <div class="mt-1 text-sm text-slate-600">Checked in today</div>
+            </a>
         </div>
     @else
         <section class="panel-card border-l-4 border-slate-300 p-6 lg:p-8">

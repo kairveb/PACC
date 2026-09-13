@@ -136,12 +136,15 @@ tbody tr:hover {
 .status-pill {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   border-radius: 999px;
-  padding: 0.36rem 0.7rem;
-  font-size: 0.78rem;
+  padding: 0.38rem 0.72rem;
+  min-height: 2rem;
+  font-size: 0.72rem;
+  line-height: 1;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
 .status-pill.success {

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\ClinicalDocument;
 use App\Models\Encounter;
+use App\Models\Prescription;
 use App\Models\TelehealthSession;
 use App\Services\EncounterService;
 use App\Services\TelehealthService;
@@ -14,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class TelehealthApiController extends Controller
 {
@@ -121,11 +123,18 @@ class TelehealthApiController extends Controller
 
         $session = TelehealthSession::with('appointment.patient')->findOrFail($id);
 
-        $data = $request->validate([
-            'medications' => ['required', 'array'],
-            'medications.*' => ['string', 'max:255'],
-            'notes' => ['nullable', 'string'],
+        $validator = Validator::make($request->all(), [
+            'medication_name' => ['required_without_all:medications', 'nullable', 'string', 'max:255'],
+            'dosage' => ['required_without_all:medications', 'nullable', 'string', 'max:255'],
+            'instructions' => ['required_without_all:medications', 'nullable', 'string'],
+            'medications' => ['sometimes', 'array'],
+            'medications.*' => ['nullable', 'string', 'max:255'],
+            'notes' => ['sometimes', 'nullable', 'string'],
         ]);
+
+        $validator->sometimes('medication_name', 'required', fn () => $request->filled('medication_name') || ! $request->has('medications'));
+
+        $data = $validator->validate();
 
         $patient = $session->appointment?->patient;
         if (! $patient) {
@@ -135,31 +144,53 @@ class TelehealthApiController extends Controller
             ], 422);
         }
 
-        $filename = 'telehealth/prescriptions/' . now()->format('Ymd_His') . '_' . $patient->id . '.txt';
-        $content = "Prescription generated: " . now()->toDateTimeString() . PHP_EOL;
-        $content .= "Patient: " . $patient->full_name . " (MRN: " . $patient->mrn . ")" . PHP_EOL;
-        $content .= "Medications:" . PHP_EOL;
-        foreach ($data['medications'] as $medication) {
-            $content .= '- ' . $medication . PHP_EOL;
+        $legacyMedications = array_values(array_filter(array_map(static fn ($medication) => trim((string) $medication), $request->input('medications', []))));
+        $medicationName = trim((string) ($data['medication_name'] ?? ''));
+        if ($medicationName === '' && ! empty($legacyMedications)) {
+            $medicationName = $legacyMedications[0];
         }
-        if (! empty($data['notes'])) {
-            $content .= "Notes: " . $data['notes'] . PHP_EOL;
-        }
-        Storage::put($filename, $content);
 
-        $document = ClinicalDocument::create([
+        $dosage = trim((string) ($data['dosage'] ?? ''));
+        if ($dosage === '' && ! empty($legacyMedications)) {
+            $dosage = 'As prescribed';
+        }
+
+        $instructions = trim((string) ($data['instructions'] ?? ''));
+        if ($instructions === '') {
+            $instructions = trim((string) ($data['notes'] ?? '')) ?: 'Follow clinician instructions.';
+        }
+
+        $medicationName = $medicationName !== '' ? $medicationName : 'Medication prescribed';
+
+        $prescription = Prescription::create([
+            'telehealth_session_id' => $session->id,
             'patient_id' => $patient->id,
+            'medication_name' => $medicationName,
+            'dosage' => $dosage !== '' ? $dosage : 'As prescribed',
+            'instructions' => $instructions,
+            'prescribed_by' => $request->user()?->id,
+            'prescribed_at' => now(),
+        ]);
+
+        $document = ClinicalDocument::firstOrCreate([
+            'patient_id' => $patient->id,
+            'name' => 'Telehealth Prescription ' . $session->id,
+        ], [
             'encounter_id' => null,
             'uploaded_by' => $request->user()?->id,
-            'name' => 'Telehealth Prescription ' . $session->id,
-            'path' => $filename,
+            'path' => 'telehealth/prescriptions/' . now()->format('Ymd_His') . '_' . $patient->id . '.txt',
             'mime_type' => 'text/plain',
+        ]);
+
+        $document->update([
+            'name' => 'Telehealth Prescription ' . $session->id,
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Prescription created successfully.',
-            'data' => $document,
+            'message' => 'Prescription saved successfully.',
+            'data' => $prescription->load(['patient', 'prescribedBy']),
+            'document' => $document,
         ]);
     }
 
@@ -201,7 +232,7 @@ class TelehealthApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Reminder sent successfully.',
+            'message' => 'Reminder email sent to ' . $patient->email . '.',
             'data' => [
                 'channel' => $channel,
                 'patient_email' => $patient->email,

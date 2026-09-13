@@ -44,8 +44,14 @@ class EmergencyController extends Controller
             $query->where('priority', $request->priority);
         }
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        $statusFilter = $request->input('status');
+        if ($statusFilter !== null && $statusFilter !== '') {
+            $statusValue = strtolower((string) $statusFilter);
+            if (in_array($statusValue, ['live', 'active'], true)) {
+                $query->whereIn('status', [ErQueue::STATUS_WAITING, ErQueue::STATUS_IN_TREATMENT]);
+            } else {
+                $query->where('status', $statusFilter);
+            }
         }
 
         $queue = $query->paginate(20);

@@ -387,17 +387,21 @@ class HimsSeeder extends Seeder
                 ]
             );
 
-            // Seed exactly one real active bed assignment. The rest of the beds should remain AVAILABLE.
+            // Keep the demo narrative deterministic: MED / 201 / Bed A is occupied, while Bed B remains available.
             DB::table('bed_assignments')->delete();
             Bed::query()->update(['status' => 'AVAILABLE', 'status_updated_at' => null]);
 
-            $bed = Bed::where('status', 'AVAILABLE')->orderBy('id')->first();
-            if ($bed) {
-                $bed->update(['status' => 'OCCUPIED', 'status_updated_at' => now()]);
+            $occupiedBed = Bed::query()
+                ->whereHas('room', fn ($q) => $q->where('number', '201')->whereHas('ward', fn ($wardQuery) => $wardQuery->where('code', 'MED')))
+                ->where('number', 'A')
+                ->first();
+
+            if ($occupiedBed) {
+                $occupiedBed->update(['status' => 'OCCUPIED', 'status_updated_at' => now()]);
 
                 BedAssignment::create([
                     'admission_id' => $admissionRec->id,
-                    'bed_id' => $bed->id,
+                    'bed_id' => $occupiedBed->id,
                     'assigned_by' => $admission->id,
                     'assigned_at' => now()->subHours(3),
                     'status' => 'ACTIVE',

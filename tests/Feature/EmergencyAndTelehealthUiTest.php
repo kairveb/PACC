@@ -464,7 +464,186 @@ class EmergencyAndTelehealthUiTest extends TestCase
         });
     }
 
-    public function test_telehealth_index_page_shows_session_controls_and_stats(): void
+    public function test_telehealth_prescription_can_be_created_and_seen_in_modal(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
+        $role = Role::firstOrCreate(['name' => 'super-admin'], ['label' => 'Super Admin']);
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
+        $patient = Patient::create([
+            'mrn' => 'MRN-PRESCRIPTION-001',
+            'first_name' => 'Prescription',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1990-01-01',
+            'sex' => 'Female',
+            'phone' => '09170000111',
+            'email' => 'prescription@example.test',
+            'verified' => true,
+        ]);
+        $provider = Provider::create([
+            'user_id' => User::factory()->create()->id,
+            'display_name' => 'Dr. Prescription',
+            'active' => true,
+        ]);
+        $appointmentType = AppointmentType::create([
+            'name' => 'Telehealth',
+            'default_duration' => 30,
+            'telehealth' => true,
+        ]);
+        $appointment = Appointment::create([
+            'appointment_number' => 'APT-PRESCRIPTION-001',
+            'patient_id' => $patient->id,
+            'provider_id' => $provider->id,
+            'appointment_type_id' => $appointmentType->id,
+            'starts_at' => now(),
+            'ends_at' => now()->addMinutes(30),
+            'status' => 'CONFIRMED',
+        ]);
+        $session = TelehealthSession::create([
+            'appointment_id' => $appointment->id,
+            'start_time' => now(),
+            'duration' => 30,
+            'status' => 'ACTIVE',
+        ]);
+
+        $response = $this->actingAs($user, 'web')->postJson('/api/v1/telehealth/' . $session->id . '/prescription', [
+            'medication_name' => 'Amoxicillin',
+            'dosage' => '500mg twice daily',
+            'instructions' => 'Take with food',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('success', true);
+        $this->assertDatabaseHas('prescriptions', [
+            'telehealth_session_id' => $session->id,
+            'patient_id' => $patient->id,
+            'medication_name' => 'Amoxicillin',
+            'dosage' => '500mg twice daily',
+        ]);
+
+        $modal = $this->actingAs($user, 'web')->get('/telehealth/' . $session->id . '?modal=1');
+        $modal->assertOk();
+        $modal->assertSee('Amoxicillin');
+        $modal->assertSee('Take with food');
+    }
+
+    public function test_telehealth_prescription_requires_medication_dosage_and_instructions(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
+        $role = Role::firstOrCreate(['name' => 'super-admin'], ['label' => 'Super Admin']);
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
+        $patient = Patient::create([
+            'mrn' => 'MRN-PRESCRIPTION-INVALID',
+            'first_name' => 'Invalid',
+            'last_name' => 'Prescription',
+            'date_of_birth' => '1990-01-01',
+            'sex' => 'Female',
+            'phone' => '09170000112',
+            'email' => 'invalid-prescription@example.test',
+            'verified' => true,
+        ]);
+        $provider = Provider::create([
+            'user_id' => User::factory()->create()->id,
+            'display_name' => 'Dr. Validation',
+            'active' => true,
+        ]);
+        $appointmentType = AppointmentType::create([
+            'name' => 'Telehealth',
+            'default_duration' => 30,
+            'telehealth' => true,
+        ]);
+        $appointment = Appointment::create([
+            'appointment_number' => 'APT-PRESCRIPTION-INVALID',
+            'patient_id' => $patient->id,
+            'provider_id' => $provider->id,
+            'appointment_type_id' => $appointmentType->id,
+            'starts_at' => now(),
+            'ends_at' => now()->addMinutes(30),
+            'status' => 'CONFIRMED',
+        ]);
+        $session = TelehealthSession::create([
+            'appointment_id' => $appointment->id,
+            'start_time' => now(),
+            'duration' => 30,
+            'status' => 'ACTIVE',
+        ]);
+
+        $response = $this->actingAs($user, 'web')->postJson('/api/v1/telehealth/' . $session->id . '/prescription', [
+            'medication_name' => 'Amoxicillin',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['dosage', 'instructions']);
+    }
+
+    public function test_patient_can_see_their_prescriptions_in_the_patient_portal(): void
+    {
+        $patientUser = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
+        $patientRole = Role::firstOrCreate(['name' => 'patient'], ['label' => 'Patient']);
+        $patientUser->roles()->syncWithoutDetaching([$patientRole->id]);
+
+        $patient = Patient::create([
+            'user_id' => $patientUser->id,
+            'mrn' => 'MRN-PATIENT-PORTAL-PRESCRIPTION',
+            'first_name' => 'Portal',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1992-04-04',
+            'sex' => 'Female',
+            'phone' => '09170000115',
+            'email' => 'portal-patient@example.test',
+            'verified' => true,
+        ]);
+        $provider = Provider::create([
+            'user_id' => User::factory()->create()->id,
+            'display_name' => 'Dr. Portal',
+            'active' => true,
+        ]);
+        $appointmentType = AppointmentType::create([
+            'name' => 'Telehealth',
+            'default_duration' => 30,
+            'telehealth' => true,
+        ]);
+        $appointment = Appointment::create([
+            'appointment_number' => 'APT-PORTAL-001',
+            'patient_id' => $patient->id,
+            'provider_id' => $provider->id,
+            'appointment_type_id' => $appointmentType->id,
+            'starts_at' => now(),
+            'ends_at' => now()->addMinutes(30),
+            'status' => 'CONFIRMED',
+        ]);
+        $session = TelehealthSession::create([
+            'appointment_id' => $appointment->id,
+            'start_time' => now(),
+            'duration' => 30,
+            'status' => 'ACTIVE',
+        ]);
+
+        \App\Models\Prescription::create([
+            'telehealth_session_id' => $session->id,
+            'patient_id' => $patient->id,
+            'medication_name' => 'Ibuprofen',
+            'dosage' => '200mg every 8 hours',
+            'instructions' => 'Take with water after meals',
+            'prescribed_by' => $provider->id,
+            'prescribed_at' => now(),
+        ]);
+
+        $response = $this->actingAs($patientUser, 'web')->get('/patient-portal');
+
+        $response->assertOk();
+        $response->assertSee('Ibuprofen');
+        $response->assertSee('200mg every 8 hours');
+    }
+
+    public function test_telehealth_index_page_shows_session_summary_and_row_actions(): void
     {
         $user = User::factory()->create([
             'email_verified_at' => now(),
@@ -475,11 +654,32 @@ class EmergencyAndTelehealthUiTest extends TestCase
         $response = $this->actingAs($user, 'web')->get('/telehealth');
 
         $response->assertOk();
-        $response->assertSee('Session controls');
-        $response->assertSee('Launch video call');
+        $response->assertSee('Active telehealth sessions');
+        $response->assertSee('Scheduled');
+        $response->assertSee('E-Prescriptions');
+        $response->assertDontSee('Session controls');
+        $response->assertDontSee('Launch video call');
     }
 
-    public function test_telehealth_show_page_exposes_closeout_summary_form(): void
+    public function test_telehealth_index_no_longer_has_top_level_action_panel(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
+        $role = Role::firstOrCreate(['name' => 'super-admin'], ['label' => 'Super Admin']);
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
+        $response = $this->actingAs($user, 'web')->get('/telehealth');
+
+        $response->assertOk();
+        $response->assertDontSee('Session controls');
+        $response->assertDontSee('Generate prescription');
+        $response->assertDontSee('Send reminder');
+        $response->assertDontSee('Launch video call');
+        $response->assertSee('E-Prescriptions');
+    }
+
+    public function test_telehealth_show_page_supports_modal_rendering(): void
     {
         $user = User::factory()->create([
             'email_verified_at' => now(),
@@ -523,11 +723,12 @@ class EmergencyAndTelehealthUiTest extends TestCase
             'status' => 'ACTIVE',
         ]);
 
-        $response = $this->actingAs($user, 'web')->get('/telehealth/' . $session->id);
+        $response = $this->actingAs($user, 'web')->get('/telehealth/' . $session->id . '?modal=1');
 
         $response->assertOk();
+        $response->assertViewIs('telehealth.modal-detail');
+        $response->assertSee('Session details');
         $response->assertSee('Closeout consultation');
-        $response->assertSee('Clinical summary');
     }
 
     public function test_patient_show_page_surfaces_latest_telehealth_summary(): void

@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Encounter;
 use App\Models\Patient;
 use App\Models\TelehealthSession;
+use App\Models\Prescription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -41,11 +42,19 @@ class PatientPortalController extends Controller
             ->limit(5)
             ->get();
 
+        $prescriptions = Prescription::query()
+            ->where('patient_id', $patient->id)
+            ->with('prescribedBy')
+            ->orderByDesc('prescribed_at')
+            ->limit(5)
+            ->get();
+
         return view('patient-portal.dashboard', compact(
             'patient',
             'upcomingAppointments',
             'recentEncounters',
-            'upcomingTelehealth'
+            'upcomingTelehealth',
+            'prescriptions'
         ));
     }
 

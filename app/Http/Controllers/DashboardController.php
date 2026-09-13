@@ -121,7 +121,7 @@ class DashboardController extends Controller
             ];
         }
 
-        if ($user->hasAnyRole(['hospital-admin', 'nurse'])) {
+        if ($user->hasAnyRole(['super-admin', 'hospital-admin', 'nurse'])) {
             $data['pendingAdmissions'] = Admission::with('patient')
                 ->whereIn('status', [Admission::STATUS_REQUESTED, Admission::STATUS_APPROVED])
                 ->limit(10)

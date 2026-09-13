@@ -47,7 +47,10 @@
                         <small id="password-note">Please use the password assigned to your healthcare access account.</small>
                         @error('password')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
-                    <label class="remember-field"><input id="remember-email" name="remember_email" type="checkbox">Remember email on this device</label>
+                    <div class="remember-options">
+                        <label class="remember-field"><input id="remember-me" name="remember" type="checkbox">Remember me</label>
+                        <label class="remember-field"><input id="remember-email" name="remember_email" type="checkbox">Remember email on this device</label>
+                    </div>
                     <p class="form-error" id="login-error" role="alert" hidden></p>
                     <button class="btn-primary login-submit" type="submit"><i class="ph ph-sign-in" aria-hidden="true"></i>Sign in</button>
                 </form>
