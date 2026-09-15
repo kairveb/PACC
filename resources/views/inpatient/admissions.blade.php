@@ -121,6 +121,18 @@
                     @endcan
 
                     @can('manage-admissions')
+                        @if ($adm->status === 'APPROVED')
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                                This admission is approved. Assign a bed to move the patient to <span class="font-medium">ADMITTED</span> status.
+                            </div>
+                            <div class="flex justify-end gap-3 pt-4">
+                                <button type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100" data-bs-dismiss="modal">Cancel</button>
+                                <a href="{{ route('admissions.show', $adm) }}" class="inline-flex items-center justify-center rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700">Admit &amp; Assign Bed</a>
+                            </div>
+                        @endif
+                    @endcan
+
+                    @can('manage-admissions')
                         @if (in_array($adm->status, ['ADMITTED', 'TRANSFERRED']))
                             <form method="POST" action="{{ route('admissions.discharge', $adm) }}" class="space-y-4">
                                 @csrf

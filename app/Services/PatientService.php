@@ -179,6 +179,9 @@ return DB::transaction(function () use ($data, $userId) {
 
     protected function upsertPrimaryAddress(Patient $patient, array $addressData): void
     {
+        // line1 is NOT NULL in the database; coerce null the same way register() does.
+        $addressData['line1'] = $addressData['line1'] ?? '';
+
         $address = $patient->addresses()->where('primary', true)->first();
 
         if ($address) {

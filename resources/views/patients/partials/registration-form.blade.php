@@ -2,12 +2,26 @@
     <div class="space-y-3" x-data="{
         q: '',
         results: [],
+        searchError: '',
         async search() {
-            if (!this.q.trim()) { this.results = []; return; }
+            if (!this.q.trim()) { this.results = []; this.searchError = ''; return; }
             const url = `{{ route('patients.lookup') }}?q=${encodeURIComponent(this.q)}`;
-            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-            const data = await res.json();
-            this.results = data.data || [];
+            try {
+                const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                if (!res.ok) {
+                    this.results = [];
+                    this.searchError = res.status === 403
+                        ? 'You do not have permission to search patients.'
+                        : 'Unable to search right now. Please try again.';
+                    return;
+                }
+                const data = await res.json();
+                this.results = data.data || [];
+                this.searchError = '';
+            } catch (e) {
+                this.results = [];
+                this.searchError = 'Unable to search right now. Please try again.';
+            }
         },
         fill(item) {
             const map = {
@@ -50,6 +64,8 @@
             class="w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
         >
 
+        <p x-show="searchError" x-text="searchError" class="mt-2 text-sm text-rose-600"></p>
+
         <div x-show="results.length" class="mt-3 space-y-2">
             <template x-for="item in results" :key="item.id">
                 <button type="button"
@@ -57,7 +73,7 @@
                         class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-3 text-left hover:border-sky-400">
                     <div>
                         <div class="font-medium text-slate-900" x-text="`${item.first_name} ${item.last_name}`"></div>
-                        <div class="text-xs text-slate-500" x-text="`Ref: ${item.lookup_code || '—'} · DOB: ${item.date_of_birth || '—'}`"></div>
+                        <div class="text-xs text-slate-500" x-text="item.reference_code ? `Pre-arrival ref: ${item.reference_code} · DOB: ${item.date_of_birth || '—'}` : `Patient lookup code: ${item.lookup_code || '—'} · DOB: ${item.date_of_birth || '—'}`"></div>
                     </div>
                     <span class="text-xs font-semibold uppercase text-sky-700">Load</span>
                 </button>

@@ -279,7 +279,7 @@ return view('patients.show', compact('patient'));
         $this->patientService->update($patient, $data);
         $patient->markPendingArrival();
 
-        return redirect()->route('dashboard')->with('success', 'Your pre-registration details have been saved. Your visit reference is '.$patient->lookup_code.'.');
+        return redirect()->route('dashboard')->with('success', 'Your pre-registration details have been saved. Your patient lookup code is '.$patient->lookup_code.'.');
     }
 
     public function lookup(Request $request)
@@ -288,7 +288,7 @@ return view('patients.show', compact('patient'));
         $lookupCode = trim((string) $request->query('lookup_code', ''));
 
         $query = Patient::query()
-            ->with(['addresses', 'emergencyContacts'])
+            ->with(['addresses', 'emergencyContacts', 'preArrivalProfiles'])
             ->where(function ($q) use ($term, $lookupCode) {
                 if ($lookupCode !== '') {
                     $q->orWhere('lookup_code', strtoupper($lookupCode));
@@ -300,7 +300,10 @@ return view('patients.show', compact('patient'));
                         ->orWhere('last_name', 'like', $search)
                         ->orWhere('email', 'like', $search)
                         ->orWhere('phone', 'like', $search)
-                        ->orWhere('lookup_code', 'like', $search);
+                        ->orWhere('lookup_code', 'like', $search)
+                        ->orWhereHas('preArrivalProfiles', function ($preArrival) use ($search) {
+                            $preArrival->where('reference_code', 'like', $search);
+                        });
                 }
             });
 
@@ -315,6 +318,7 @@ return view('patients.show', compact('patient'));
                     'id' => $patient->id,
                     'mrn' => $patient->mrn,
                     'lookup_code' => $patient->lookup_code,
+                    'reference_code' => $patient->preArrivalProfiles->first()?->reference_code,
                     'first_name' => $patient->first_name,
                     'middle_name' => $patient->middle_name,
                     'last_name' => $patient->last_name,

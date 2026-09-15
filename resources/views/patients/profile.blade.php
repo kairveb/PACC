@@ -12,7 +12,7 @@
 
         @if ($patient->lookup_code)
             <div class="rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-700">
-                Reference: {{ $patient->lookup_code }}
+                Patient lookup code: {{ $patient->lookup_code }}
             </div>
         @endif
     </div>

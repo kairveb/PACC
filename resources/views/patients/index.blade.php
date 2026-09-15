@@ -17,7 +17,9 @@
                 @if (request()->hasAny(['q', 'date_of_birth', 'sex']))
                     <a href="{{ route('patients.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Clear filters</a>
                 @endif
-                <button type="button" class="rounded-2xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700" data-bs-toggle="modal" data-bs-target="#registerPatientModal">Register Patient</button>
+                @can('create-patients')
+                    <button type="button" class="rounded-2xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700" data-bs-toggle="modal" data-bs-target="#registerPatientModal">Register Patient</button>
+                @endcan
             </div>
         </div>
         <div class="overflow-x-auto">
@@ -229,21 +231,23 @@
         });
     </script>
 
-    <div class="modal fade" id="registerPatientModal" tabindex="-1" aria-labelledby="registerPatientModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-2xl">
-                <div class="modal-header border-b border-slate-200 px-5 py-4">
-                    <div>
-                        <h5 class="modal-title text-lg font-semibold text-slate-900" id="registerPatientModalLabel">Register Patient</h5>
-                        <p class="mt-1 text-sm text-slate-500">Patient demographics and contact info</p>
+    @can('create-patients')
+        <div class="modal fade" id="registerPatientModal" tabindex="-1" aria-labelledby="registerPatientModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-2xl">
+                    <div class="modal-header border-b border-slate-200 px-5 py-4">
+                        <div>
+                            <h5 class="modal-title text-lg font-semibold text-slate-900" id="registerPatientModalLabel">Register Patient</h5>
+                            <p class="mt-1 text-sm text-slate-500">Patient demographics and contact info</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body bg-white px-5 py-5">
-                    @include('patients.partials.registration-form')
+                    <div class="modal-body bg-white px-5 py-5">
+                        @include('patients.partials.registration-form')
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endcan
 </div>
 @endsection

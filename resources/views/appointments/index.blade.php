@@ -338,7 +338,7 @@
                         if (contentType.includes('application/json')) {
                             payload = await response.json();
                         } else {
-                            payload = { success: response.ok, message: 'Request completed.' };
+                            payload = { success: response.ok, message: response.ok ? 'Request completed.' : 'The request could not be completed.' };
                         }
 
                         if (!response.ok || payload?.success === false) {
@@ -406,7 +406,7 @@
                     if (contentType.includes('application/json')) {
                         payload = await response.json();
                     } else {
-                        payload = { success: response.ok, message: 'Request completed.' };
+                        payload = { success: response.ok, message: response.ok ? 'Request completed.' : 'The request could not be completed.' };
                     }
 
                     if (!response.ok || payload?.success === false) {
@@ -417,13 +417,14 @@
 
                     await refreshAppointmentsList();
 
-                    if (payload?.html) {
-                        bookingModalBody.innerHTML = payload.html;
-                        attachActionHandlersToContainer(bookingModalBody);
-                        return;
+                    bookingForm.reset();
+                    const slotsContainer = bookingModalBody.querySelector('#slots-container');
+                    if (slotsContainer) {
+                        slotsContainer.innerHTML = '';
                     }
-
-                    renderBookingAlert(payload?.message || 'Appointment booked successfully.', 'success');
+                    bookingModalBody.querySelector('#booking-modal-alert')?.classList.add('hidden');
+                    bootstrap.Modal.getOrCreateInstance(bookingModalEl).hide();
+                    window.HimsComponents?.notify({ tone: 'success', message: payload?.message || 'Appointment booked successfully.' });
                 } catch (error) {
                     renderBookingAlert(error.message || 'The request could not be completed.', 'error');
                 }

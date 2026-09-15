@@ -25,19 +25,20 @@ class AppointmentService
     public function generateNumber(): string
     {
         $year = now()->format('Y');
-        $last = Appointment::where('appointment_number', 'like', "APT-{$year}-%")
-            ->orderByDesc('appointment_number')
+        // Only consider well-formed sequential numbers; other formats (e.g. telehealth-specific numbers)
+        // would otherwise get picked up by string ordering and break the numeric parse below.
+        $candidates = Appointment::where('appointment_number', 'like', "APT-{$year}-%")
             ->lockForUpdate()
-            ->first();
+            ->pluck('appointment_number');
 
-        $sequence = 1;
-        if ($last) {
-            $parts = explode('-', $last->appointment_number);
-            $seq = str_pad((string) ((int) $parts[2]) + 1, 6, '0', STR_PAD_LEFT);
-            return "APT-{$year}-{$seq}";
+        $maxSequence = 0;
+        foreach ($candidates as $number) {
+            if (preg_match('/^APT-' . $year . '-(\d{6})$/', $number, $matches)) {
+                $maxSequence = max($maxSequence, (int) $matches[1]);
+            }
         }
 
-        return "APT-{$year}-000001";
+        return sprintf('APT-%s-%06d', $year, $maxSequence + 1);
     }
 
     /**

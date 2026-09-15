@@ -68,7 +68,7 @@ class PortalPreRegistrationTest extends TestCase
         $profile = $patient->preArrivalProfiles()->latest()->first();
         $this->assertNotNull($profile);
         $this->assertNotEmpty($profile->reference_code);
-        $this->assertMatchesRegularExpression('/^(?:[A-Z]{3,4}-)?[A-Z0-9]{4,8}$/i', $profile->reference_code);
+        $this->assertMatchesRegularExpression('/^PAC-\d{4}$/', $profile->reference_code);
 
         $postResponse->assertRedirect(route('patients.portal'));
 
@@ -130,8 +130,8 @@ class PortalPreRegistrationTest extends TestCase
         ]);
 
         $this->assertNotSame($first->reference_code, $second->reference_code);
-        $this->assertMatchesRegularExpression('/^[A-Z0-9-]+$/i', $first->reference_code);
-        $this->assertMatchesRegularExpression('/^[A-Z0-9-]+$/i', $second->reference_code);
+        $this->assertMatchesRegularExpression('/^PAC-\d{4}$/', $first->reference_code);
+        $this->assertMatchesRegularExpression('/^PAC-\d{4}$/', $second->reference_code);
     }
 
     public function test_patient_cannot_access_staff_telehealth_index(): void

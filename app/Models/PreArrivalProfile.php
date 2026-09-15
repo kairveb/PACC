@@ -29,15 +29,12 @@ class PreArrivalProfile extends Model
 
     public static function generateUniqueReferenceCode(): string
     {
-        $prefixes = ['PAC', 'REF', 'HIM'];
-
         do {
-            $prefix = $prefixes[array_rand($prefixes)];
             $suffix = random_int(1000, 9999);
-            $code = sprintf('%s-%04d', $prefix, $suffix);
+            $code = sprintf('PAC-%04d', $suffix);
         } while (self::query()->where('reference_code', $code)->exists());
 
-        return strtoupper($code);
+        return $code;
     }
 
     public function patient(): BelongsTo

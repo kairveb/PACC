@@ -116,12 +116,23 @@
             @else
                 <div class="mt-4 space-y-3">
                     @foreach ($upcomingTelehealth as $session)
-                        <div class="rounded-xl border border-slate-200 p-3">
-                            <div class="flex items-center justify-between gap-3">
-                                <p class="font-medium text-slate-900">{{ $session->appointment?->provider?->user?->name ?? 'Care team' }}</p>
-                                <span class="text-xs uppercase tracking-wide text-blue-600">{{ $session->status }}</span>
+                        @php
+                            $isLive = in_array($session->status, [\App\Models\TelehealthSession::STATUS_ACTIVE, \App\Models\TelehealthSession::STATUS_ONGOING], true);
+                        @endphp
+                        <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3">
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <p class="font-medium text-slate-900">{{ $session->appointment?->provider?->user?->name ?? 'Care team' }}</p>
+                                    <span class="text-xs uppercase tracking-wide text-blue-600">{{ $session->status }}</span>
+                                </div>
+                                <p class="mt-2 text-sm text-slate-600">{{ $session->start_time?->format('M d, Y g:i A') }}</p>
                             </div>
-                            <p class="mt-2 text-sm text-slate-600">{{ $session->start_time?->format('M d, Y g:i A') }}</p>
+                            @if ($session->join_url)
+                                <a href="{{ $session->join_url }}" target="_blank" rel="noopener noreferrer"
+                                   class="inline-flex shrink-0 items-center rounded-lg bg-teal-600 px-3 py-2 text-sm font-medium text-white hover:bg-teal-700 {{ $isLive ? '' : 'opacity-80' }}">
+                                    {{ $isLive ? 'Join call' : 'View room' }}
+                                </a>
+                            @endif
                         </div>
                     @endforeach
                 </div>
