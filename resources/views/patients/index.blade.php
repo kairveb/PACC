@@ -188,7 +188,7 @@
                             @endif
                         </div>
                         <div class="mt-5 flex justify-end gap-3">
-                            <a href="{{ route('patients.show', $patient) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100">Open patient record</a>
+                            <button type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100" data-patient-record-url="{{ route('patients.show', $patient) }}">Open patient record</button>
                             <button type="button" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-900" data-bs-dismiss="modal">Close</button>
                         </div>
                     </div>
@@ -197,8 +197,168 @@
         </div>
     @endforeach
 
+    <div class="modal fade" id="patientRecordModal" tabindex="-1" aria-labelledby="patientRecordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content border-0 shadow-2xl">
+                <div class="modal-header border-b border-slate-200 px-5 py-4">
+                    <h5 class="modal-title text-lg font-semibold text-slate-900" id="patientRecordModalLabel">Patient record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-5 py-5" id="patientRecordModalBody">
+                    <div class="p-6 text-sm text-slate-500">Loading patient record…</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="patientBookingModal" tabindex="-1" aria-labelledby="patientBookingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-2xl">
+                <div class="modal-header border-b border-slate-200 px-5 py-4">
+                    <div>
+                        <h5 class="modal-title text-lg font-semibold text-slate-900" id="patientBookingModalLabel">Book Appointment</h5>
+                        <p class="mt-1 text-sm text-slate-500">Select provider, time slot, and visit details</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-5 py-5">
+                    @include('appointments.partials.booking-form')
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const modalElement = document.getElementById('patientRecordModal');
+            const modalBody = document.getElementById('patientRecordModalBody');
+            const modalTitle = document.getElementById('patientRecordModalLabel');
+            const patientRecordModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            const bookingModalElement = document.getElementById('patientBookingModal');
+            const bookingModal = bootstrap.Modal.getOrCreateInstance(bookingModalElement);
+            const bookingForm = document.getElementById('appointment-booking-form');
+            const bookingBody = bookingModalElement.querySelector('.modal-body');
+
+            const loadPatientRecord = async (url, options = {}) => {
+                modalBody.innerHTML = '<div class="p-6 text-sm text-slate-500">Loading patient record…</div>';
+                patientRecordModal.show();
+
+                const response = await fetch(url, {
+                    credentials: 'same-origin',
+                    headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
+                    ...options,
+                });
+
+                if (!response.ok) {
+                    modalBody.innerHTML = '<div class="p-6 text-sm text-rose-600">Unable to load this patient record.</div>';
+                    return;
+                }
+
+                const html = await response.text();
+                const documentFragment = new DOMParser().parseFromString(html, 'text/html');
+                const content = documentFragment.querySelector('.page-wrapper') || documentFragment.querySelector('#main-content') || documentFragment.querySelector('main');
+                modalBody.innerHTML = content ? content.innerHTML : html;
+                modalTitle.textContent = documentFragment.querySelector('h1')?.textContent?.trim() || 'Patient record';
+            };
+
+            document.querySelectorAll('[data-patient-record-url]').forEach((trigger) => {
+                trigger.addEventListener('click', () => loadPatientRecord(trigger.dataset.patientRecordUrl));
+            });
+
+            const openBookingModal = (trigger) => {
+                const patientSelect = bookingForm?.querySelector('[name="patient_id"]');
+                if (patientSelect) {
+                    patientSelect.value = trigger.dataset.patientId || '';
+                }
+
+                bookingForm?.querySelector('#booking-modal-alert')?.classList.add('hidden');
+                bookingModal.show();
+            };
+
+            document.addEventListener('click', (event) => {
+                const trigger = event.target.closest('[data-patient-booking-trigger]');
+                if (!trigger) {
+                    return;
+                }
+
+                event.preventDefault();
+                openBookingModal(trigger);
+            });
+
+            bookingForm?.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const alertBox = bookingBody.querySelector('#booking-modal-alert');
+                const showAlert = (message) => {
+                    alertBox.textContent = message;
+                    alertBox.classList.remove('hidden');
+                };
+
+                try {
+                    const response = await fetch(bookingForm.action, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            Accept: 'application/json, text/html',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                        },
+                        body: new FormData(bookingForm),
+                    });
+                    const contentType = response.headers.get('content-type') || '';
+                    const payload = contentType.includes('application/json') ? await response.json() : { success: response.ok };
+
+                    if (!response.ok || payload.success === false) {
+                        showAlert(payload.message || 'The appointment could not be booked.');
+                        return;
+                    }
+
+                    bookingForm.reset();
+                    bookingBody.querySelector('#slots-container').innerHTML = '';
+                    bookingModal.hide();
+                    window.HimsComponents?.notify({ tone: 'success', message: payload.message || 'Appointment booked successfully.' });
+                } catch (error) {
+                    showAlert(error.message || 'The appointment could not be booked.');
+                }
+            });
+
+            modalBody.addEventListener('click', (event) => {
+                const link = event.target.closest('a[href]');
+                if (!link || link.target || link.hasAttribute('download') || link.dataset.bsToggle === 'modal') {
+                    return;
+                }
+
+                const url = new URL(link.href, window.location.href);
+                if (url.origin !== window.location.origin) {
+                    return;
+                }
+
+                event.preventDefault();
+                loadPatientRecord(url.toString());
+            });
+
+            modalBody.addEventListener('submit', async (event) => {
+                const form = event.target.closest('form');
+                if (!form) {
+                    return;
+                }
+
+                event.preventDefault();
+                const formData = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: form.method || 'POST',
+                    body: formData,
+                    credentials: 'same-origin',
+                    headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
+                });
+
+                if (response.ok) {
+                    await loadPatientRecord(window.location.href);
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            return;
             const triggers = document.querySelectorAll('[data-filter-trigger]');
             const panels = document.querySelectorAll('.filter-panel');
 

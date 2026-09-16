@@ -70,8 +70,146 @@ const showGlobalToast = (message, type = 'info') => {
 
 window.hisToast = showGlobalToast;
 
+const initializeFilterPanels = () => {
+    const triggers = [...document.querySelectorAll('[data-filter-trigger]')];
+    const panels = [...document.querySelectorAll('.filter-panel')];
+    const hoverState = new Map();
+    const closeDelayMs = 250;
+
+    if (!triggers.length) {
+        return;
+    }
+
+    const getPanel = (trigger) => document.getElementById(trigger.getAttribute('data-filter-target'));
+
+    const positionPanel = (trigger, panel) => {
+        const triggerRect = trigger.getBoundingClientRect();
+        const panelHeight = panel.getBoundingClientRect().height;
+        const panelWidth = panel.getBoundingClientRect().width;
+        const spaceBelow = window.innerHeight - triggerRect.bottom;
+        const left = Math.max(8, Math.min(triggerRect.left, window.innerWidth - panelWidth - 8));
+
+        panel.style.left = `${left}px`;
+        panel.style.right = 'auto';
+        if (panelHeight > spaceBelow) {
+            panel.style.top = `${Math.max(8, triggerRect.top - panelHeight - 8)}px`;
+            panel.style.bottom = 'auto';
+            panel.style.marginTop = '0';
+            panel.style.marginBottom = '0';
+        } else {
+            panel.style.top = `${triggerRect.bottom + 8}px`;
+            panel.style.bottom = 'auto';
+            panel.style.marginTop = '0';
+            panel.style.marginBottom = '0';
+        }
+    };
+
+    const closePanels = () => {
+        panels.forEach((panel) => panel.classList.add('hidden'));
+        triggers.forEach((trigger) => trigger.setAttribute('aria-expanded', 'false'));
+    };
+
+    const openPanel = (trigger) => {
+        const panel = getPanel(trigger);
+        if (!panel) {
+            return;
+        }
+
+        closePanels();
+        if (panel.parentElement !== document.body) {
+            document.body.appendChild(panel);
+        }
+        panel.style.position = 'fixed';
+        panel.style.zIndex = '1080';
+        panel.classList.remove('hidden');
+        positionPanel(trigger, panel);
+        trigger.setAttribute('aria-expanded', 'true');
+    };
+
+    const cancelClose = (trigger) => {
+        const state = hoverState.get(trigger);
+        if (state?.closeTimer) {
+            clearTimeout(state.closeTimer);
+            state.closeTimer = null;
+        }
+    };
+
+    const scheduleClose = (trigger) => {
+        const state = hoverState.get(trigger);
+        if (!state || state.triggerHovered || state.panelHovered) {
+            return;
+        }
+
+        cancelClose(trigger);
+        state.closeTimer = setTimeout(() => {
+            if (!state.triggerHovered && !state.panelHovered) {
+                getPanel(trigger)?.classList.add('hidden');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        }, closeDelayMs);
+    };
+
+    triggers.forEach((trigger) => {
+        const panel = getPanel(trigger);
+        if (!panel) {
+            return;
+        }
+
+        const state = { triggerHovered: false, panelHovered: false, closeTimer: null };
+        hoverState.set(trigger, state);
+
+        trigger.addEventListener('mouseenter', () => {
+            state.triggerHovered = true;
+            cancelClose(trigger);
+            openPanel(trigger);
+        });
+
+        trigger.addEventListener('mouseleave', () => {
+            state.triggerHovered = false;
+            scheduleClose(trigger);
+        });
+
+        panel.addEventListener('mouseenter', () => {
+            state.panelHovered = true;
+            cancelClose(trigger);
+        });
+
+        panel.addEventListener('mouseleave', () => {
+            state.panelHovered = false;
+            scheduleClose(trigger);
+        });
+
+        trigger.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const isOpen = !panel.classList.contains('hidden');
+
+            closePanels();
+
+            if (!isOpen) {
+                openPanel(trigger);
+            }
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('[data-filter-trigger]') && !event.target.closest('.filter-panel')) {
+            closePanels();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        triggers.forEach((trigger) => {
+            const panel = getPanel(trigger);
+            if (panel && !panel.classList.contains('hidden')) {
+                positionPanel(trigger, panel);
+            }
+        });
+    });
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('input[data-phone-input]').forEach(enforcePhilippinePhoneInput);
+    initializeFilterPanels();
 });
 
 Alpine.start();

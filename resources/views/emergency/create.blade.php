@@ -7,13 +7,18 @@
 
 @section('content')
 <div class="mx-auto max-w-5xl space-y-6">
+    @include('emergency._workflow-steps', ['currentStep' => 2])
+
     <div class="panel-card p-6">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
                 <h2 class="text-2xl font-semibold text-slate-900">ER intake</h2>
                 <p class="mt-1 text-sm text-slate-600">Review the patient arrival details and record the essential information needed to move the case into the ER queue.</p>
             </div>
-            <a href="{{ route('emergency.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Back to ER queue</a>
+            <div class="flex flex-wrap items-center gap-3">
+                <button type="button" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700" data-bs-toggle="modal" data-bs-target="#erIntakeModal">Open ER intake form</button>
+                <a href="{{ route('emergency.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Back to ER queue</a>
+            </div>
         </div>
     </div>
 
@@ -61,110 +66,49 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('emergency.store') }}" class="space-y-6">
-        @csrf
+</div>
 
-        @if (!empty($prefill['triage_assessment_id']))
-            <input type="hidden" name="triage_assessment_id" value="{{ $prefill['triage_assessment_id'] }}">
-        @endif
-
-        <div class="panel-card p-6">
-            <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
-                @if (!empty($prefill['triage_assessment_id']))
-                    Review the pre-filled triage details and complete the arrival information as needed.
-                @else
-                    Record the essential arrival details below to move the patient into the ER workflow.
-                @endif
+<div class="modal fade" id="erIntakeModal" tabindex="-1" aria-labelledby="erIntakeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-2xl">
+            <div class="modal-header border-b border-slate-200 px-5 py-4">
+                <div>
+                    <h5 class="modal-title text-lg font-semibold text-slate-900" id="erIntakeModalLabel">ER intake</h5>
+                    <p class="mt-1 text-sm text-slate-500">Step 2 of 3 · Visit details</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
-            <div class="grid gap-5 md:grid-cols-2">
-                <div class="md:col-span-2">
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Patient</label>
-                    <select name="patient_id" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">
-                        <option value="">Select patient</option>
-                        @foreach ($patients as $patient)
-                            <option value="{{ $patient->id }}" {{ old('patient_id', $prefill['patient_id'] ?? '') == $patient->id ? 'selected' : '' }}>{{ $patient->full_name }} — {{ $patient->mrn }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Arrival date/time</label>
-                    <input type="datetime-local" name="arrived_at" value="{{ old('arrived_at', $prefill['arrived_at'] ?? now()->format('Y-m-d\TH:i')) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">
-                </div>
-
-                <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Arrival method</label>
-                    <select name="arrival_method" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">
-                        <option value="">Select</option>
-                        <option value="Walk-in" {{ old('arrival_method', $prefill['arrival_method'] ?? '') == 'Walk-in' ? 'selected' : '' }}>Walk-in</option>
-                        <option value="Ambulance" {{ old('arrival_method', $prefill['arrival_method'] ?? '') == 'Ambulance' ? 'selected' : '' }}>Ambulance</option>
-                        <option value="Referral" {{ old('arrival_method', $prefill['arrival_method'] ?? '') == 'Referral' ? 'selected' : '' }}>Referral</option>
-                        <option value="Police" {{ old('arrival_method', $prefill['arrival_method'] ?? '') == 'Police' ? 'selected' : '' }}>Police</option>
-                        <option value="Other" {{ old('arrival_method', $prefill['arrival_method'] ?? '') == 'Other' ? 'selected' : '' }}>Other</option>
-                    </select>
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Chief complaint</label>
-                    <textarea name="chief_complaint" required rows="3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">{{ old('chief_complaint', $prefill['chief_complaint'] ?? '') }}</textarea>
-                </div>
-
-                <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Pain score</label>
-                    <input type="number" min="0" max="10" name="pain_score" value="{{ old('pain_score', $prefill['pain_score'] ?? 0) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">
-                </div>
-
-                <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Symptoms</label>
-                    <input type="text" name="symptoms" value="{{ old('symptoms', $prefill['symptoms'] ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100" placeholder="Breathlessness, fever, dizziness">
-                </div>
-            </div>
-
-            <details class="mt-6 rounded-xl border border-slate-200 bg-slate-50">
-                <summary class="cursor-pointer list-none p-4 text-sm font-semibold text-slate-700">
-                    Advanced Details
-                </summary>
-                <div class="border-t border-slate-200 p-4">
-                    <div class="grid gap-5 md:grid-cols-2">
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Blood pressure</label>
-                            <input type="text" name="blood_pressure" value="{{ old('blood_pressure', $prefill['blood_pressure'] ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100" placeholder="120/80">
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Heart rate</label>
-                            <input type="number" name="heart_rate" min="0" max="220" value="{{ old('heart_rate', $prefill['heart_rate'] ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Respiratory rate</label>
-                            <input type="number" name="respiratory_rate" min="0" max="80" value="{{ old('respiratory_rate', $prefill['respiratory_rate'] ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Temperature</label>
-                            <input type="number" step="0.1" name="temperature" min="30" max="45" value="{{ old('temperature', $prefill['temperature'] ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">SpO₂</label>
-                            <input type="number" name="spo2" min="0" max="100" value="{{ old('spo2', $prefill['spo2'] ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Referral / triage notes</label>
-                            <textarea name="referral_details" rows="3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">{{ old('referral_details', $prefill['referral_details'] ?? '') }}</textarea>
-                        </div>
-                    </div>
-                </div>
-            </details>
-
-            <div class="mt-6 flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
-                <a href="{{ route('emergency.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Cancel</a>
-                <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-200">Register arrival</button>
+            <div class="modal-body px-5 py-5">
+                @include('emergency.partials.intake-form')
             </div>
         </div>
-    </form>
+    </div>
 </div>
+
+@push('scripts')
+<script>
+    (function () {
+        const modalEl = document.getElementById('erIntakeModal');
+        if (!modalEl || typeof bootstrap === 'undefined') {
+            return;
+        }
+
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        const showAutoOpenModal = () => {
+            if (modalEl.dataset.autoOpen === 'true') {
+                requestAnimationFrame(() => {
+                    modal.show();
+                });
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', showAutoOpenModal, { once: true });
+        } else {
+            showAutoOpenModal();
+        }
+    })();
+</script>
+@endpush
 @endsection

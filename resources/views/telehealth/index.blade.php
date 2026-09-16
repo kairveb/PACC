@@ -231,6 +231,7 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        return;
         const triggers = document.querySelectorAll('[data-filter-trigger]');
         const panels = document.querySelectorAll('.filter-panel');
 

@@ -7,6 +7,7 @@ use App\Models\Patient;
 use App\Models\PreArrivalProfile;
 use App\Models\TriageAssessment;
 use App\Services\AiTriageService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -25,7 +26,7 @@ class TriageAssessmentController extends Controller
         return view('triage.create', compact('patients'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'patient_id' => ['required', 'exists:patients,id'],
@@ -97,30 +98,65 @@ class TriageAssessmentController extends Controller
             ]
         );
 
-        $assessment = TriageAssessment::create([
-            'patient_id' => $data['patient_id'],
-            'er_visit_id' => $visit->id,
-            'triage_nurse_id' => auth()->id(),
-            'triaged_at' => now(),
-            'chief_complaint' => $data['chief_complaint'],
-            'symptoms' => $symptoms,
-            'pain_score' => $data['pain_score'] ?? null,
-            'priority' => $finalPriority,
-            'priority_score' => $this->priorityScoreFor($finalPriority),
-            'triage_color' => $this->priorityColorFor($finalPriority),
-            'notes' => $finalNotes . (empty($data['notes']) ? '' : ' | AI rationale: ' . implode(' ', $result['reasons'])),
-            'status' => 'COMPLETE',
-        ]);
+        $assessment = TriageAssessment::updateOrCreate(
+            ['er_visit_id' => $visit->id],
+            [
+                'patient_id' => $data['patient_id'],
+                'triage_nurse_id' => auth()->id(),
+                'triaged_at' => now(),
+                'chief_complaint' => $data['chief_complaint'],
+                'symptoms' => $symptoms,
+                'pain_score' => $data['pain_score'] ?? null,
+                'priority' => $finalPriority,
+                'priority_score' => $this->priorityScoreFor($finalPriority),
+                'triage_color' => $this->priorityColorFor($finalPriority),
+                'notes' => $finalNotes . (empty($data['notes']) ? '' : ' | AI rationale: ' . implode(' ', $result['reasons'])),
+                'status' => 'COMPLETE',
+            ]
+        );
 
-        $assessment->vitals()->create([
-            'patient_id' => $data['patient_id'],
-            'blood_pressure' => $data['blood_pressure'] ?? null,
-            'heart_rate' => $data['heart_rate'] ?? null,
-            'respiratory_rate' => $data['respiratory_rate'] ?? null,
-            'temperature' => $data['temperature'] ?? null,
-            'spo2' => $data['spo2'] ?? null,
-            'recorded_at' => now(),
-        ]);
+        $assessment->vitals()->updateOrCreate(
+            ['triage_assessment_id' => $assessment->id],
+            [
+                'patient_id' => $data['patient_id'],
+                'blood_pressure' => $data['blood_pressure'] ?? null,
+                'heart_rate' => $data['heart_rate'] ?? null,
+                'respiratory_rate' => $data['respiratory_rate'] ?? null,
+                'temperature' => $data['temperature'] ?? null,
+                'spo2' => $data['spo2'] ?? null,
+                'recorded_at' => now(),
+            ]
+        );
+
+        if ($request->expectsJson()) {
+            $assessment->load(['vitals', 'erVisit']);
+            $prefill = [
+                'triage_assessment_id' => $assessment->id,
+                'patient_id' => $assessment->patient_id,
+                'chief_complaint' => $assessment->chief_complaint,
+                'symptoms' => is_array($assessment->symptoms) ? implode(', ', $assessment->symptoms) : $assessment->symptoms,
+                'pain_score' => $assessment->pain_score,
+                'blood_pressure' => $assessment->vitals?->blood_pressure,
+                'heart_rate' => $assessment->vitals?->heart_rate,
+                'respiratory_rate' => $assessment->vitals?->respiratory_rate,
+                'temperature' => $assessment->vitals?->temperature,
+                'spo2' => $assessment->vitals?->spo2 !== null ? (int) round((float) $assessment->vitals->spo2) : null,
+                'referral_details' => $assessment->notes,
+                'arrival_method' => $assessment->erVisit?->arrival_method,
+                'arrived_at' => $assessment->erVisit?->arrived_at?->format('Y-m-d\TH:i') ?? now()->format('Y-m-d\TH:i'),
+            ];
+
+            return response()->json([
+                'success' => true,
+                'step' => 2,
+                'assessment_id' => $assessment->id,
+                'visit_id' => $assessment->er_visit_id,
+                'html' => view('emergency.partials.intake-form', [
+                    'patients' => Patient::orderBy('last_name')->get(),
+                    'prefill' => $prefill,
+                ])->render(),
+            ]);
+        }
 
         return redirect()->route('triage.er-intake', $assessment)->with('success', 'AI triage complete. Priority: ' . $finalPriority . ' (' . ucfirst($this->priorityColorFor($finalPriority)) . ')');
     }

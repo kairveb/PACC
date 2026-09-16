@@ -73,37 +73,4 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const triggers = document.querySelectorAll('[data-filter-trigger]');
-        const panels = document.querySelectorAll('.filter-panel');
-
-        const closePanels = () => {
-            panels.forEach((panel) => panel.classList.add('hidden'));
-            triggers.forEach((trigger) => trigger.setAttribute('aria-expanded', 'false'));
-        };
-
-        triggers.forEach((trigger) => {
-            trigger.addEventListener('click', function (event) {
-                event.stopPropagation();
-                const targetId = trigger.getAttribute('data-filter-target');
-                const panel = document.getElementById(targetId);
-                const isOpen = !!panel && !panel.classList.contains('hidden');
-
-                closePanels();
-
-                if (!isOpen && panel) {
-                    panel.classList.remove('hidden');
-                    trigger.setAttribute('aria-expanded', 'true');
-                }
-            });
-        });
-
-        document.addEventListener('click', function (event) {
-            if (!event.target.closest('[data-filter-trigger]') && !event.target.closest('.filter-panel')) {
-                closePanels();
-            }
-        });
-    });
-</script>
 @endsection

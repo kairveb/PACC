@@ -42,22 +42,27 @@
         </a>
     </div>
 
-    <div class="flex flex-wrap items-center justify-end gap-3 pb-2">
+    <div class="flex w-full flex-wrap items-center justify-between gap-4 pb-2">
         <button type="button" class="inline-flex items-center justify-center rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700" data-bs-toggle="modal" data-bs-target="#checkinLookupModal">Pre-arrival lookup</button>
-        <button type="button" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700" data-bs-toggle="modal" data-bs-target="#triageModal">Patient Triage Intake</button>
+        <div class="flex items-center gap-2">
+            <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">Recommended</span>
+            <button type="button" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700" data-bs-toggle="modal" data-bs-target="#triageModal">Patient Triage Intake</button>
+        </div>
     </div>
 
-    <div class="panel-card overflow-hidden">
+    <div class="panel-card overflow-hidden" id="active-er-queue">
         <div class="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 md:flex-row md:items-center md:justify-between">
             <div>
                 <h2 class="text-lg font-semibold text-slate-900">Active ER queue</h2>
                 <p class="text-sm text-slate-600">Review patient arrival, urgency, and waiting time at a glance.</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
                 @if (request()->hasAny(['q', 'priority', 'status']))
                     <a href="{{ route('emergency.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Clear filters</a>
                 @endif
-                <button type="button" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700" data-bs-toggle="modal" data-bs-target="#intakeModal">New ER Intake</button>
+                <div class="flex flex-col items-end gap-1 text-right">
+                    <button type="button" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700" data-bs-toggle="modal" data-bs-target="#intakeModal">New ER Intake</button>
+                </div>
             </div>
         </div>
 
@@ -216,6 +221,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        return;
         const triggers = document.querySelectorAll('[data-filter-trigger]');
         const panels = document.querySelectorAll('.filter-panel');
 
@@ -419,14 +425,16 @@
         <div class="modal-content border-0 shadow-2xl">
             <div class="modal-header border-b border-slate-200 px-5 py-4">
                 <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-rose-600">Step 1 of 3</p>
                     <h5 class="modal-title text-lg font-semibold text-slate-900" id="triageModalLabel">Patient triage intake</h5>
                     <p class="mt-1 text-sm text-slate-500">Capture symptoms and recommended urgency</p>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body px-5 py-5">
-                <form method="POST" action="{{ route('triage.store') }}" class="grid gap-6 xl:grid-cols-[1.5fr_0.8fr]">
+                <form method="POST" action="{{ route('triage.store') }}" class="grid gap-6 xl:grid-cols-[1.5fr_0.8fr]" id="triage-modal-form" novalidate>
                     @csrf
+                    <div id="triage-modal-alert" class="hidden xl:col-span-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert"></div>
 
                     <div class="space-y-6">
                         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -458,7 +466,7 @@
 
                                 <div>
                                     <label for="triage_modal_pain_score" class="mb-1.5 block text-sm font-medium text-slate-700">Pain score</label>
-                                    <input name="pain_score" id="triage_modal_pain_score" type="number" min="0" max="10" value="0" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">
+                                    <input name="pain_score" id="triage_modal_pain_score" type="number" min="0" max="10" step="1" value="0" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100">
                                 </div>
 
                                 <div>
@@ -510,10 +518,12 @@
                                 <div class="flex items-center justify-between"><span class="font-medium text-slate-600">Priority band</span><strong id="triage_modal_priority_display">—</strong></div>
                             </div>
 
-                            <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                                <button type="button" id="triage_modal_run_ai" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-200">Generate recommendation</button>
-                                <button type="button" id="triage_modal_override" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200">Clinical override</button>
-                            </div>
+                            @can('triage-patients')
+                                <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                                    <button type="button" id="triage_modal_run_ai" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-200">Generate recommendation</button>
+                                    <button type="button" id="triage_modal_override" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200">Clinical override</button>
+                                </div>
+                            @endcan
 
                             <input type="hidden" name="ai_confirmed" id="triage_modal_ai_confirmed" value="0">
                             <input type="hidden" name="priority_override" id="triage_modal_priority_override" value="">
@@ -546,6 +556,109 @@
         const triageModalPriority = document.getElementById('triage_modal_priority_display');
         const triageModalAiConfirmedToggle = document.getElementById('triage_modal_ai_confirmed_toggle');
         const triageModalAiConfirmedField = document.getElementById('triage_modal_ai_confirmed');
+        const triageModalPriorityOverride = document.getElementById('triage_modal_priority_override');
+        const triageModalOverride = document.getElementById('triage_modal_override');
+        const triageModalForm = triageModalOverride?.closest('form');
+        const triageModalSubmit = document.getElementById('triage-modal-form');
+
+        const fieldErrorMessages = {
+            patient_id: 'Please select a patient.',
+            chief_complaint: 'Please enter the chief complaint.',
+            pain_score: 'Pain score must be a whole number from 0 to 10.',
+            ai_confirmed: 'Please confirm or override the recommended priority before saving.',
+        };
+
+        function clearTriageFieldErrors() {
+            const alert = triageModalSubmit?.querySelector('#triage-modal-alert');
+            if (alert) {
+                alert.textContent = '';
+                alert.classList.add('hidden');
+            }
+            triageModalSubmit?.querySelectorAll('.triage-field-error').forEach((error) => error.remove());
+            triageModalSubmit?.querySelectorAll('[aria-invalid="true"]').forEach((field) => {
+                field.removeAttribute('aria-invalid');
+                field.classList.remove('border-rose-400');
+            });
+        }
+
+        function showTriageFieldErrors(errors) {
+            Object.entries(errors || {}).forEach(([fieldName, messages]) => {
+                if (fieldName === '_form') {
+                    const alert = triageModalSubmit?.querySelector('#triage-modal-alert');
+                    if (alert) {
+                        alert.textContent = Array.isArray(messages) ? messages[0] : messages;
+                        alert.classList.remove('hidden');
+                    }
+                    return;
+                }
+
+                const field = triageModalSubmit?.querySelector(`[name="${fieldName}"]`);
+                if (!field) return;
+
+                field.setAttribute('aria-invalid', 'true');
+                field.classList.add('border-rose-400');
+                const message = document.createElement('p');
+                message.className = 'triage-field-error mt-1.5 text-sm text-rose-700';
+                message.textContent = Array.isArray(messages) ? messages[0] : messages;
+                field.insertAdjacentElement('afterend', message);
+            });
+        }
+
+        function validateTriageModal() {
+            const errors = {};
+            const patientId = triageModalSubmit?.querySelector('[name="patient_id"]')?.value;
+            const complaint = triageModalSubmit?.querySelector('[name="chief_complaint"]')?.value?.trim();
+            const painScore = triageModalSubmit?.querySelector('[name="pain_score"]')?.value?.trim();
+
+            if (!patientId) errors.patient_id = [fieldErrorMessages.patient_id];
+            if (!complaint) errors.chief_complaint = [fieldErrorMessages.chief_complaint];
+            if (painScore !== '' && (!/^\d+$/.test(painScore) || Number(painScore) < 0 || Number(painScore) > 10)) {
+                errors.pain_score = [fieldErrorMessages.pain_score];
+            }
+
+            return errors;
+        }
+
+        const overrideDialog = document.createElement('div');
+        overrideDialog.className = 'fixed inset-0 hidden items-center justify-center bg-slate-900/40 p-4';
+        overrideDialog.style.zIndex = '1080';
+        overrideDialog.innerHTML = `
+            <div class="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
+                <div class="flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                    <div>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-600">Clinical safety</p>
+                        <h3 class="mt-1 text-xl font-semibold text-slate-900">Clinical override</h3>
+                    </div>
+                    <button type="button" class="close-triage-override rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-600 hover:bg-slate-100">Close</button>
+                </div>
+                <div class="mt-5 space-y-4">
+                    <div>
+                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Override priority</label>
+                        <select id="triage-override-level" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                            <option value="Emergency">Emergency — immediate escalation</option>
+                            <option value="Urgent">Urgent — rapid review</option>
+                            <option value="Prompt">Prompt — timely assessment</option>
+                            <option value="Non-Urgent">Non-Urgent — standard review</option>
+                            <option value="Routine">Routine — routine follow-up</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Override rationale</label>
+                        <textarea id="triage-override-notes" rows="4" placeholder="Explain why the clinical team adjusted the recommendation." class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800"></textarea>
+                    </div>
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" class="cancel-triage-override inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100">Cancel</button>
+                        <button type="button" class="apply-triage-override inline-flex items-center justify-center rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-slate-900 hover:bg-amber-400">Apply override</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overrideDialog);
+
+        function closeTriageOverride() {
+            overrideDialog.classList.add('hidden');
+            overrideDialog.classList.remove('flex');
+        }
 
         function syncTriageConfirmation(checked) {
             if (triageModalAiConfirmedField) triageModalAiConfirmedField.value = checked ? '1' : '0';
@@ -557,6 +670,99 @@
                 syncTriageConfirmation(this.checked);
             });
         }
+
+        triageModalSubmit?.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            clearTriageFieldErrors();
+
+            const clientErrors = validateTriageModal();
+            if (Object.keys(clientErrors).length > 0) {
+                showTriageFieldErrors(clientErrors);
+                return;
+            }
+
+            const submitButton = triageModalSubmit.querySelector('button[type="submit"]');
+            if (submitButton) submitButton.disabled = true;
+
+            try {
+                const response = await fetch(triageModalSubmit.action, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: new FormData(triageModalSubmit),
+                });
+
+                const contentType = response.headers.get('content-type') || '';
+                const responseText = await response.text();
+                let payload = null;
+                if (contentType.includes('application/json') && responseText) {
+                    try {
+                        payload = JSON.parse(responseText);
+                    } catch (parseError) {
+                        payload = null;
+                    }
+                }
+
+                if (response.status === 422) {
+                    showTriageFieldErrors(payload?.errors || {});
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(payload?.message || `Unable to save triage (HTTP ${response.status}).`);
+                }
+
+                if (payload?.step === 2 && payload.html) {
+                    window.dispatchEvent(new CustomEvent('hims:triage-step', { detail: payload }));
+                } else {
+                    window.location.assign(response.url);
+                }
+            } catch (error) {
+                showTriageFieldErrors({ _form: [error.message || 'Unable to save triage.'] });
+            } finally {
+                if (submitButton) submitButton.disabled = false;
+            }
+        });
+
+        if (triageModalOverride) {
+            triageModalOverride.addEventListener('click', function () {
+                overrideDialog.classList.remove('hidden');
+                overrideDialog.classList.add('flex');
+            });
+        }
+
+        overrideDialog.querySelector('.close-triage-override')?.addEventListener('click', closeTriageOverride);
+        overrideDialog.querySelector('.cancel-triage-override')?.addEventListener('click', closeTriageOverride);
+        overrideDialog.querySelector('.apply-triage-override')?.addEventListener('click', function () {
+            const selectedPriority = overrideDialog.querySelector('#triage-override-level')?.value || 'Routine';
+            const rationale = overrideDialog.querySelector('#triage-override-notes')?.value?.trim() || 'Clinical override applied after review.';
+            const notesField = triageModalForm?.querySelector('[name="notes"]');
+
+            if (notesField) {
+                notesField.value = `Clinical override applied: ${selectedPriority}. Reason: ${rationale}`;
+            }
+            if (triageModalPriorityOverride) triageModalPriorityOverride.value = selectedPriority;
+            syncTriageConfirmation(true);
+            if (triageModalPriority) {
+                triageModalPriority.textContent = selectedPriority;
+                triageModalPriority.className = 'font-semibold ' + (selectedPriority === 'Emergency' ? 'text-rose-600' : selectedPriority === 'Urgent' ? 'text-amber-600' : 'text-emerald-600');
+            }
+            if (triageModalPreview) {
+                triageModalPreview.innerHTML = `
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <span class="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-amber-700">${selectedPriority}</span>
+                        <span class="text-xs font-medium text-slate-500">Clinical override</span>
+                    </div>
+                    <p class="text-sm leading-6 text-slate-600">The clinical team adjusted the recommendation to ${selectedPriority} priority.</p>
+                    <p class="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-2 text-sm text-slate-700">${rationale}</p>
+                `;
+            }
+            if (window.hisToast) hisToast('Clinical override saved to the triage notes.', 'success');
+            closeTriageOverride();
+        });
 
         async function requestTriageAssessment({ complaint, symptoms, painScore, vitals, previewEl, severityEl, priorityEl, successToastText }) {
             if (!complaint) {
@@ -668,6 +874,141 @@
                 });
             });
         }
+    })();
+</script>
+<script>
+    (function () {
+        const modalEl = document.getElementById('triageModal');
+        const modalBody = modalEl?.querySelector('.modal-body');
+        const modalStep = modalEl?.querySelector('.modal-header p');
+        const modalTitle = modalEl?.querySelector('.modal-title');
+        const modalSubtitle = modalEl?.querySelector('.modal-header p + .modal-title + p');
+        const queuePanel = document.getElementById('active-er-queue');
+        let currentVisitId = null;
+
+        if (!modalEl || !modalBody) return;
+
+        function setModalStep(step) {
+            const steps = {
+                1: ['Step 1 of 3', 'Patient triage intake', 'Capture symptoms and recommended urgency'],
+                2: ['Step 2 of 3', 'ER intake', 'Review arrival details and register the patient'],
+                3: ['Step 3 of 3', 'Confirm priority to add to active queue', 'Review the clinical priority before queueing'],
+            };
+            const copy = steps[step];
+            if (!copy) return;
+            if (modalStep) modalStep.textContent = copy[0];
+            if (modalTitle) modalTitle.textContent = copy[1];
+            if (modalSubtitle) modalSubtitle.textContent = copy[2];
+        }
+
+        function clearChainErrors(form) {
+            form.querySelectorAll('.triage-chain-error').forEach((error) => error.remove());
+            form.querySelectorAll('[aria-invalid="true"]').forEach((field) => {
+                field.removeAttribute('aria-invalid');
+                field.classList.remove('border-rose-400');
+            });
+        }
+
+        function showChainErrors(form, errors) {
+            Object.entries(errors || {}).forEach(([fieldName, messages]) => {
+                const field = form.querySelector(`[name="${fieldName}"]`);
+                const message = Array.isArray(messages) ? messages[0] : messages;
+                if (!field) {
+                    const alert = document.createElement('div');
+                    alert.className = 'triage-chain-error mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700';
+                    alert.textContent = message;
+                    form.prepend(alert);
+                    return;
+                }
+                field.setAttribute('aria-invalid', 'true');
+                field.classList.add('border-rose-400');
+                const error = document.createElement('p');
+                error.className = 'triage-chain-error mt-1.5 text-sm text-rose-700';
+                error.textContent = message;
+                field.insertAdjacentElement('afterend', error);
+            });
+        }
+
+        async function parseResponse(response) {
+            const text = await response.text();
+            const contentType = response.headers.get('content-type') || '';
+            let payload = null;
+            if (contentType.includes('application/json') && text) {
+                try { payload = JSON.parse(text); } catch (error) { payload = null; }
+            }
+            if (!response.ok) {
+                const htmlTitle = text.match(/<title[^>]*>(.*?)<\/title>/is)?.[1]?.trim();
+                const message = payload?.message || htmlTitle || text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 240);
+                const error = new Error(message || `Request failed with HTTP ${response.status}.`);
+                error.status = response.status;
+                error.validation = payload?.errors || null;
+                throw error;
+            }
+            return payload || { success: true, html: text };
+        }
+
+        async function submitChainForm(form, onSuccess) {
+            clearChainErrors(form);
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) submitButton.disabled = true;
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: new FormData(form),
+                });
+                const payload = await parseResponse(response);
+                await onSuccess(payload);
+            } catch (error) {
+                if (error.validation) {
+                    showChainErrors(form, error.validation);
+                } else {
+                    showChainErrors(form, { _form: [`HTTP ${error.status || 'error'}: ${error.message}`] });
+                }
+            } finally {
+                if (submitButton) submitButton.disabled = false;
+            }
+        }
+
+        function bindStep2() {
+            const form = modalBody.querySelector('form[action$="/emergency"]');
+            if (!form) return;
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                submitChainForm(form, async (payload) => {
+                    currentVisitId = payload.visit_id;
+                    setModalStep(3);
+                    modalBody.innerHTML = payload.html;
+                    bindStep3();
+                });
+            });
+        }
+
+        function bindStep3() {
+            const form = modalBody.querySelector('form[action*="/emergency/"]');
+            if (!form) return;
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                submitChainForm(form, async () => {
+                    bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                    if (queuePanel) {
+                        const response = await fetch(window.location.href, { headers: { Accept: 'text/html' }, credentials: 'same-origin' });
+                        const html = await response.text();
+                        const nextQueuePanel = new DOMParser().parseFromString(html, 'text/html').querySelector('#active-er-queue');
+                        if (nextQueuePanel) queuePanel.replaceWith(nextQueuePanel);
+                    }
+                });
+            });
+        }
+
+        window.addEventListener('hims:triage-step', (event) => {
+            const payload = event.detail || {};
+            if (!payload.html) return;
+            setModalStep(2);
+            modalBody.innerHTML = payload.html;
+            bindStep2();
+        });
     })();
 </script>
 @endpush

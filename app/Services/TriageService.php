@@ -300,19 +300,23 @@ class TriageService
 
     protected function createAssessment(ErVisit $visit, array $data): TriageAssessment
     {
-        return TriageAssessment::create([
-            'patient_id' => $visit->patient_id,
-            'er_visit_id' => $visit->id,
-            'triage_nurse_id' => auth()->id(),
-            'triaged_at' => now(),
-            'chief_complaint' => $data['chief_complaint'] ?? $visit->chief_complaint,
-            'pain_score' => $data['pain_score'] ?? null,
-            'priority' => $data['priority'],
-            'priority_score' => $this->normalizePriorityScore($data['priority']),
-            'triage_color' => $this->normalizePriorityColor($data['priority']),
-            'notes' => $data['notes'] ?? null,
-            'status' => 'COMPLETE',
-        ]);
+        // er_visit_id is unique on triage_assessments: a visit may already have one from the
+        // "Patient Triage Intake" modal flow, so re-triaging (e.g. a clinical override) must update it, not insert.
+        return TriageAssessment::updateOrCreate(
+            ['er_visit_id' => $visit->id],
+            [
+                'patient_id' => $visit->patient_id,
+                'triage_nurse_id' => auth()->id(),
+                'triaged_at' => now(),
+                'chief_complaint' => $data['chief_complaint'] ?? $visit->chief_complaint,
+                'pain_score' => $data['pain_score'] ?? null,
+                'priority' => $data['priority'],
+                'priority_score' => $this->normalizePriorityScore($data['priority']),
+                'triage_color' => $this->normalizePriorityColor($data['priority']),
+                'notes' => $data['notes'] ?? null,
+                'status' => 'COMPLETE',
+            ]
+        );
     }
 
     protected function createVitalsIfPresent(TriageAssessment $assessment, ?array $vitals): void
@@ -321,20 +325,36 @@ class TriageService
             return;
         }
 
-        TriageVital::create(array_merge([
-            'triage_assessment_id' => $assessment->id,
-            'patient_id' => $assessment->patient_id,
-            'recorded_at' => now(),
-        ], $vitals));
+        TriageVital::updateOrCreate(
+            ['triage_assessment_id' => $assessment->id],
+            array_merge(['patient_id' => $assessment->patient_id, 'recorded_at' => now()], $vitals)
+        );
     }
 
     protected function markVisitTriaged(ErVisit $visit): void
     {
-        $visit->update(['status' => ErVisit::STATUS_TRIAGED]);
+        // Don't regress status if the visit has already progressed past triage (e.g. IN_TREATMENT) when re-triaged.
+        if ($visit->status === ErVisit::STATUS_ARRIVED) {
+            $visit->update(['status' => ErVisit::STATUS_TRIAGED]);
+        }
     }
 
     protected function createQueueEntry(ErVisit $visit, array $data): void
     {
+        // er_visit_id is unique on er_queue: update the existing entry (priority override) instead of
+        // inserting a duplicate, and preserve queued_at/status so an override doesn't reset wait time or progress.
+        $existing = ErQueue::where('er_visit_id', $visit->id)->first();
+
+        if ($existing) {
+            $existing->update([
+                'priority' => $data['priority'],
+                'treatment_area' => $data['treatment_area'] ?? $existing->treatment_area,
+                'provider_id' => $data['provider_id'] ?? $existing->provider_id,
+            ]);
+
+            return;
+        }
+
         ErQueue::create([
             'er_visit_id' => $visit->id,
             'priority' => $data['priority'],

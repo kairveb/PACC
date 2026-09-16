@@ -214,7 +214,6 @@
                                     <strong>{{ auth()->user()->name }}</strong>
                                     <span>{{ auth()->user()->roles->pluck('name')->join(', ') }}</span>
                                 </div>
-                                <div class="metric-pill">@yield('page-badge', 'Live workspace')</div>
                             </div>
                         </header>
                     @endif

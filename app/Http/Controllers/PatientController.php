@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\AppointmentType;
+use App\Models\Department;
 use App\Models\Patient;
+use App\Models\Provider;
 use App\Rules\PhilippineMobilePhone;
 use App\Services\AuditLogService;
 use App\Services\PatientService;
@@ -68,8 +71,11 @@ class PatientController extends Controller
         }
 
         $patients = $query->paginate(15);
+        $providers = Provider::where('active', true)->with('department')->get();
+        $departments = Department::orderBy('name')->get();
+        $appointmentTypes = AppointmentType::orderBy('name')->get();
 
-        return view('patients.index', compact('patients'));
+        return view('patients.index', compact('patients', 'providers', 'departments', 'appointmentTypes'));
     }
 
     public function create()

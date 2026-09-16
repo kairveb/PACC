@@ -21,7 +21,7 @@
                 <a href="{{ route('patients.vitals', $patient) }}" class="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50">View Vitals</a>
             @endcan
             @can('create-appointments')
-                <a href="{{ route('appointments.index') }}" class="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700">Book Appointment</a>
+                <button type="button" data-patient-booking-trigger data-patient-id="{{ $patient->id }}" class="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700">Book Appointment</button>
             @endcan
         </div>
     </div>
@@ -63,16 +63,14 @@
     </div>
 
     {{-- Tabs --}}
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div class="flex overflow-x-auto border-b border-slate-200" x-data="{ tab: 'overview' }">
-            <button @click="tab='overview'" :class="tab==='overview' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500'" class="px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap hover:text-slate-700">Overview</button>
-            <button @click="tab='appointments'" :class="tab==='appointments' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500'" class="px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap hover:text-slate-700">Appointments ({{ $patient->appointments->count() }})</button>
-            <button @click="tab='encounters'" :class="tab==='encounters' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500'" class="px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap hover:text-slate-700">Encounters ({{ $patient->encounters->count() }})</button>
-            <button @click="tab='er'" :class="tab==='er' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500'" class="px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap hover:text-slate-700">ER Visits ({{ $patient->erVisits->count() }})</button>
-            <button @click="tab='admissions'" :class="tab==='admissions' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500'" class="px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap hover:text-slate-700">Admissions ({{ $patient->admissions->count() }})</button>
-            <button @click="tab='documents'" :class="tab==='documents' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500'" class="px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap hover:text-slate-700">Documents</button>
-
-            <div class="flex-1"></div>
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden" x-data="{ tab: 'overview' }">
+        <div class="grid grid-cols-2 border-b border-slate-200 sm:grid-cols-3 md:grid-cols-6">
+            <button @click="tab='overview'" :class="tab==='overview' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500'" class="w-full border-b-2 px-3 py-3 text-center text-sm font-medium hover:text-slate-700">Overview</button>
+            <button @click="tab='appointments'" :class="tab==='appointments' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500'" class="w-full border-b-2 px-3 py-3 text-center text-sm font-medium hover:text-slate-700">Appointments ({{ $patient->appointments->count() }})</button>
+            <button @click="tab='encounters'" :class="tab==='encounters' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500'" class="w-full border-b-2 px-3 py-3 text-center text-sm font-medium hover:text-slate-700">Encounters ({{ $patient->encounters->count() }})</button>
+            <button @click="tab='er'" :class="tab==='er' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500'" class="w-full border-b-2 px-3 py-3 text-center text-sm font-medium hover:text-slate-700">ER Visits ({{ $patient->erVisits->count() }})</button>
+            <button @click="tab='admissions'" :class="tab==='admissions' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500'" class="w-full border-b-2 px-3 py-3 text-center text-sm font-medium hover:text-slate-700">Admissions ({{ $patient->admissions->count() }})</button>
+            <button @click="tab='documents'" :class="tab==='documents' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500'" class="w-full border-b-2 px-3 py-3 text-center text-sm font-medium hover:text-slate-700">Documents</button>
         </div>
 
         <div class="p-6">

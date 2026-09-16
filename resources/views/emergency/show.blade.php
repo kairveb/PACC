@@ -3,16 +3,20 @@
 @section('title', 'ER Visit')
 
 @section('content')
+@php($isQueued = $visit->queue !== null)
 <div class="space-y-6">
     <div>
         <h1 class="text-2xl font-bold text-slate-800">ER Visit {{ $visit->visit_number }}</h1>
         <p class="text-sm text-slate-500 mt-1">Patient: <span class="font-medium">{{ $visit->patient->full_name ?? '—' }}</span> · {{ $visit->patient->mrn ?? '' }}</p>
     </div>
 
+    @include('emergency._workflow-steps', ['currentStep' => $isQueued ? 4 : 3])
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {{-- Visit details --}}
-        <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="bg-white rounded-xl border border-slate-200 p-6 {{ $isQueued ? 'lg:order-1' : 'lg:order-2' }}">
             <h3 class="font-semibold text-slate-800 mb-4">Arrival Information</h3>
+
             <div class="grid grid-cols-2 gap-4 text-sm">
                 <div><span class="text-slate-500">Arrived:</span> <span class="font-medium">{{ $visit->arrived_at->format('M d, Y g:i A') }}</span></div>
                 <div><span class="text-slate-500">Method:</span> <span class="font-medium">{{ $visit->arrival_method ?? '—' }}</span></div>
@@ -20,7 +24,7 @@
                 <div class="col-span-2"><span class="text-slate-500">Status:</span> <span class="px-2 py-1 text-xs rounded-full bg-slate-100 ml-1">{{ $visit->status }}</span></div>
             </div>
 
-            @if ($visit->queue)
+            @if ($isQueued)
             <div class="mt-4 p-3 bg-slate-50 rounded-lg">
                 <h4 class="text-sm font-medium text-slate-700 mb-2">ER Queue</h4>
                 <div class="flex justify-between text-sm">
@@ -47,12 +51,56 @@
             @endif
         </div>
 
-        {{-- Triage form --}}
-        <div class="bg-white rounded-xl border border-slate-200 p-6">
-            <div class="mb-4 flex items-center justify-between gap-3">
-                <h3 class="font-semibold text-slate-800">Triage Assessment</h3>
-                <span class="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">AI-assisted</span>
+        {{-- Triage / queue status: launches the modal that actually adds the patient to er_queue --}}
+        <div class="rounded-xl border p-6 {{ $isQueued ? 'lg:order-2 border-slate-200 bg-white' : 'lg:order-1 border-rose-300 bg-rose-50/60 shadow-sm' }}">
+            <div class="mb-4 flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] {{ $visit->queue ? 'text-slate-500' : 'text-rose-600' }}">Step 3 of 3</p>
+                    <h3 class="font-semibold text-slate-800">Confirm priority to add to active queue</h3>
+                </div>
+                @if ($isQueued)
+                    <span class="whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700">Queued</span>
+                @else
+                    <span class="whitespace-nowrap rounded-full bg-rose-600 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">Action required</span>
+                @endif
             </div>
+
+            @if ($visit->queue)
+                <div class="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+                    <p class="font-semibold">Priority {{ $visit->queue->priority }} · {{ $visit->queue->status }}</p>
+                    <p class="mt-0.5 text-emerald-700">This patient is already in the active ER queue.</p>
+                </div>
+                <button type="button" class="inline-flex items-center justify-center rounded-xl border border-rose-300 bg-white px-4 py-2.5 text-sm font-semibold text-rose-600 shadow-sm transition hover:bg-rose-50" data-bs-toggle="modal" data-bs-target="#triageQueueModal">Adjust priority / clinical override</button>
+            @else
+                <p class="mb-4 text-sm leading-6 text-rose-700">This patient hasn't been triaged yet and won't appear in the active ER queue until you confirm a priority.</p>
+                <button type="button" class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700" data-bs-toggle="modal" data-bs-target="#triageQueueModal">Confirm priority to add to queue</button>
+            @endif
+        </div>
+    </div>
+
+    <div class="modal fade" id="triageQueueModal" tabindex="-1" aria-labelledby="triageQueueModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-2xl">
+                <div class="modal-header border-b border-slate-200 px-5 py-4">
+                    <div>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-rose-600">Step 3 of 3</p>
+                        <h5 class="modal-title font-semibold text-slate-800" id="triageQueueModalLabel">Confirm priority to add to active queue</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-5 py-5">
+                    @include('emergency.partials.queue-form')
+                    @if (false)
+                    @if ($errors->any())
+                        <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-800">
+                            <strong>Please fix the following errors:</strong>
+                            <ul class="mt-2 list-disc list-inside">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
             <form method="POST" action="{{ route('emergency.triage', $visit) }}" data-patient-id="{{ $visit->patient_id }}" class="space-y-4">
                 @csrf
@@ -98,10 +146,12 @@
                     <div class="flex items-center justify-between"><span class="font-medium text-slate-600">Priority band</span><strong id="priority-band-display">—</strong></div>
                 </div>
 
-                <div class="flex flex-wrap gap-3">
-                    <button type="button" id="run-ai" class="px-4 py-2.5 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700">Generate recommendation</button>
-                    <button type="button" id="clinical-override" class="px-4 py-2.5 text-sm font-medium border border-slate-300 bg-white text-slate-700 rounded-lg hover:bg-slate-100">Clinical override</button>
-                </div>
+                @can('triage-patients')
+                    <div class="flex flex-wrap gap-3">
+                        <button type="button" id="run-ai" class="px-4 py-2.5 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700">Generate recommendation</button>
+                        <button type="button" id="clinical-override" class="px-4 py-2.5 text-sm font-medium border border-slate-300 bg-white text-slate-700 rounded-lg hover:bg-slate-100">Clinical override</button>
+                    </div>
+                @endcan
 
                 <label class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
                     <input type="checkbox" id="ai-confirmed-toggle" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
@@ -131,6 +181,9 @@
 
                 <button type="submit" class="px-6 py-2.5 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700">Complete Triage</button>
             </form>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 
@@ -171,6 +224,22 @@
 </div>
 
 @push('scripts')
+@if (!$isQueued)
+<script>
+    (function () {
+        const modalEl = document.getElementById('triageQueueModal');
+        if (!modalEl || typeof bootstrap === 'undefined') {
+            return;
+        }
+
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        requestAnimationFrame(() => {
+            modal.show();
+        });
+    })();
+</script>
+@endif
 <script>
     (function () {
         const form = document.querySelector('form[data-patient-id]');
@@ -185,7 +254,10 @@
         const priorityOverrideField = document.getElementById('priority_override');
         const selectField = document.getElementById('priority_select');
         const overrideModal = document.createElement('div');
-        overrideModal.className = 'fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/40 p-4';
+        // Bootstrap modal/backdrop use z-index ~1040-1055; use an inline style (not a Tailwind
+        // arbitrary class, which may not exist in the precompiled CSS) so this reliably renders on top.
+        overrideModal.className = 'fixed inset-0 hidden items-center justify-center bg-slate-900/40 p-4';
+        overrideModal.style.zIndex = '1080';
         overrideModal.innerHTML = `
             <div class="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
                 <div class="flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
