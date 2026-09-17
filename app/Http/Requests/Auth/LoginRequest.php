@@ -45,7 +45,7 @@ class LoginRequest extends FormRequest
 
         $credentials = $this->only('email', 'password');
 
-        $attempt = Auth::attempt($credentials, $this->boolean('remember'));
+        $attempt = Auth::attempt($credentials, false);
 
         if (! $attempt) {
             RateLimiter::hit($this->throttleKey());

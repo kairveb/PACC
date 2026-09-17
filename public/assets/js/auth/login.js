@@ -1,19 +1,8 @@
 (() => {
   const form = document.getElementById("login-form");
   const error = document.getElementById("login-error");
-  const email = document.getElementById("login-email");
   const password = document.getElementById("login-password");
-  const rememberEmail = document.getElementById("remember-email");
   const passwordToggle = document.querySelector("[data-password-toggle]");
-  const rememberedEmailKey = "himsRememberedEmail";
-
-  try {
-    const rememberedEmailValue = localStorage.getItem(rememberedEmailKey);
-    if (rememberedEmailValue && email) {
-      email.value = rememberedEmailValue;
-      if (rememberEmail) rememberEmail.checked = true;
-    }
-  } catch { /* Storage may be unavailable in privacy-restricted contexts. */ }
 
   passwordToggle?.addEventListener("click", () => {
     if (!password) return;
@@ -41,16 +30,6 @@
         error.hidden = false;
       }
       return;
-    }
-
-    try {
-      if (rememberEmail?.checked) {
-        localStorage.setItem(rememberedEmailKey, String(values.get("email") || "").trim());
-      } else {
-        localStorage.removeItem(rememberedEmailKey);
-      }
-    } catch {
-      /* Remember-email is optional and does not affect sign-in. */
     }
 
     if (error) {

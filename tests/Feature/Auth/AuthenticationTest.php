@@ -18,12 +18,13 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_login_screen_requires_explicit_remember_me_and_close_on_exit_sessions(): void
+    public function test_login_screen_uses_close_on_exit_sessions_without_remember_options(): void
     {
         $response = $this->get('/login');
 
         $response->assertOk();
-        $response->assertSee('Remember me');
+        $response->assertDontSee('Remember me');
+        $response->assertDontSee('Remember email on this device');
         $this->assertTrue(config('session.expire_on_close'));
     }
 
