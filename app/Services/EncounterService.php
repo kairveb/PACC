@@ -19,17 +19,18 @@ class EncounterService
     public function generateNumber(): string
     {
         $year = now()->format('Y');
-        $last = Encounter::where('encounter_number', 'like', "ENC-{$year}-%")
-            ->orderByDesc('encounter_number')
+        $candidates = Encounter::where('encounter_number', 'like', "ENC-{$year}-%")
             ->lockForUpdate()
-            ->first();
+            ->pluck('encounter_number');
 
-        if ($last) {
-            $parts = explode('-', $last->encounter_number);
-            return "ENC-{$year}-" . str_pad((string) ((int) $parts[2]) + 1, 6, '0', STR_PAD_LEFT);
+        $maxSequence = 0;
+        foreach ($candidates as $number) {
+            if (preg_match('/^ENC-' . preg_quote($year, '/') . '-(\d{6})$/', $number, $matches)) {
+                $maxSequence = max($maxSequence, (int) $matches[1]);
+            }
         }
 
-        return "ENC-{$year}-000001";
+        return sprintf('ENC-%s-%06d', $year, $maxSequence + 1);
     }
 
     /**

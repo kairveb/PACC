@@ -76,17 +76,18 @@ class TriageService
     public function generateVisitNumber(): string
     {
         $year = now()->format('Y');
-        $last = ErVisit::where('visit_number', 'like', "ER-{$year}-%")
-            ->orderByDesc('visit_number')
+        $candidates = ErVisit::where('visit_number', 'like', "ER-{$year}-%")
             ->lockForUpdate()
-            ->first();
+            ->pluck('visit_number');
 
-        if ($last) {
-            $parts = explode('-', $last->visit_number);
-            return "ER-{$year}-" . str_pad((string) ((int) $parts[2]) + 1, 6, '0', STR_PAD_LEFT);
+        $maxSequence = 0;
+        foreach ($candidates as $number) {
+            if (preg_match('/^ER-' . preg_quote($year, '/') . '-(\d{6})$/', $number, $matches)) {
+                $maxSequence = max($maxSequence, (int) $matches[1]);
+            }
         }
 
-        return "ER-{$year}-000001";
+        return sprintf('ER-%s-%06d', $year, $maxSequence + 1);
     }
 
     /**

@@ -988,8 +988,19 @@
         function bindStep3() {
             const form = modalBody.querySelector('form[action*="/emergency/"]');
             if (!form) return;
+            const confirmationToggle = form.querySelector('#ai-confirmed-toggle');
+            const confirmationField = form.querySelector('#ai_confirmed');
+
+            const syncConfirmation = () => {
+                if (confirmationField) {
+                    confirmationField.value = confirmationToggle?.checked ? '1' : '0';
+                }
+            };
+
+            confirmationToggle?.addEventListener('change', syncConfirmation);
             form.addEventListener('submit', (event) => {
                 event.preventDefault();
+                syncConfirmation();
                 submitChainForm(form, async () => {
                     bootstrap.Modal.getOrCreateInstance(modalEl).hide();
                     if (queuePanel) {

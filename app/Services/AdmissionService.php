@@ -21,17 +21,18 @@ class AdmissionService
     public function generateNumber(): string
     {
         $year = now()->format('Y');
-        $last = Admission::where('admission_number', 'like', "ADM-{$year}-%")
-            ->orderByDesc('admission_number')
+        $candidates = Admission::where('admission_number', 'like', "ADM-{$year}-%")
             ->lockForUpdate()
-            ->first();
+            ->pluck('admission_number');
 
-        if ($last) {
-            $parts = explode('-', $last->admission_number);
-            return "ADM-{$year}-" . str_pad((string) ((int) $parts[2]) + 1, 6, '0', STR_PAD_LEFT);
+        $maxSequence = 0;
+        foreach ($candidates as $number) {
+            if (preg_match('/^ADM-' . preg_quote($year, '/') . '-(\d{6})$/', $number, $matches)) {
+                $maxSequence = max($maxSequence, (int) $matches[1]);
+            }
         }
 
-        return "ADM-{$year}-000001";
+        return sprintf('ADM-%s-%06d', $year, $maxSequence + 1);
     }
 
     /**

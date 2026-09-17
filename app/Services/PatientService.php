@@ -18,19 +18,19 @@ class PatientService
     public function generateMpn(): string
     {
         $year = now()->format('Y');
-        $last = Patient::withTrashed()
+        $candidates = Patient::withTrashed()
             ->where('mrn', 'like', "MRN-{$year}-%")
-            ->orderByDesc('mrn')
             ->lockForUpdate()
-            ->first();
+            ->pluck('mrn');
 
-        $sequence = 1;
-        if ($last) {
-            $parts = explode('-', $last->mrn);
-            $sequence = ((int) end($parts)) + 1;
+        $maxSequence = 0;
+        foreach ($candidates as $number) {
+            if (preg_match('/^MRN-' . preg_quote($year, '/') . '-(\d{6})$/', $number, $matches)) {
+                $maxSequence = max($maxSequence, (int) $matches[1]);
+            }
         }
 
-        return sprintf('MRN-%s-%06d', $year, $sequence);
+        return sprintf('MRN-%s-%06d', $year, $maxSequence + 1);
     }
 
     /**
