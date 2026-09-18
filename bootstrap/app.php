@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Middleware\EnsureRole;
+use App\Http\Middleware\ForceHttps;
+use App\Http\Middleware\TrustProxies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -21,7 +23,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->prependToGroup('web', [
+            TrustProxies::class,
+            ForceHttps::class,
             \App\Http\Middleware\NoCacheAuthenticatedPages::class,
+        ]);
+
+        $middleware->prependToGroup('api', [
+            TrustProxies::class,
+            ForceHttps::class,
         ]);
 
         $middleware->appendToGroup('web', [
