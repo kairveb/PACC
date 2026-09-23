@@ -406,6 +406,98 @@ class EmergencyAndTelehealthUiTest extends TestCase
         });
     }
 
+    public function test_doctor_queue_shows_waiting_patients_for_doctor_role(): void
+    {
+        $this->seed(\Database\Seeders\HimsSeeder::class);
+
+        $doctor = User::where('email', 'doctor@coor.test')->firstOrFail();
+        $patient = Patient::create([
+            'mrn' => 'MRN-DOCTOR-QUEUE-REGRESSION',
+            'first_name' => 'Queue',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1992-02-02',
+            'sex' => 'Female',
+            'phone' => '09170000099',
+            'email' => 'doctor-queue-regression@example.test',
+            'verified' => true,
+        ]);
+
+        $nurse = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
+        $visit = ErVisit::create([
+            'visit_number' => 'ER-DOCTOR-QUEUE-REGRESSION',
+            'patient_id' => $patient->id,
+            'chief_complaint' => 'Chest tightness',
+            'arrived_at' => now(),
+            'status' => 'ARRIVED',
+        ]);
+
+        \App\Models\TriageAssessment::create([
+            'patient_id' => $patient->id,
+            'er_visit_id' => $visit->id,
+            'triage_nurse_id' => $nurse->id,
+            'chief_complaint' => 'Chest tightness',
+            'triaged_at' => now(),
+            'status' => 'WAITING',
+            'priority' => 'Emergency',
+            'priority_score' => 1,
+            'pain_score' => 7,
+        ]);
+
+        $response = $this->actingAs($doctor, 'web')->get('/doctors/queue');
+
+        $response->assertOk();
+        $response->assertViewHas('queue', function ($queue) {
+            return $queue->count() === 1
+                && $queue->first()->patient->full_name === 'Queue Patient'
+                && $queue->first()->status === 'WAITING';
+        });
+    }
+
+    public function test_doctor_queue_detail_route_redirects_to_queue_modal(): void
+    {
+        $this->seed(\Database\Seeders\HimsSeeder::class);
+
+        $doctor = User::where('email', 'doctor@coor.test')->firstOrFail();
+        $patient = Patient::create([
+            'mrn' => 'MRN-DOCTOR-QUEUE-DETAIL',
+            'first_name' => 'Queue',
+            'last_name' => 'Detail',
+            'date_of_birth' => '1994-03-03',
+            'sex' => 'Male',
+            'phone' => '09170000100',
+            'email' => 'doctor-queue-detail@example.test',
+            'verified' => true,
+        ]);
+        $nurse = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
+        $visit = ErVisit::create([
+            'visit_number' => 'ER-DOCTOR-QUEUE-DETAIL',
+            'patient_id' => $patient->id,
+            'chief_complaint' => 'Dizziness',
+            'arrived_at' => now(),
+            'status' => 'ARRIVED',
+        ]);
+        $assessment = \App\Models\TriageAssessment::create([
+            'patient_id' => $patient->id,
+            'er_visit_id' => $visit->id,
+            'triage_nurse_id' => $nurse->id,
+            'chief_complaint' => 'Dizziness',
+            'triaged_at' => now(),
+            'status' => 'WAITING',
+            'priority' => 'Urgent',
+            'priority_score' => 2,
+            'pain_score' => 5,
+        ]);
+
+        $response = $this->actingAs($doctor, 'web')->get('/doctors/queue/' . $assessment->id);
+
+        $this->assertStringContainsString('/doctors/queue', $response->headers->get('Location'));
+        $this->assertStringContainsString('detail=' . $assessment->id, $response->headers->get('Location'));
+    }
+
     public function test_admissions_index_can_filter_by_status(): void
     {
         $this->seed(\Database\Seeders\HimsSeeder::class);

@@ -69,20 +69,20 @@ class DoctorQueueController extends Controller
         return view('doctors.queue', compact('queue', 'summary'));
     }
 
-    public function show(TriageAssessment $assessment): View
+    public function show(TriageAssessment $triageAssessment): RedirectResponse
     {
-        $assessment->load(['patient', 'vitals', 'triageNurse']);
+        $triageAssessment->load(['patient', 'vitals', 'triageNurse']);
 
-        return view('doctors.show', compact('assessment'));
+        return redirect()->route('doctors.queue', ['detail' => $triageAssessment->getKey()]);
     }
 
-    public function updateStatus(Request $request, TriageAssessment $assessment): RedirectResponse
+    public function updateStatus(Request $request, TriageAssessment $triageAssessment): RedirectResponse
     {
         $status = $request->validate([
             'status' => ['required', 'in:SEEN,IN_CONSULT,COMPLETED'],
         ])['status'];
 
-        $assessment->update([
+        $triageAssessment->update([
             'status' => $status,
         ]);
 

@@ -14,5 +14,5 @@ return [
 
     'enabled' => env('INACTIVITY_ENABLED', true),
 
-    'timeout' => (int) env('INACTIVITY_TIMEOUT', 900),
+    'timeout' => (int) env('INACTIVITY_TIMEOUT', 180),
 ];

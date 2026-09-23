@@ -249,6 +249,54 @@
     <script src="{{ asset('assets/js/core/theme-boot.js') }}"></script>
     <script src="{{ asset('assets/js/data/module-registry.js') }}"></script>
     <script src="{{ asset('assets/js/core/app-shell.js') }}"></script>
+    <script>
+        (() => {
+            const heartbeatUrl = '{{ route('heartbeat') }}';
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const heartbeatIntervalMs = 45000;
+            let lastHeartbeatAt = 0;
+
+            function sendHeartbeat() {
+                if (!heartbeatUrl || !csrfToken) {
+                    return;
+                }
+
+                const now = Date.now();
+                if (now - lastHeartbeatAt < heartbeatIntervalMs) {
+                    return;
+                }
+
+                lastHeartbeatAt = now;
+
+                fetch(heartbeatUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                }).catch(() => {
+                    // Ignore heartbeat failures here; the main page requests will handle inactivity if the session is stale.
+                });
+            }
+
+            ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach((eventName) => {
+                document.addEventListener(eventName, sendHeartbeat, {
+                    capture: true,
+                    passive: true,
+                });
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    sendHeartbeat();
+                }
+            });
+
+            window.addEventListener('load', sendHeartbeat, { once: true });
+        })();
+    </script>
     @stack('scripts')
 </body>
 </html>

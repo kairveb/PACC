@@ -14,6 +14,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TelehealthController;
 use App\Http\Controllers\TriageAssessmentController;
+use App\Http\Middleware\TrackInactivity;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -21,6 +22,10 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/heartbeat', function () {
+        return response()->noContent();
+    })->name('heartbeat')->middleware(TrackInactivity::class);
+
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::middleware(['can:portal-dashboard', 'role:patient'])->group(function () {

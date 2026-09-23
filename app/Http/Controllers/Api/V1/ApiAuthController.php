@@ -29,6 +29,7 @@ class ApiAuthController extends Controller
             ]);
         }
 
+        $user->forceFill(['last_activity_at' => now()])->save();
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([

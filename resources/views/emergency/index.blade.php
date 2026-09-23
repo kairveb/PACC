@@ -67,7 +67,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full text-left">
+            <table class="w-full min-w-[980px] text-left">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50/80">
                         <th class="relative px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
@@ -143,7 +143,7 @@
                                 </form>
                             </div>
                         </th>
-                        <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 text-right">Action</th>
+                        <th class="w-[130px] min-w-[130px] px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 text-right">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -169,7 +169,7 @@
                                 <div class="max-w-md text-sm text-slate-700">{{ $q->erVisit->chief_complaint ?? 'No complaint recorded' }}</div>
                             </td>
                             <td class="px-5 py-4">@include('partials.status-badge', ['label' => $q->status, 'variant' => $queueStatusClass])</td>
-                            <td class="px-5 py-4 text-right">
+                            <td class="w-[130px] min-w-[130px] px-5 py-4 text-right">
                                 <button type="button" class="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700" data-bs-toggle="modal" data-bs-target="#queueStatusModal-{{ $q->id }}">Manage</button>
                             </td>
                         </tr>
@@ -188,14 +188,14 @@
             <h2 class="text-lg font-semibold text-slate-900">Recent ER visits</h2>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-full text-left">
+            <table class="w-full min-w-[980px] text-left">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50/80">
                         <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Visit #</th>
                         <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Patient</th>
                         <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Arrived</th>
                         <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Status</th>
-                        <th class="px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 text-right">Action</th>
+                        <th class="w-[130px] min-w-[130px] px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 text-right">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -208,7 +208,7 @@
                             <td class="px-5 py-4 font-medium text-slate-900">{{ $visit->patient->full_name ?? '—' }}</td>
                             <td class="px-5 py-4 text-sm text-slate-700">{{ $visit->arrived_at?->format('M d, g:i A') ?? '—' }}</td>
                             <td class="px-5 py-4">@include('partials.status-badge', ['label' => $visit->status, 'variant' => $visitStatusClass])</td>
-                            <td class="px-5 py-4 text-right"><button type="button" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" data-bs-toggle="modal" data-bs-target="#visitStatusModal-{{ $visit->id }}">View</button></td>
+                            <td class="w-[130px] min-w-[130px] px-5 py-4 text-right"><button type="button" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" data-bs-toggle="modal" data-bs-target="#visitStatusModal-{{ $visit->id }}">View</button></td>
                         </tr>
                     @empty
                         <tr><td colspan="5" class="px-5 py-12 text-center text-sm text-slate-400">No ER visits.</td></tr>

@@ -174,14 +174,14 @@
                                             <form method="POST" action="{{ route('doctors.queue.status', $assessment) }}">
                                                 @csrf
                                                 <input type="hidden" name="status" value="SEEN">
-                                                <button type="submit" class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50">Mark seen</button>
+                                                <button type="submit" class="doctor-queue-action doctor-queue-action--seen whitespace-nowrap">Mark seen</button>
                                             </form>
                                         @endif
                                         @if (($assessment->status ?? '') !== 'IN_CONSULT' && ($assessment->status ?? '') !== 'COMPLETED')
                                             <form method="POST" action="{{ route('doctors.queue.status', $assessment) }}">
                                                 @csrf
                                                 <input type="hidden" name="status" value="IN_CONSULT">
-                                                <button type="submit" class="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-semibold text-amber-700 hover:bg-amber-100">Start consult</button>
+                                                <button type="submit" class="doctor-queue-action doctor-queue-action--consult whitespace-nowrap">Start consult</button>
                                             </form>
                                         @endif
                                     </div>
@@ -224,9 +224,82 @@
                         </div>
                     </div>
                     <div class="mt-5 flex justify-end gap-3">
-                        <a href="{{ route('doctors.queue.show', $assessment) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100">Open details</a>
+                        <button type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100" data-bs-toggle="modal" data-bs-target="#doctorQueueAssessmentDetailModal-{{ $assessment->id }}">Open details</button>
                         <button type="button" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-900" data-bs-dismiss="modal">Close</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="doctorQueueAssessmentDetailModal-{{ $assessment->id }}" tabindex="-1" aria-labelledby="doctorQueueAssessmentDetailModalLabel-{{ $assessment->id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-2xl">
+                <div class="modal-header border-b border-slate-200 px-5 py-4">
+                    <div>
+                        <h5 class="modal-title text-lg font-semibold text-slate-900" id="doctorQueueAssessmentDetailModalLabel-{{ $assessment->id }}">Full triage detail</h5>
+                        <p class="mt-1 text-sm text-slate-500">{{ $assessment->patient?->full_name ?? 'Unknown patient' }} · {{ $assessment->patient?->mrn ?? '—' }}</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-5 py-5">
+                    <div class="space-y-5 text-sm text-slate-700">
+                        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Priority</div>
+                                <div class="mt-2 font-semibold text-slate-900">{{ App\Support\PriorityColor::label((int) ($assessment->priority_score ?? 5)) }}</div>
+                            </div>
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Status</div>
+                                <div class="mt-2 font-semibold text-slate-900">{{ App\Support\QueueStatus::label($assessment->status ?? null) }}</div>
+                            </div>
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Pain score</div>
+                                <div class="mt-2 font-semibold text-slate-900">{{ $assessment->pain_score ?? '—' }}/10</div>
+                            </div>
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Time</div>
+                                <div class="mt-2 font-semibold text-slate-900">{{ $assessment->triaged_at?->format('M d, Y g:i A') ?? '—' }}</div>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Chief complaint</div>
+                            <div class="mt-2 text-base font-medium text-slate-800">{{ $assessment->chief_complaint ?? 'No complaint recorded' }}</div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Symptoms</div>
+                            <div class="mt-2 leading-6 text-slate-700">
+                                {{ !empty($assessment->symptoms) ? (is_array($assessment->symptoms) ? implode(', ', $assessment->symptoms) : $assessment->symptoms) : 'No symptoms recorded' }}
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Nurse notes</div>
+                            <div class="mt-2 leading-6 text-slate-700">{{ $assessment->notes ?? 'No additional nurse notes recorded.' }}</div>
+                        </div>
+
+                        @php $vitals = $assessment->vitals; @endphp
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Vital signs</div>
+                            @if ($vitals)
+                                <div class="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                                    <div><span class="text-slate-500">BP:</span> {{ $vitals->blood_pressure ?? '—' }}</div>
+                                    <div><span class="text-slate-500">HR:</span> {{ $vitals->heart_rate ?? '—' }} bpm</div>
+                                    <div><span class="text-slate-500">RR:</span> {{ $vitals->respiratory_rate ?? '—' }}/min</div>
+                                    <div><span class="text-slate-500">Temp:</span> {{ $vitals->temperature ?? '—' }}°C</div>
+                                    <div><span class="text-slate-500">SpO₂:</span> {{ $vitals->spo2 ?? '—' }}%</div>
+                                    <div><span class="text-slate-500">Weight:</span> {{ $vitals->weight ?? '—' }} kg</div>
+                                </div>
+                            @else
+                                <p class="mt-3 text-slate-500">No vital signs captured for this assessment.</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-t border-slate-200 px-5 py-4">
+                    <button type="button" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-900" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -235,7 +308,22 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        return;
+        if (window.bootstrap && typeof bootstrap.Modal !== 'undefined') {
+            const modalInstances = new Map();
+            document.querySelectorAll('.modal').forEach((modalElement) => {
+                modalInstances.set(modalElement.id, bootstrap.Modal.getOrCreateInstance(modalElement));
+            });
+
+            const detailId = new URLSearchParams(window.location.search).get('detail');
+            if (detailId) {
+                const targetModal = document.getElementById('doctorQueueAssessmentDetailModal-' + detailId);
+                if (targetModal && bootstrap.Modal && targetModal.classList.contains('modal')) {
+                    const instance = bootstrap.Modal.getOrCreateInstance(targetModal);
+                    instance.show();
+                }
+            }
+        }
+
         const triggers = document.querySelectorAll('[data-filter-trigger]');
         const panels = document.querySelectorAll('.filter-panel');
 
@@ -267,6 +355,34 @@
         });
     });
 </script>
+
+<style>
+    .doctor-queue-action {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 0.5rem !important;
+        padding: 0.5rem 0.75rem !important;
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+        font-weight: 600 !important;
+        box-shadow: none !important;
+        white-space: nowrap !important;
+        min-width: 0 !important;
+    }
+
+    .doctor-queue-action--seen {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #334155 !important;
+    }
+
+    .doctor-queue-action--consult {
+        background: #fef3c7 !important;
+        border: 1px solid #fbbf24 !important;
+        color: #b45309 !important;
+    }
+</style>
 
 @push('scripts')
 <script>

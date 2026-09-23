@@ -17,7 +17,7 @@ class TrackInactivity
             return $next($request);
         }
 
-        $user = Auth::user();
+        $user = $request->user() ?? Auth::user();
 
         if (! $user) {
             return $next($request);
@@ -34,7 +34,7 @@ class TrackInactivity
                 $request->session()->regenerateToken();
             }
 
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'message' => 'You have been logged out due to inactivity.',
                 ], 401);

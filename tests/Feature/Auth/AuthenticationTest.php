@@ -28,6 +28,38 @@ class AuthenticationTest extends TestCase
         $this->assertTrue(config('session.expire_on_close'));
     }
 
+    public function test_inactivity_timeout_is_set_to_three_minutes(): void
+    {
+        $this->assertSame(180, config('inactivity.timeout'));
+    }
+
+    public function test_heartbeat_keeps_user_logged_in_within_three_minute_window(): void
+    {
+        $user = User::factory()->create([
+            'last_activity_at' => now()->subSeconds(100),
+        ]);
+
+        $response = $this->actingAs($user, 'web')->post('/heartbeat');
+
+        $response->assertNoContent();
+        $this->assertAuthenticatedAs($user);
+
+        $user->refresh();
+        $this->assertTrue($user->last_activity_at->diffInSeconds(now()) < 10);
+    }
+
+    public function test_user_without_heartbeat_for_over_three_minutes_is_logged_out_on_next_request(): void
+    {
+        $user = User::factory()->create([
+            'last_activity_at' => now()->subSeconds(181),
+        ]);
+
+        $response = $this->actingAs($user, 'web')->get('/dashboard');
+
+        $this->assertGuest();
+        $response->assertRedirect('/login');
+    }
+
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();
@@ -84,6 +116,23 @@ class AuthenticationTest extends TestCase
         $this->assertNotNull($user->last_activity_at);
         $this->assertTrue($user->last_activity_at->diffInSeconds(now()) < 10);
         $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_api_login_updates_last_activity_at_immediately(): void
+    {
+        $user = User::factory()->create([
+            'last_activity_at' => now()->subHours(2),
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertOk();
+        $user->refresh();
+        $this->assertNotNull($user->last_activity_at);
+        $this->assertTrue($user->last_activity_at->diffInSeconds(now()) < 10);
     }
 
     public function test_stale_inactivity_logs_user_out_and_redirects_to_login(): void

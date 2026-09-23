@@ -6,6 +6,9 @@
 @section('page-badge', 'Priority review')
 
 @section('content')
+@php
+    $triageAssessmentId = $assessment->id ?? request()->route('triageAssessment');
+@endphp
 <div class="mx-auto max-w-6xl space-y-6">
     <div class="panel-card p-6">
         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -145,21 +148,21 @@
                     <div class="flex flex-wrap items-center gap-3">
                         @can('triage-patients')
                             @if (($assessment->status ?? '') !== 'SEEN' && ($assessment->status ?? '') !== 'IN_CONSULT')
-                                <form method="POST" action="{{ route('doctors.queue.status', $assessment) }}">
+                                <form method="POST" action="/doctors/queue/{{ $triageAssessmentId }}/status">
                                     @csrf
                                     <input type="hidden" name="status" value="SEEN">
                                     <button type="submit" class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700">Mark seen</button>
                                 </form>
                             @endif
                             @if (($assessment->status ?? '') !== 'IN_CONSULT' && ($assessment->status ?? '') !== 'COMPLETED')
-                                <form method="POST" action="{{ route('doctors.queue.status', $assessment) }}">
+                                <form method="POST" action="/doctors/queue/{{ $triageAssessmentId }}/status">
                                     @csrf
                                     <input type="hidden" name="status" value="IN_CONSULT">
                                     <button type="submit" class="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600">Start consult</button>
                                 </form>
                             @endif
                             @if (($assessment->status ?? '') === 'IN_CONSULT')
-                                <form method="POST" action="{{ route('doctors.queue.status', $assessment) }}">
+                                <form method="POST" action="/doctors/queue/{{ $triageAssessmentId }}/status">
                                     @csrf
                                     <input type="hidden" name="status" value="COMPLETED">
                                     <button type="submit" class="rounded-xl bg-slate-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">Complete consult</button>
