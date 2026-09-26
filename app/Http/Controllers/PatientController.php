@@ -87,28 +87,17 @@ class PatientController extends Controller
     {
         $this->authorize('create', Patient::class);
 
-$data = $request->validate([
-            // Text fields (names, places) — letters & spaces only, trimmed.
+        $data = $request->validate([
             'first_name' => ['required', 'string', 'max:100', 'regex:/^[\pL\s\'\-.]+$/u'],
-            'middle_name' => ['nullable', 'string', 'max:100', 'regex:/^[\pL\s\'\-.]+$/u'],
             'last_name' => ['required', 'string', 'max:100', 'regex:/^[\pL\s\'\-.]+$/u'],
-            'suffix' => ['nullable', 'string', 'max:20', 'regex:/^[\pL\s\'\-.]+$/u'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:today'],
             'sex' => ['required', 'in:Male,Female,Other'],
-            'civil_status' => ['nullable', 'string', 'max:50', 'regex:/^[\pL\s\'\-.]+$/u'],
-            'nationality' => ['nullable', 'string', 'max:100', 'regex:/^[\pL\s\'\-.]+$/u'],
-            // Philippine mobile numbers only.
             'phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
-            // Email — valid format, lowercase.
             'email' => ['nullable', 'email', 'lowercase', 'max:255'],
-            'allergies' => ['nullable', 'string', 'max:2000'],
-            // Places (address) — letters, digits, comma, period, dash.
             'address_line1' => ['nullable', 'string', 'max:255', 'regex:/^[\pL\pN\s\'\-\.,#]+$/u'],
             'address_barangay' => ['nullable', 'string', 'max:150', 'regex:/^[\pL\pN\s\'\-.]+$/u'],
             'address_city' => ['nullable', 'string', 'max:100', 'regex:/^[\pL\pN\s\'\-.]+$/u'],
             'address_province' => ['nullable', 'string', 'max:100', 'regex:/^[\pL\pN\s\'\-.]+$/u'],
-            'address_postal' => ['nullable', 'string', 'max:10', 'regex:/^[0-9]{4}$/'],
-            // Emergency contact (reasons/names/numbers).
             'emergency_name' => ['nullable', 'string', 'max:150', 'regex:/^[\pL\s\'\-.]+$/u'],
             'emergency_relationship' => ['nullable', 'string', 'max:50', 'regex:/^[\pL\s\'\-.]+$/u'],
             'emergency_phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
@@ -149,31 +138,30 @@ $data = $request->validate([
 
     protected function createPatient(array $data): Patient
     {
-        return $this->patientService->register([
+        return $this->patientService->register($this->buildRegistrationPayload($data), auth()->id());
+    }
+
+    protected function buildRegistrationPayload(array $data): array
+    {
+        return [
             'first_name' => $data['first_name'],
-            'middle_name' => $data['middle_name'] ?? null,
             'last_name' => $data['last_name'],
-            'suffix' => $data['suffix'] ?? null,
             'date_of_birth' => $data['date_of_birth'],
             'sex' => $data['sex'],
-            'civil_status' => $data['civil_status'] ?? null,
-            'nationality' => $data['nationality'] ?? null,
             'phone' => $data['phone'] ?? null,
             'email' => $data['email'] ?? null,
-            'allergies' => $data['allergies'] ?? null,
             'address' => [
                 'line1' => $data['address_line1'] ?? null,
                 'barangay' => $data['address_barangay'] ?? null,
                 'city' => $data['address_city'] ?? null,
                 'province' => $data['address_province'] ?? null,
-                'postal_code' => $data['address_postal'] ?? null,
             ],
             'emergency_contact' => [
                 'name' => $data['emergency_name'] ?? null,
                 'relationship' => $data['emergency_relationship'] ?? null,
                 'phone' => $data['emergency_phone'] ?? null,
             ],
-        ], auth()->id());
+        ];
     }
 
     public function show(Patient $patient)
@@ -316,11 +304,18 @@ return view('patients.show', compact('patient'));
         $patients = $query->limit(10)->get();
 
         return response()->json([
-            'data' => $patients->map(function ($patient) {
+            'data' => $patients->map(function ($patient) use ($term, $lookupCode) {
                 $address = $patient->addresses->first();
                 $contact = $patient->emergencyContacts->first();
 
-                $profile = $patient->preArrivalProfiles->first();
+                $referenceQuery = trim((string) ($lookupCode !== '' ? $lookupCode : $term));
+                $matchingProfile = $referenceQuery !== ''
+                    ? $patient->preArrivalProfiles()
+                        ->whereRaw('UPPER(reference_code) = ?', [strtoupper($referenceQuery)])
+                        ->first()
+                    : null;
+
+                $profile = $matchingProfile ?? $patient->preArrivalProfiles()->latest()->first();
 
                 return [
                     'id' => $patient->id,

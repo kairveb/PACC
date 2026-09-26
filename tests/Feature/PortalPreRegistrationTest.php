@@ -265,6 +265,54 @@ class PortalPreRegistrationTest extends TestCase
         $response->assertJsonPath('data.0.emergency_contact.phone', '09170000099');
     }
 
+    public function test_lookup_returns_the_matching_reference_code_when_patient_has_multiple_pre_arrival_profiles(): void
+    {
+        $role = Role::where('name', 'registration')->firstOrFail();
+        $user = User::factory()->create();
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
+        $patient = Patient::create([
+            'user_id' => $user->id,
+            'mrn' => 'MRN-LOOKUP-MULTI-001',
+            'first_name' => 'Reference',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1990-05-15',
+            'sex' => 'Female',
+            'phone' => '09170000088',
+            'email' => 'reference.patient@example.test',
+            'verified' => true,
+        ]);
+
+        $oldProfile = $patient->preArrivalProfiles()->create([
+            'token' => (string) Uuid::uuid4(),
+            'reference_code' => 'PAC-1001',
+            'status' => 'pending',
+            'first_name' => 'Older',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1990-05-15',
+            'sex' => 'Female',
+            'visit_reason' => 'Older visit',
+        ]);
+
+        $newProfile = $patient->preArrivalProfiles()->create([
+            'token' => (string) Uuid::uuid4(),
+            'reference_code' => 'PAC-2002',
+            'status' => 'pending',
+            'first_name' => 'Newest',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1990-05-15',
+            'sex' => 'Female',
+            'visit_reason' => 'Newest visit',
+        ]);
+
+        $response = $this->actingAs($user, 'web')->get('/patients/lookup?q=' . urlencode($newProfile->reference_code));
+
+        $response->assertOk();
+        $response->assertJsonPath('data.0.reference_code', 'PAC-2002');
+        $response->assertJsonPath('data.0.first_name', 'Newest');
+        $response->assertJsonPath('data.0.last_name', 'Patient');
+    }
+
     public function test_reference_codes_are_generated_and_unique(): void
     {
         $firstPatient = Patient::create([

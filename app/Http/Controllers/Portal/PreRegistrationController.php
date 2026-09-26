@@ -97,9 +97,10 @@ class PreRegistrationController extends Controller
         $preferredPostal = $data['address_postal'] ?? null;
 
         $referenceCode = PreArrivalProfile::generateUniqueReferenceCode();
+        $token = (string) Str::uuid();
 
-        $profile = $patient->preArrivalProfiles()->create([
-            'token' => (string) Str::uuid(),
+        $profileData = [
+            'token' => $token,
             'reference_code' => $referenceCode,
             'status' => 'pending',
             'first_name' => $preferredFirstName,
@@ -125,16 +126,12 @@ class PreRegistrationController extends Controller
             'address_city' => $data['address_city'] ?? null,
             'address_province' => $data['address_province'] ?? null,
             'address_postal' => $preferredPostal,
-            'emergency_name' => $preferredEmergencyName,
-            'emergency_phone' => $preferredEmergencyPhone,
-            'emergency_relationship' => $preferredEmergencyRelationship,
-            'phone' => $preferredPhone,
-            'email' => $preferredEmail,
-            'qr_code_url' => $this->buildQrCode((string) Str::uuid()),
-        ]);
+        ];
+
+        $profile = $patient->preArrivalProfiles()->create($profileData);
 
         $profile->update([
-            'token' => $profile->token ?: (string) Str::uuid(),
+            'token' => $profile->token ?: $token,
             'qr_code_url' => $this->buildQrCode($profile->token),
         ]);
 
@@ -201,7 +198,6 @@ class PreRegistrationController extends Controller
             'address_city' => $data['address_city'] ?? null,
             'address_province' => $data['address_province'] ?? null,
             'address_postal' => $data['address_postal'] ?? null,
-            'qr_code_url' => $this->buildQrCode((string) Str::uuid()),
         ]);
 
         $profile->update(['qr_code_url' => $this->buildQrCode($profile->token)]);
