@@ -52,8 +52,18 @@
                                     </div>
 
                                     <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Middle Name</label>
+                                        <input type="text" name="middle_name" value="{{ old('middle_name', $user->patient?->middle_name) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                                    </div>
+
+                                    <div>
                                         <label class="mb-1.5 block text-sm font-medium text-slate-700">Last Name *</label>
                                         <input type="text" name="last_name" value="{{ old('last_name', $user->patient?->last_name) }}" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Suffix</label>
+                                        <input type="text" name="suffix" value="{{ old('suffix', $user->patient?->suffix) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
                                     </div>
 
                                     <div>
@@ -69,6 +79,16 @@
                                             <option value="Female" {{ old('sex', $user->patient?->sex) === 'Female' ? 'selected' : '' }}>Female</option>
                                             <option value="Other" {{ old('sex', $user->patient?->sex) === 'Other' ? 'selected' : '' }}>Other</option>
                                         </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Civil Status</label>
+                                        <input type="text" name="civil_status" value="{{ old('civil_status', $user->patient?->civil_status) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Nationality</label>
+                                        <input type="text" name="nationality" value="{{ old('nationality', $user->patient?->nationality) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
                                     </div>
 
                                     <div>
@@ -103,6 +123,16 @@
                                     <div class="md:col-span-2">
                                         <label class="mb-1.5 block text-sm font-medium text-slate-700">Barangay</label>
                                         <input type="text" name="address_barangay" value="{{ old('address_barangay', $user->patient?->primaryAddress()?->barangay ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                                    </div>
+
+                                    <div class="md:col-span-2">
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Postal Code</label>
+                                        <input type="text" name="address_postal" value="{{ old('address_postal', $user->patient?->primaryAddress()?->postal_code ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                                    </div>
+
+                                    <div class="md:col-span-2">
+                                        <label class="mb-1.5 block text-sm font-medium text-slate-700">Allergies / Alerts</label>
+                                        <textarea name="allergies" rows="3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">{{ old('allergies', $user->patient?->allergies) }}</textarea>
                                     </div>
 
                                     <div class="md:col-span-2">

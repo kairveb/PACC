@@ -58,10 +58,6 @@ class PortalPreRegistrationTest extends TestCase
                 'sex' => 'Female',
                 'phone' => '09170000011',
                 'email' => 'jane.patient@example.test',
-                'visit_reason' => 'Follow-up for recurring abdominal pain',
-                'initial_notes' => 'Patient reports worsening pain over the last two days.',
-                'medical_history' => 'Asthma, no major surgeries',
-                'current_medications' => 'Albuterol PRN',
                 'allergies' => 'Penicillin',
                 'emergency_name' => 'John Patient',
                 'emergency_phone' => '09170000099',
@@ -82,8 +78,7 @@ class PortalPreRegistrationTest extends TestCase
         $profileRow = DB::table('pre_arrival_profiles')->where('id', $profile->id)->first();
         $this->assertSame($patient->id, $profileRow->patient_id);
         $this->assertSame('pending', $profileRow->status);
-        $this->assertNotSame('Follow-up for recurring abdominal pain', $profileRow->visit_reason);
-        $this->assertSame('Follow-up for recurring abdominal pain', $profile->fresh()->visit_reason);
+        $this->assertNull($profile->fresh()->visit_reason);
 
         $this->assertNotEmpty($profile->token);
         $this->assertNotEmpty($profile->qr_code_url);
@@ -137,6 +132,19 @@ class PortalPreRegistrationTest extends TestCase
         $profile = $patient->preArrivalProfiles()->latest()->first();
         $this->assertNotNull($profile);
         $this->assertNull($profile->visit_reason);
+    }
+
+    public function test_public_pre_registration_form_includes_missing_demographic_fields(): void
+    {
+        $response = $this->get('/pre-register');
+
+        $response->assertOk();
+        $response->assertSee('name="middle_name"', false);
+        $response->assertSee('name="suffix"', false);
+        $response->assertSee('name="civil_status"', false);
+        $response->assertSee('name="nationality"', false);
+        $response->assertSee('name="allergies"', false);
+        $response->assertSee('name="address_postal"', false);
     }
 
     public function test_patient_pre_registration_stores_the_same_demographic_and_contact_fields_as_walk_in_registration(): void

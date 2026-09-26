@@ -36,8 +36,18 @@
                 </div>
 
                 <div>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Middle Name</label>
+                    <input type="text" name="middle_name" value="{{ old('middle_name', $patient->middle_name) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                </div>
+
+                <div>
                     <label class="mb-1.5 block text-sm font-medium text-slate-700">Last Name *</label>
                     <input type="text" name="last_name" value="{{ old('last_name', $patient->last_name) }}" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                </div>
+
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Suffix</label>
+                    <input type="text" name="suffix" value="{{ old('suffix', $patient->suffix) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
                 </div>
 
                 <div>
@@ -53,6 +63,16 @@
                         <option value="Female" {{ old('sex', $patient->sex) === 'Female' ? 'selected' : '' }}>Female</option>
                         <option value="Other" {{ old('sex', $patient->sex) === 'Other' ? 'selected' : '' }}>Other</option>
                     </select>
+                </div>
+
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Civil Status</label>
+                    <input type="text" name="civil_status" value="{{ old('civil_status', $patient->civil_status) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                </div>
+
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Nationality</label>
+                    <input type="text" name="nationality" value="{{ old('nationality', $patient->nationality) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
                 </div>
 
                 <div>
@@ -90,21 +110,31 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <h3 class="text-lg font-semibold text-slate-900">Emergency contact</h3>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Postal Code</label>
+                    <input type="text" name="address_postal" value="{{ old('address_postal', $address->postal_code ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Allergies / Alerts</label>
+                    <textarea name="allergies" rows="3" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">{{ old('allergies', $patient->allergies) }}</textarea>
+                </div>
+
+                <div class="md:col-span-2">
+                    <h3 class="text-lg font-semibold text-slate-900">Emergency Contact</h3>
                 </div>
 
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Contact name</label>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Emergency Contact Name</label>
                     <input type="text" name="emergency_name" value="{{ old('emergency_name', $contact->name ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
                 </div>
 
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Relationship</label>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Emergency Contact Relationship</label>
                     <input type="text" name="emergency_relationship" value="{{ old('emergency_relationship', $contact->relationship ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Emergency contact phone</label>
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700">Emergency Contact Phone</label>
                     <input type="tel" name="emergency_phone" value="{{ old('emergency_phone', $contact->phone ?? '') }}" data-phone-input class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" inputmode="numeric" pattern="^(09\d{9}|\+639\d{9})$" placeholder="09XXXXXXXXX or +639XXXXXXXXX">
                 </div>
             </div>
