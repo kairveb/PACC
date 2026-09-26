@@ -89,12 +89,12 @@ class PreRegistrationController extends Controller
         $preferredSex = $data['sex'] ?? $patient->sex;
         $preferredCivilStatus = $data['civil_status'] ?? $patient->civil_status;
         $preferredNationality = $data['nationality'] ?? $patient->nationality;
-        $preferredPhone = $data['phone'] ?? $data['contact_phone'] ?? $patient->phone;
-        $preferredEmail = $data['email'] ?? $data['contact_email'] ?? $patient->email;
-        $preferredEmergencyName = $data['emergency_name'] ?? $data['emergency_contact_name'] ?? null;
-        $preferredEmergencyPhone = $data['emergency_phone'] ?? $data['emergency_contact_phone'] ?? null;
-        $preferredEmergencyRelationship = $data['emergency_relationship'] ?? $data['emergency_contact_relationship'] ?? null;
-        $preferredPostal = $data['address_postal'] ?? $data['address_postal_code'] ?? null;
+        $preferredPhone = $data['phone'] ?? $patient->phone;
+        $preferredEmail = $data['email'] ?? $patient->email;
+        $preferredEmergencyName = $data['emergency_name'] ?? null;
+        $preferredEmergencyPhone = $data['emergency_phone'] ?? null;
+        $preferredEmergencyRelationship = $data['emergency_relationship'] ?? null;
+        $preferredPostal = $data['address_postal'] ?? null;
 
         $referenceCode = PreArrivalProfile::generateUniqueReferenceCode();
 
@@ -125,12 +125,11 @@ class PreRegistrationController extends Controller
             'address_city' => $data['address_city'] ?? null,
             'address_province' => $data['address_province'] ?? null,
             'address_postal' => $preferredPostal,
-            'address_postal_code' => $preferredPostal,
-            'emergency_contact_name' => $preferredEmergencyName,
-            'emergency_contact_phone' => $preferredEmergencyPhone,
-            'emergency_contact_relationship' => $preferredEmergencyRelationship,
-            'contact_phone' => $preferredPhone,
-            'contact_email' => $preferredEmail,
+            'emergency_name' => $preferredEmergencyName,
+            'emergency_phone' => $preferredEmergencyPhone,
+            'emergency_relationship' => $preferredEmergencyRelationship,
+            'phone' => $preferredPhone,
+            'email' => $preferredEmail,
             'qr_code_url' => $this->buildQrCode((string) Str::uuid()),
         ]);
 
@@ -170,12 +169,8 @@ class PreRegistrationController extends Controller
             'initial_notes' => ['nullable', 'string', 'max:2000'],
             'medical_history' => ['nullable', 'string', 'max:2000'],
             'current_medications' => ['nullable', 'string', 'max:1000'],
-            'contact_phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
-            'contact_email' => ['nullable', 'email', 'max:255'],
-            'emergency_contact_name' => ['nullable', 'string', 'max:150'],
-            'emergency_contact_phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
-            'emergency_contact_relationship' => ['nullable', 'string', 'max:100'],
-            'address_postal_code' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
+            'email' => ['nullable', 'email', 'max:255'],
         ]);
     }
 
@@ -193,27 +188,21 @@ class PreRegistrationController extends Controller
             'sex' => $data['sex'],
             'civil_status' => $data['civil_status'] ?? null,
             'nationality' => $data['nationality'] ?? null,
-            'phone' => $data['phone'] ?? $data['contact_phone'] ?? null,
-            'email' => $data['email'] ?? $data['contact_email'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'] ?? null,
             'visit_reason' => $data['visit_reason'],
             'initial_notes' => $data['initial_notes'] ?? null,
             'medical_history' => $data['medical_history'] ?? null,
             'current_medications' => $data['current_medications'] ?? null,
             'allergies' => $data['allergies'] ?? null,
-            'emergency_name' => $data['emergency_name'] ?? $data['emergency_contact_name'] ?? null,
-            'emergency_phone' => $data['emergency_phone'] ?? $data['emergency_contact_phone'] ?? null,
-            'emergency_relationship' => $data['emergency_relationship'] ?? $data['emergency_contact_relationship'] ?? null,
+            'emergency_name' => $data['emergency_name'] ?? null,
+            'emergency_phone' => $data['emergency_phone'] ?? null,
+            'emergency_relationship' => $data['emergency_relationship'] ?? null,
             'address_line1' => $data['address_line1'] ?? null,
             'address_barangay' => $data['address_barangay'] ?? null,
             'address_city' => $data['address_city'] ?? null,
             'address_province' => $data['address_province'] ?? null,
-            'address_postal' => $data['address_postal'] ?? $data['address_postal_code'] ?? null,
-            'address_postal_code' => $data['address_postal'] ?? $data['address_postal_code'] ?? null,
-            'emergency_contact_name' => $data['emergency_name'] ?? $data['emergency_contact_name'] ?? null,
-            'emergency_contact_phone' => $data['emergency_phone'] ?? $data['emergency_contact_phone'] ?? null,
-            'emergency_contact_relationship' => $data['emergency_relationship'] ?? $data['emergency_contact_relationship'] ?? null,
-            'contact_phone' => $data['phone'] ?? $data['contact_phone'] ?? null,
-            'contact_email' => $data['email'] ?? $data['contact_email'] ?? null,
+            'address_postal' => $data['address_postal'] ?? null,
             'qr_code_url' => $this->buildQrCode((string) Str::uuid()),
         ]);
 

@@ -49,14 +49,14 @@ class ArrivalCheckInTest extends TestCase
             'medical_history' => 'Asthma',
             'current_medications' => 'Albuterol',
             'allergies' => 'Penicillin',
-            'emergency_contact_name' => 'John Patient',
-            'emergency_contact_phone' => '09170000099',
+            'emergency_name' => 'John Patient',
+            'emergency_phone' => '09170000099',
             'address_line1' => '123 Sample Street',
             'address_city' => 'Quezon City',
             'address_province' => 'Metro Manila',
-            'address_postal_code' => '1100',
-            'contact_phone' => '09170000011',
-            'contact_email' => 'jane.patient@example.test',
+            'address_postal' => '1100',
+            'phone' => '09170000011',
+            'email' => 'jane.patient@example.test',
             'qr_code_url' => 'https://example.test/qr.png',
         ]);
 
@@ -143,8 +143,8 @@ class ArrivalCheckInTest extends TestCase
             'emergency_name' => 'Alex Patient',
             'emergency_relationship' => 'Sibling',
             'emergency_phone' => '09170000090',
-            'contact_phone' => '09170000089',
-            'contact_email' => 'arrival.patient@example.test',
+            'phone' => '09170000089',
+            'email' => 'arrival.patient@example.test',
             'qr_code_url' => 'https://example.test/qr.png',
         ]);
 

@@ -70,8 +70,8 @@ class PortalPreRegistrationTest extends TestCase
                 'address_city' => 'Quezon City',
                 'address_province' => 'Metro Manila',
                 'address_postal' => '1100',
-                'contact_phone' => '09170000011',
-                'contact_email' => 'jane.patient@example.test',
+                'phone' => '09170000011',
+                'email' => 'jane.patient@example.test',
             ]);
 
         $profile = $patient->preArrivalProfiles()->latest()->first();
@@ -162,6 +162,64 @@ class PortalPreRegistrationTest extends TestCase
         $this->assertSame('09170000099', $profile->emergency_phone);
         $this->assertSame('Spouse', $profile->emergency_relationship);
         $this->assertSame('Penicillin', $profile->allergies);
+    }
+
+    public function test_lookup_returns_pre_registration_fields_for_walk_in_registration(): void
+    {
+        $role = Role::where('name', 'registration')->firstOrFail();
+        $user = User::factory()->create();
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
+        $patient = Patient::create([
+            'user_id' => $user->id,
+            'mrn' => 'MRN-LOOKUP-001',
+            'first_name' => 'Lookup',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1990-05-15',
+            'sex' => 'Female',
+            'phone' => '09170000011',
+            'email' => 'lookup.patient@example.test',
+            'verified' => true,
+        ]);
+
+        $profile = $patient->preArrivalProfiles()->create([
+            'token' => (string) Uuid::uuid4(),
+            'reference_code' => 'PAC-9988',
+            'status' => 'pending',
+            'first_name' => 'Lookup',
+            'middle_name' => 'Mae',
+            'last_name' => 'Patient',
+            'suffix' => 'Jr.',
+            'date_of_birth' => '1990-05-15',
+            'sex' => 'Female',
+            'civil_status' => 'Single',
+            'nationality' => 'Filipino',
+            'phone' => '09170000011',
+            'email' => 'lookup.patient@example.test',
+            'allergies' => 'Penicillin',
+            'emergency_name' => 'John Patient',
+            'emergency_relationship' => 'Spouse',
+            'emergency_phone' => '09170000099',
+            'address_line1' => '123 Sample Street',
+            'address_barangay' => 'Bahay Toro',
+            'address_city' => 'Quezon City',
+            'address_province' => 'Metro Manila',
+            'address_postal' => '1100',
+            'visit_reason' => 'Follow-up visit',
+        ]);
+
+        $response = $this->actingAs($user, 'web')->get('/patients/lookup?q=' . urlencode($profile->reference_code));
+
+        $response->assertOk();
+        $response->assertJsonPath('data.0.reference_code', 'PAC-9988');
+        $response->assertJsonPath('data.0.middle_name', 'Mae');
+        $response->assertJsonPath('data.0.suffix', 'Jr.');
+        $response->assertJsonPath('data.0.civil_status', 'Single');
+        $response->assertJsonPath('data.0.nationality', 'Filipino');
+        $response->assertJsonPath('data.0.allergies', 'Penicillin');
+        $response->assertJsonPath('data.0.address.line1', '123 Sample Street');
+        $response->assertJsonPath('data.0.emergency_contact.relationship', 'Spouse');
+        $response->assertJsonPath('data.0.emergency_contact.phone', '09170000099');
     }
 
     public function test_reference_codes_are_generated_and_unique(): void

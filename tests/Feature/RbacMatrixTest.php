@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Patient;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\HimsSeeder;
@@ -63,6 +64,51 @@ class RbacMatrixTest extends TestCase
         $this->actingAs($patient, 'web')->get('/triage')->assertForbidden();
         $this->actingAs($patient, 'web')->get('/reports')->assertForbidden();
         $this->actingAs($patient, 'web')->get('/audit-logs')->assertForbidden();
+    }
+
+    public function test_general_appointment_booking_route_is_restricted_to_registration_and_super_admin_even_if_permission_is_present(): void
+    {
+        $this->seed(HimsSeeder::class);
+
+        $doctor = User::whereHas('roles', fn ($query) => $query->where('name', 'doctor'))->firstOrFail();
+        $doctorRole = Role::where('name', 'doctor')->firstOrFail();
+        $doctorRole->permissions()->syncWithoutDetaching(Permission::whereIn('name', ['view-appointments', 'create-appointments'])->pluck('id'));
+
+        $patient = Patient::firstOrCreate(
+            ['user_id' => $doctor->id],
+            [
+                'mrn' => 'MRN-DOCTOR-BOOKING',
+                'first_name' => 'Doctor',
+                'last_name' => 'Booking',
+                'date_of_birth' => '1990-01-01',
+                'sex' => 'Female',
+                'phone' => '09170000333',
+                'email' => 'doctor.booking@example.test',
+                'verified' => true,
+            ]
+        );
+
+        $provider = \App\Models\Provider::query()->firstOrFail();
+        $appointmentType = \App\Models\AppointmentType::query()->firstOrFail();
+
+        $this->actingAs($doctor, 'web')->get('/appointments/create')->assertForbidden();
+
+        $this->withSession(['_token' => 'test-token'])
+            ->actingAs($doctor, 'web')
+            ->post('/appointments', [
+                '_token' => 'test-token',
+                'patient_id' => $patient->id,
+                'provider_id' => $provider->id,
+                'department_id' => $provider->department_id,
+                'appointment_type_id' => $appointmentType->id,
+                'starts_at' => now()->addDay()->setTime(9, 0, 0)->toDateTimeString(),
+                'duration' => 30,
+                'reason' => 'Should be blocked by hospital RBAC',
+            ])
+            ->assertForbidden();
+
+        $registration = User::whereHas('roles', fn ($query) => $query->where('name', 'registration'))->firstOrFail();
+        $this->actingAs($registration, 'web')->get('/appointments/create')->assertOk();
     }
 
     public function test_sidebar_menu_respects_role_access_matrix(): void
@@ -158,15 +204,15 @@ class RbacMatrixTest extends TestCase
                 'medical_history' => 'No major concerns',
                 'current_medications' => 'None',
                 'allergies' => 'None',
-                'emergency_contact_name' => 'Jane Contact',
-                'emergency_contact_phone' => '09170000099',
-                'emergency_contact_relationship' => 'Spouse',
+                'emergency_name' => 'Jane Contact',
+                'emergency_phone' => '09170000099',
+                'emergency_relationship' => 'Spouse',
                 'address_line1' => '123 Sample Street',
                 'address_city' => 'Quezon City',
                 'address_province' => 'Metro Manila',
-                'address_postal_code' => '1100',
-                'contact_phone' => '09170000077',
-                'contact_email' => 'rbac.patient@example.test',
+                'address_postal' => '1100',
+                'phone' => '09170000077',
+                'email' => 'rbac.patient@example.test',
             ])->assertRedirect(route('patients.portal'));
 
         foreach (['registration', 'nurse', 'doctor'] as $roleName) {
@@ -208,15 +254,15 @@ class RbacMatrixTest extends TestCase
                 'medical_history' => 'No issues',
                 'current_medications' => 'None',
                 'allergies' => 'None',
-                'emergency_contact_name' => 'Admin Contact',
-                'emergency_contact_phone' => '09170000098',
-                'emergency_contact_relationship' => 'Sibling',
+                'emergency_name' => 'Admin Contact',
+                'emergency_phone' => '09170000098',
+                'emergency_relationship' => 'Sibling',
                 'address_line1' => '5 Admin Street',
                 'address_city' => 'Manila',
                 'address_province' => 'Metro Manila',
-                'address_postal_code' => '1000',
-                'contact_phone' => '09170000088',
-                'contact_email' => 'rbac.superadmin@example.test',
+                'address_postal' => '1000',
+                'phone' => '09170000088',
+                'email' => 'rbac.superadmin@example.test',
             ])->assertRedirect(route('patients.portal'));
     }
 

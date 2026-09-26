@@ -53,7 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Appointments
-    Route::middleware('can:create-appointments')->group(function () {
+    Route::middleware(['can:create-appointments', 'role:registration,super-admin'])->group(function () {
         Route::get('appointments/create', [AppointmentController::class, 'create'])->name('appointments.create');
         Route::post('appointments', [AppointmentController::class, 'store'])->name('appointments.store');
         Route::post('appointments/{appointment}/check-in', [AppointmentController::class, 'checkIn'])->name('appointments.check-in');

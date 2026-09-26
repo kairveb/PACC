@@ -40,7 +40,7 @@
                 </div>
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
                     <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Contact</dt>
-                    <dd class="mt-1 font-semibold text-slate-900">{{ $prefill['checkin_summary']['contact_phone'] }}</dd>
+                    <dd class="mt-1 font-semibold text-slate-900">{{ $prefill['checkin_summary']['phone'] }}</dd>
                 </div>
                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
                     <dt class="text-xs uppercase tracking-[0.2em] text-slate-500">Address</dt>

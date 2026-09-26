@@ -34,12 +34,6 @@ class PreArrivalProfile extends Model
         'address_city' => 'encrypted',
         'address_province' => 'encrypted',
         'address_postal' => 'encrypted',
-        'address_postal_code' => 'encrypted',
-        'emergency_contact_name' => 'encrypted',
-        'emergency_contact_phone' => 'encrypted',
-        'emergency_contact_relationship' => 'encrypted',
-        'contact_phone' => 'encrypted',
-        'contact_email' => 'encrypted',
     ];
 
     public static function generateUniqueReferenceCode(): string

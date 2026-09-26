@@ -28,10 +28,14 @@
                 first_name: item.first_name || '',
                 middle_name: item.middle_name || '',
                 last_name: item.last_name || '',
+                suffix: item.suffix || '',
                 date_of_birth: item.date_of_birth || '',
                 sex: item.sex || '',
+                civil_status: item.civil_status || '',
+                nationality: item.nationality || '',
                 phone: item.phone || '',
                 email: item.email || '',
+                allergies: item.allergies || '',
                 address_line1: item.address?.line1 || '',
                 address_city: item.address?.city || '',
                 address_barangay: item.address?.barangay || '',
@@ -155,65 +159,34 @@
                 <label class="mb-1 block text-sm font-medium text-slate-700">Street Address</label>
                 <input type="text" name="address_line1" value="{{ old('address_line1') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100" placeholder="House number, street, subdivision">
             </div>
+            <div>
+                <label class="mb-1 block text-sm font-medium text-slate-700">Province</label>
+                <input type="text" name="address_province" value="{{ old('address_province') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
+            </div>
+            <div>
+                <label class="mb-1 block text-sm font-medium text-slate-700">City / Municipality</label>
+                <input type="text" name="address_city" value="{{ old('address_city') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
+            </div>
+            <div class="md:col-span-2">
+                <label class="mb-1 block text-sm font-medium text-slate-700">Barangay</label>
+                <input type="text" name="address_barangay" value="{{ old('address_barangay') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
+            </div>
         </div>
 
-        <div class="mt-4">
-            <x-philippine-address-fields
-                :province-name="'address_province'"
-                :city-name="'address_city'"
-                :barangay-name="'address_barangay'"
-                :province-value="old('address_province')"
-                :city-value="old('address_city')"
-                :barangay-value="old('address_barangay')"
-            />
-        </div>
-
-        <h2 class="mt-8 mb-4 border-b border-slate-100 pb-2 text-lg font-semibold text-slate-800">3. Emergency Contact</h2>
+        <h2 class="mt-8 mb-4 border-b border-slate-100 pb-2 text-lg font-semibold text-slate-800">Emergency contact</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Emergency Contact Name</label>
+                <label class="mb-1 block text-sm font-medium text-slate-700">Contact name</label>
                 <input type="text" name="emergency_name" value="{{ old('emergency_name') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
             </div>
             <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Emergency Contact Phone</label>
+                <label class="mb-1 block text-sm font-medium text-slate-700">Relationship</label>
+                <input type="text" name="emergency_relationship" value="{{ old('emergency_relationship') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
+            </div>
+            <div class="md:col-span-2">
+                <label class="mb-1 block text-sm font-medium text-slate-700">Emergency contact phone</label>
                 <input type="tel" name="emergency_phone" value="{{ old('emergency_phone') }}" data-phone-input class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100" inputmode="numeric" pattern="^(09\d{9}|\+639\d{9})$" placeholder="09XXXXXXXXX or +639XXXXXXXXX">
             </div>
-        </div>
-
-        <div class="mt-8">
-            <details class="rounded-xl border border-slate-200 bg-slate-50">
-                <summary class="cursor-pointer list-none p-4 text-sm font-semibold text-slate-700">
-                    Advanced Details
-                </summary>
-                <div class="border-t border-slate-200 p-4">
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                            <label class="mb-1 block text-sm font-medium text-slate-700">Middle Name</label>
-                            <input type="text" name="middle_name" value="{{ old('middle_name') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-medium text-slate-700">Suffix</label>
-                            <input type="text" name="suffix" value="{{ old('suffix') }}" placeholder="Jr., Sr., III" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-medium text-slate-700">Civil Status</label>
-                            <input type="text" name="civil_status" value="{{ old('civil_status') }}" placeholder="Single, Married, etc." class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-medium text-slate-700">Nationality</label>
-                            <input type="text" name="nationality" value="{{ old('nationality') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="mb-1 block text-sm font-medium text-slate-700">Emergency Contact Relationship</label>
-                            <input type="text" name="emergency_relationship" value="{{ old('emergency_relationship') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="mb-1 block text-sm font-medium text-slate-700">Allergies / Alerts</label>
-                            <textarea name="allergies" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">{{ old('allergies') }}</textarea>
-                        </div>
-                    </div>
-                </div>
-            </details>
         </div>
 
         <div class="mt-8 flex items-center justify-end gap-3">

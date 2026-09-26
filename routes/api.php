@@ -187,7 +187,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/appointments', [AppointmentApiController::class, 'index']);
             Route::get('/appointments/{id}', [AppointmentApiController::class, 'show']);
         });
-        Route::middleware(['can:create-appointments', 'throttle:30,1'])->group(function () {
+        Route::middleware(['can:create-appointments', 'role:registration,super-admin', 'throttle:30,1'])->group(function () {
             Route::post('/appointments', [AppointmentApiController::class, 'store']);
         });
         Route::middleware(['can:update-appointments', 'throttle:30,1'])->group(function () {

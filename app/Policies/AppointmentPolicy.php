@@ -27,17 +27,33 @@ class AppointmentPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasPermission('create-appointments');
+        return $user->isSuperAdmin() || $user->hasRole('registration');
     }
 
     public function book(User $user): bool
     {
-        return $user->hasPermission('create-appointments');
+        return $this->create($user);
     }
 
     public function update(User $user, Appointment $appointment): bool
     {
-        return $user->hasPermission('update-appointments');
+        if ($user->isSuperAdmin() || $user->hasRole('registration')) {
+            return true;
+        }
+
+        if ($user->hasRole('doctor') && $user->provider?->id === $appointment->provider_id) {
+            return true;
+        }
+
+        if ($user->hasRole('nurse') && in_array($appointment->status, [
+            Appointment::STATUS_CONFIRMED,
+            Appointment::STATUS_CHECKED_IN,
+            Appointment::STATUS_IN_CONSULTATION,
+        ], true)) {
+            return true;
+        }
+
+        return false;
     }
 
     public function cancel(User $user, Appointment $appointment): bool

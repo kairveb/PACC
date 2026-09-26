@@ -89,20 +89,20 @@ class ArrivalCheckInController extends Controller
                 'sex' => $profile->sex ?? $patient->sex,
                 'civil_status' => $profile->civil_status ?? $patient->civil_status,
                 'nationality' => $profile->nationality ?? $patient->nationality,
-                'phone' => $profile->phone ?? $profile->contact_phone ?? $patient->phone,
-                'email' => $profile->email ?? $profile->contact_email ?? $patient->email,
+                'phone' => $profile->phone ?? $patient->phone,
+                'email' => $profile->email ?? $patient->email,
                 'allergies' => $profile->allergies ?? $patient->allergies,
                 'address' => [
                     'line1' => $profile->address_line1,
                     'barangay' => $profile->address_barangay,
                     'city' => $profile->address_city,
                     'province' => $profile->address_province,
-                    'postal_code' => $profile->address_postal ?? $profile->address_postal_code,
+                    'postal_code' => $profile->address_postal,
                 ],
                 'emergency_contact' => [
-                    'name' => $profile->emergency_name ?? $profile->emergency_contact_name,
-                    'relationship' => $profile->emergency_relationship ?? $profile->emergency_contact_relationship,
-                    'phone' => $profile->emergency_phone ?? $profile->emergency_contact_phone,
+                    'name' => $profile->emergency_name,
+                    'relationship' => $profile->emergency_relationship,
+                    'phone' => $profile->emergency_phone,
                 ],
             ]);
 

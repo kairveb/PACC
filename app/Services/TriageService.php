@@ -167,8 +167,8 @@ class TriageService
             'current_medications' => $profile->current_medications,
             'allergies' => $profile->allergies,
             'initial_notes' => $profile->initial_notes,
-            'emergency_contact_name' => $profile->emergency_contact_name,
-            'emergency_contact_phone' => $profile->emergency_contact_phone,
+            'emergency_name' => $profile->emergency_name,
+            'emergency_phone' => $profile->emergency_phone,
         ];
 
         if (blank($merged['chief_complaint'] ?? null) && filled($profile->visit_reason)) {
