@@ -807,6 +807,9 @@
 
                 if (window.hisToast) hisToast(successToastText || 'AI triage recommendation generated.', 'success');
                 syncTriageConfirmation(false);
+                if (previewEl === document.getElementById('aiResultBody')) {
+                    document.getElementById('confirmQueueBtn')?.classList.remove('hidden');
+                }
             } catch (error) {
                 if (window.hisToast) hisToast(error.message || 'Unable to generate triage recommendation.', 'danger');
             }
@@ -846,6 +849,10 @@
                 });
             });
         }
+
+        document.getElementById('confirmQueueBtn')?.addEventListener('click', function () {
+            document.getElementById('intakeForm')?.submit();
+        });
 
         if (triageModalRunAi) {
             triageModalRunAi.addEventListener('click', async function () {

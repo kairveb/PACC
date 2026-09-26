@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Admission;
 use App\Models\Discharge;
+use App\Models\ErVisit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -43,6 +44,22 @@ class AdmissionService
         return DB::transaction(function () use ($data) {
             $admission = $this->createAdmissionRecord($data);
             $this->audit->createAdmission($admission->id);
+
+            return $admission;
+        });
+    }
+
+    public function createFromErVisit(ErVisit $visit, array $data = []): Admission
+    {
+        return DB::transaction(function () use ($visit, $data) {
+            $admission = $this->create([
+                'patient_id' => $visit->patient_id,
+                'er_visit_id' => $visit->id,
+                'attending_provider_id' => $data['attending_provider_id'] ?? null,
+                'reason' => $data['reason'] ?? $visit->chief_complaint,
+            ]);
+
+            $visit->update(['status' => ErVisit::STATUS_ADMITTED]);
 
             return $admission;
         });

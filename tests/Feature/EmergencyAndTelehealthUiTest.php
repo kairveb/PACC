@@ -505,7 +505,7 @@ class EmergencyAndTelehealthUiTest extends TestCase
         $user = User::factory()->create([
             'email_verified_at' => now(),
         ]);
-        $role = Role::firstOrCreate(['name' => 'hospital-admin'], ['label' => 'Hospital Admin']);
+        $role = Role::firstOrCreate(['name' => 'super-admin'], ['label' => 'Super Admin']);
         $user->roles()->syncWithoutDetaching([$role->id]);
 
         $requestedPatient = Patient::create([
@@ -724,7 +724,7 @@ class EmergencyAndTelehealthUiTest extends TestCase
             'medication_name' => 'Ibuprofen',
             'dosage' => '200mg every 8 hours',
             'instructions' => 'Take with water after meals',
-            'prescribed_by' => $provider->id,
+            'prescribed_by' => $provider->user_id,
             'prescribed_at' => now(),
         ]);
 
@@ -914,11 +914,14 @@ class EmergencyAndTelehealthUiTest extends TestCase
             'status' => 'OPEN',
         ]);
 
-        $response = $this->actingAs($user, 'web')->post(route('encounters.complete', $encounter), [
-            'assessment' => 'Updated assessment',
-            'plan' => 'Follow up in 7 days',
-            'follow_up_date' => now()->addDays(7)->toDateString(),
-        ]);
+        $response = $this->withSession(['_token' => 'test-token'])
+            ->actingAs($user, 'web')
+            ->post(route('encounters.complete', $encounter), [
+                '_token' => 'test-token',
+                'assessment' => 'Updated assessment',
+                'plan' => 'Follow up in 7 days',
+                'follow_up_date' => now()->addDays(7)->toDateString(),
+            ]);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('encounters', [

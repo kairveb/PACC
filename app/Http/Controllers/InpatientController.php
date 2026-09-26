@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Admission;
 use App\Models\Bed;
 use App\Models\Discharge;
+use App\Models\ErVisit;
 use App\Models\Patient;
 use App\Models\Provider;
 use App\Models\Ward;
@@ -73,7 +74,27 @@ public function overview()
 
         $admission = $this->admissions->create($data);
 
-return redirect()->route('admissions.show', $admission)->with('success', 'Admission request created.');
+        return redirect()->route('admissions.show', $admission)->with('success', 'Admission request created.');
+    }
+
+    public function createFromErVisit(ErVisit $visit)
+    {
+        $visit->load(['patient', 'queue', 'triageAssessments.triageVital']);
+        $providers = Provider::where('active', true)->get();
+
+        return view('inpatient.create-admission-from-er', compact('visit', 'providers'));
+    }
+
+    public function storeFromErVisit(Request $request, ErVisit $visit)
+    {
+        $data = $request->validate([
+            'attending_provider_id' => ['nullable', 'exists:providers,id'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $admission = $this->admissions->createFromErVisit($visit, $data);
+
+        return redirect()->route('admissions.show', $admission)->with('success', 'ER patient converted to inpatient admission.');
     }
 
     public function showAdmission(Admission $admission)
