@@ -126,20 +126,61 @@ class ArrivalCheckInTest extends TestCase
         $profile = $patient->preArrivalProfiles()->create([
             'token' => (string) Str::uuid(),
             'status' => 'pending',
+            'first_name' => 'Arrival',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1988-03-15',
+            'sex' => 'Male',
+            'phone' => '09170000089',
+            'email' => 'arrival.patient@example.test',
             'visit_reason' => 'Chest pain',
             'medical_history' => 'Hypertension',
             'allergies' => 'None',
+            'address_line1' => '45 Arrival Street',
+            'address_barangay' => 'Barangay Central',
+            'address_city' => 'Manila',
+            'address_province' => 'Metro Manila',
+            'address_postal' => '1000',
+            'emergency_name' => 'Alex Patient',
+            'emergency_relationship' => 'Sibling',
+            'emergency_phone' => '09170000090',
             'contact_phone' => '09170000089',
             'contact_email' => 'arrival.patient@example.test',
             'qr_code_url' => 'https://example.test/qr.png',
         ]);
 
-        $response = $this->actingAs($user, 'web')->post('/emergency/check-in', ['token' => $profile->token]);
+        $response = $this->withSession(['_token' => 'test-token'])
+            ->actingAs($user, 'web')
+            ->post('/emergency/check-in/confirm', ['_token' => 'test-token', 'token' => $profile->token]);
 
-        $response->assertRedirect(route('emergency.create'));
+        $response->assertRedirect(route('patients.show', $patient));
 
         $profile->refresh();
         $this->assertSame('arrived', $profile->status);
         $this->assertNotNull($profile->arrived_at);
+
+        $patient->refresh();
+        $this->assertSame('Arrival', $patient->first_name);
+        $this->assertSame('Patient', $patient->last_name);
+        $this->assertSame('1988-03-15', $patient->date_of_birth->format('Y-m-d'));
+        $this->assertSame('Male', $patient->sex);
+        $this->assertSame('09170000089', $patient->phone);
+        $this->assertSame('arrival.patient@example.test', $patient->email);
+        $this->assertSame('None', $patient->allergies);
+
+        $this->assertDatabaseHas('patient_addresses', [
+            'patient_id' => $patient->id,
+            'line1' => '45 Arrival Street',
+            'barangay' => 'Barangay Central',
+            'city' => 'Manila',
+            'province' => 'Metro Manila',
+            'postal_code' => '1000',
+            'primary' => 1,
+        ]);
+        $this->assertDatabaseHas('emergency_contacts', [
+            'patient_id' => $patient->id,
+            'name' => 'Alex Patient',
+            'relationship' => 'Sibling',
+            'phone' => '09170000090',
+        ]);
     }
 }

@@ -48,22 +48,31 @@ class PortalPreRegistrationTest extends TestCase
         $getResponse->assertOk();
         $getResponse->assertSee('Pre-registration');
 
-        $postResponse = $this->actingAs($user, 'web')->post('/portal/pre-register', [
-            'visit_reason' => 'Follow-up for recurring abdominal pain',
-            'initial_notes' => 'Patient reports worsening pain over the last two days.',
-            'medical_history' => 'Asthma, no major surgeries',
-            'current_medications' => 'Albuterol PRN',
-            'allergies' => 'Penicillin',
-            'emergency_contact_name' => 'John Patient',
-            'emergency_contact_phone' => '09170000099',
-            'emergency_contact_relationship' => 'Spouse',
-            'address_line1' => '123 Sample Street',
-            'address_city' => 'Quezon City',
-            'address_province' => 'Metro Manila',
-            'address_postal_code' => '1100',
-            'contact_phone' => '09170000011',
-            'contact_email' => 'jane.patient@example.test',
-        ]);
+        $postResponse = $this->withSession(['_token' => 'test-token'])
+            ->actingAs($user, 'web')
+            ->post('/portal/pre-register', [
+                '_token' => 'test-token',
+                'first_name' => 'Jane',
+                'last_name' => 'Patient',
+                'date_of_birth' => '1990-05-15',
+                'sex' => 'Female',
+                'phone' => '09170000011',
+                'email' => 'jane.patient@example.test',
+                'visit_reason' => 'Follow-up for recurring abdominal pain',
+                'initial_notes' => 'Patient reports worsening pain over the last two days.',
+                'medical_history' => 'Asthma, no major surgeries',
+                'current_medications' => 'Albuterol PRN',
+                'allergies' => 'Penicillin',
+                'emergency_name' => 'John Patient',
+                'emergency_phone' => '09170000099',
+                'emergency_relationship' => 'Spouse',
+                'address_line1' => '123 Sample Street',
+                'address_city' => 'Quezon City',
+                'address_province' => 'Metro Manila',
+                'address_postal' => '1100',
+                'contact_phone' => '09170000011',
+                'contact_email' => 'jane.patient@example.test',
+            ]);
 
         $profile = $patient->preArrivalProfiles()->latest()->first();
         $this->assertNotNull($profile);
@@ -85,6 +94,74 @@ class PortalPreRegistrationTest extends TestCase
         $dashboardResponse->assertOk();
         $dashboardResponse->assertSee('Pre-arrival ticket');
         $dashboardResponse->assertSee($profile->reference_code);
+    }
+
+    public function test_patient_pre_registration_stores_the_same_demographic_and_contact_fields_as_walk_in_registration(): void
+    {
+        $role = Role::where('name', 'patient')->firstOrFail();
+        $user = User::factory()->create();
+        $user->forceFill(['email_verified_at' => now()])->save();
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
+        $patient = Patient::create([
+            'user_id' => $user->id,
+            'mrn' => 'MRN-PRE-PAIR-001',
+            'first_name' => 'Jane',
+            'middle_name' => 'M.',
+            'last_name' => 'Patient',
+            'suffix' => 'Jr.',
+            'date_of_birth' => '1990-05-15',
+            'sex' => 'Female',
+            'civil_status' => 'Single',
+            'nationality' => 'Filipino',
+            'phone' => '09170000011',
+            'email' => 'jane.patient@example.test',
+            'verified' => true,
+        ]);
+
+        $response = $this->withSession(['_token' => 'test-token'])
+            ->actingAs($user, 'web')
+            ->post('/portal/pre-register', [
+                '_token' => 'test-token',
+                'first_name' => 'Jane',
+                'middle_name' => 'M.',
+                'last_name' => 'Patient',
+                'suffix' => 'Jr.',
+                'date_of_birth' => '1990-05-15',
+                'sex' => 'Female',
+                'civil_status' => 'Single',
+                'nationality' => 'Filipino',
+                'phone' => '09170000011',
+                'email' => 'jane.patient@example.test',
+                'address_line1' => '123 Sample Street',
+                'address_barangay' => 'Bahay Toro',
+                'address_city' => 'Quezon City',
+                'address_province' => 'Metro Manila',
+                'address_postal' => '1100',
+                'allergies' => 'Penicillin',
+                'emergency_name' => 'John Patient',
+                'emergency_phone' => '09170000099',
+                'emergency_relationship' => 'Spouse',
+                'visit_reason' => 'Follow-up for recurring abdominal pain',
+            ]);
+
+        $response->assertRedirect(route('patients.portal'));
+
+        $profile = $patient->preArrivalProfiles()->latest()->first();
+        $this->assertNotNull($profile);
+        $this->assertSame('Jane', $profile->first_name);
+        $this->assertSame('Patient', $profile->last_name);
+        $this->assertSame('1990-05-15', $profile->date_of_birth->format('Y-m-d'));
+        $this->assertSame('Female', $profile->sex);
+        $this->assertSame('123 Sample Street', $profile->address_line1);
+        $this->assertSame('Bahay Toro', $profile->address_barangay);
+        $this->assertSame('Quezon City', $profile->address_city);
+        $this->assertSame('Metro Manila', $profile->address_province);
+        $this->assertSame('1100', $profile->address_postal);
+        $this->assertSame('John Patient', $profile->emergency_name);
+        $this->assertSame('09170000099', $profile->emergency_phone);
+        $this->assertSame('Spouse', $profile->emergency_relationship);
+        $this->assertSame('Penicillin', $profile->allergies);
     }
 
     public function test_reference_codes_are_generated_and_unique(): void
@@ -132,6 +209,47 @@ class PortalPreRegistrationTest extends TestCase
         $this->assertNotSame($first->reference_code, $second->reference_code);
         $this->assertMatchesRegularExpression('/^PAC-\d{4}$/', $first->reference_code);
         $this->assertMatchesRegularExpression('/^PAC-\d{4}$/', $second->reference_code);
+    }
+
+    public function test_new_patient_can_pre_register_without_an_existing_account(): void
+    {
+        $response = $this->withSession(['_token' => 'test-token'])
+            ->post('/pre-register', [
+                '_token' => 'test-token',
+                'first_name' => 'New',
+                'last_name' => 'Patient',
+                'date_of_birth' => '1995-06-20',
+                'sex' => 'Female',
+                'phone' => '09170000111',
+                'email' => 'new.patient@example.test',
+                'address_line1' => '10 New Street',
+                'address_barangay' => 'Barangay One',
+                'address_city' => 'Manila',
+                'address_province' => 'Metro Manila',
+                'address_postal' => '1000',
+                'emergency_name' => 'New Contact',
+                'emergency_relationship' => 'Parent',
+                'emergency_phone' => '09170000112',
+                'visit_reason' => 'New patient consultation',
+                'medical_history' => 'None',
+            ]);
+
+        $response->assertOk();
+        $response->assertSee('Reference code');
+
+        $patient = Patient::where('email', 'new.patient@example.test')->firstOrFail();
+        $this->assertFalse($patient->verified);
+        $this->assertDatabaseHas('patient_addresses', [
+            'patient_id' => $patient->id,
+            'line1' => '10 New Street',
+            'barangay' => 'Barangay One',
+        ]);
+        $this->assertDatabaseHas('emergency_contacts', [
+            'patient_id' => $patient->id,
+            'name' => 'New Contact',
+            'relationship' => 'Parent',
+        ]);
+        $this->assertSame('pending', $patient->preArrivalProfiles()->firstOrFail()->status);
     }
 
     public function test_patient_cannot_access_staff_telehealth_index(): void

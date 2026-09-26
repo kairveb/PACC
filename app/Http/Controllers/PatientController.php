@@ -320,29 +320,46 @@ return view('patients.show', compact('patient'));
                 $address = $patient->addresses->first();
                 $contact = $patient->emergencyContacts->first();
 
+                $profile = $patient->preArrivalProfiles->first();
+
                 return [
                     'id' => $patient->id,
                     'mrn' => $patient->mrn,
                     'lookup_code' => $patient->lookup_code,
-                    'reference_code' => $patient->preArrivalProfiles->first()?->reference_code,
-                    'first_name' => $patient->first_name,
-                    'middle_name' => $patient->middle_name,
-                    'last_name' => $patient->last_name,
-                    'date_of_birth' => $patient->date_of_birth?->format('Y-m-d'),
-                    'sex' => $patient->sex,
-                    'phone' => $patient->phone,
-                    'email' => $patient->email,
+                    'reference_code' => $profile?->reference_code,
+                    'first_name' => $profile?->first_name ?? $patient->first_name,
+                    'middle_name' => $profile?->middle_name ?? $patient->middle_name,
+                    'last_name' => $profile?->last_name ?? $patient->last_name,
+                    'suffix' => $profile?->suffix ?? $patient->suffix,
+                    'date_of_birth' => $profile?->date_of_birth?->format('Y-m-d') ?? $patient->date_of_birth?->format('Y-m-d'),
+                    'sex' => $profile?->sex ?? $patient->sex,
+                    'civil_status' => $profile?->civil_status ?? $patient->civil_status,
+                    'nationality' => $profile?->nationality ?? $patient->nationality,
+                    'phone' => $profile?->phone ?? $profile?->contact_phone ?? $patient->phone,
+                    'email' => $profile?->email ?? $profile?->contact_email ?? $patient->email,
+                    'allergies' => $profile?->allergies ?? $patient->allergies,
                     'address' => $address ? [
-                        'line1' => $address->line1,
-                        'city' => $address->city,
-                        'province' => $address->province,
-                        'postal_code' => $address->postal_code,
-                    ] : null,
+                        'line1' => $profile?->address_line1 ?? $address->line1,
+                        'barangay' => $profile?->address_barangay ?? $address->barangay,
+                        'city' => $profile?->address_city ?? $address->city,
+                        'province' => $profile?->address_province ?? $address->province,
+                        'postal_code' => $profile?->address_postal ?? $profile?->address_postal_code ?? $address->postal_code,
+                    ] : ($profile ? [
+                        'line1' => $profile->address_line1,
+                        'barangay' => $profile->address_barangay,
+                        'city' => $profile->address_city,
+                        'province' => $profile->address_province,
+                        'postal_code' => $profile->address_postal ?? $profile->address_postal_code,
+                    ] : null),
                     'emergency_contact' => $contact ? [
-                        'name' => $contact->name,
-                        'relationship' => $contact->relationship,
-                        'phone' => $contact->phone,
-                    ] : null,
+                        'name' => $profile?->emergency_name ?? $profile?->emergency_contact_name ?? $contact->name,
+                        'relationship' => $profile?->emergency_relationship ?? $profile?->emergency_contact_relationship ?? $contact->relationship,
+                        'phone' => $profile?->emergency_phone ?? $profile?->emergency_contact_phone ?? $contact->phone,
+                    ] : ($profile ? [
+                        'name' => $profile->emergency_name ?? $profile->emergency_contact_name,
+                        'relationship' => $profile->emergency_relationship ?? $profile->emergency_contact_relationship,
+                        'phone' => $profile->emergency_phone ?? $profile->emergency_contact_phone,
+                    ] : null),
                 ];
             }),
         ]);
