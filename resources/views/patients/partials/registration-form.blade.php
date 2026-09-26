@@ -150,98 +150,11 @@
     <form method="POST" action="{{ route('patients.store') }}" class="space-y-6">
         @csrf
 
-        <h2 class="border-b border-slate-200 pb-2 text-lg font-semibold text-slate-800">1. Essential Information</h2>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">First Name *</label>
-                <input type="text" name="first_name" value="{{ old('first_name') }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Middle Name</label>
-                <input type="text" name="middle_name" value="{{ old('middle_name') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Last Name *</label>
-                <input type="text" name="last_name" value="{{ old('last_name') }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Suffix</label>
-                <input type="text" name="suffix" value="{{ old('suffix') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Date of Birth *</label>
-                <input type="date" name="date_of_birth" value="{{ old('date_of_birth') }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Sex *</label>
-                <select name="sex" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-                    <option value="">Select</option>
-                    <option value="Male" {{ old('sex') === 'Male' ? 'selected' : '' }}>Male</option>
-                    <option value="Female" {{ old('sex') === 'Female' ? 'selected' : '' }}>Female</option>
-                    <option value="Other" {{ old('sex') === 'Other' ? 'selected' : '' }}>Other</option>
-                </select>
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Civil Status</label>
-                <input type="text" name="civil_status" value="{{ old('civil_status') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Nationality</label>
-                <input type="text" name="nationality" value="{{ old('nationality') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Contact Number</label>
-                <input type="tel" name="phone" value="{{ old('phone') }}" data-phone-input class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100" inputmode="numeric" pattern="^(09\d{9}|\+639\d{9})$" placeholder="09XXXXXXXXX or +639XXXXXXXXX">
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Email</label>
-                <input type="email" name="email" value="{{ old('email') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-        </div>
-
-        <h2 class="mt-8 mb-4 border-b border-slate-100 pb-2 text-lg font-semibold text-slate-800">2. Address</h2>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-slate-700">Street Address</label>
-                <input type="text" name="address_line1" value="{{ old('address_line1') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100" placeholder="House number, street, subdivision">
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Province</label>
-                <input type="text" name="address_province" value="{{ old('address_province') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">City / Municipality</label>
-                <input type="text" name="address_city" value="{{ old('address_city') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-            <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-slate-700">Barangay</label>
-                <input type="text" name="address_barangay" value="{{ old('address_barangay') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-            <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-slate-700">Postal Code</label>
-                <input type="text" name="address_postal" value="{{ old('address_postal') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-        </div>
-
-        <h2 class="mt-8 mb-4 border-b border-slate-100 pb-2 text-lg font-semibold text-slate-800">Emergency Contact</h2>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Emergency Contact Name</label>
-                <input type="text" name="emergency_name" value="{{ old('emergency_name') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-slate-700">Emergency Contact Relationship</label>
-                <input type="text" name="emergency_relationship" value="{{ old('emergency_relationship') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
-            </div>
-            <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-slate-700">Emergency Contact Phone</label>
-                <input type="tel" name="emergency_phone" value="{{ old('emergency_phone') }}" data-phone-input class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100" inputmode="numeric" pattern="^(09\d{9}|\+639\d{9})$" placeholder="09XXXXXXXXX or +639XXXXXXXXX">
-            </div>
-            <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-slate-700">Allergies / Alerts</label>
-                <textarea name="allergies" rows="3" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100">{{ old('allergies') }}</textarea>
-            </div>
-        </div>
+        @include('portal.partials.pre-registration-fields', [
+            'patient' => null,
+            'address' => null,
+            'contact' => null,
+        ])
 
         <div class="mt-8 flex items-center justify-end gap-3">
             <button type="button" class="rounded-xl border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50" data-bs-dismiss="modal">Cancel</button>
