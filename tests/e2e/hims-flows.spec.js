@@ -78,6 +78,108 @@ test.describe('public and authenticated pre-registration', () => {
     await expect(page.locator('body')).toContainText(/A new verification link has been sent/i);
   });
 
+  test('public pre-registration form exposes all expected demographic and address fields', async ({ page }) => {
+    await page.goto('/pre-register');
+
+    const fieldNames = [
+      'input[name="first_name"]',
+      'input[name="middle_name"]',
+      'input[name="last_name"]',
+      'input[name="suffix"]',
+      'input[name="date_of_birth"]',
+      'select[name="sex"]',
+      'input[name="civil_status"]',
+      'input[name="nationality"]',
+      'input[name="phone"]',
+      'input[name="email"]',
+      'input[name="address_line1"]',
+      'input[name="address_province"]',
+      'input[name="address_city"]',
+      'input[name="address_barangay"]',
+      'input[name="address_postal"]',
+      'input[name="emergency_name"]',
+      'input[name="emergency_relationship"]',
+      'input[name="emergency_phone"]',
+      'textarea[name="allergies"]',
+    ];
+
+    for (const field of fieldNames) {
+      await expect(page.locator(field)).toBeVisible();
+    }
+  });
+
+  test('walk-in registration form exposes the same demographic fields as pre-registration', async ({ page }) => {
+    await login(page, accounts.registration);
+    await page.goto('/patients');
+    await page.getByRole('button', { name: 'Register Patient' }).click();
+
+    const fieldNames = [
+      'input[name="first_name"]',
+      'input[name="middle_name"]',
+      'input[name="last_name"]',
+      'input[name="suffix"]',
+      'input[name="date_of_birth"]',
+      'select[name="sex"]',
+      'input[name="civil_status"]',
+      'input[name="nationality"]',
+      'input[name="phone"]',
+      'input[name="email"]',
+      'input[name="address_line1"]',
+      'input[name="address_province"]',
+      'input[name="address_city"]',
+      'input[name="address_barangay"]',
+      'input[name="address_postal"]',
+      'input[name="emergency_name"]',
+      'input[name="emergency_relationship"]',
+      'input[name="emergency_phone"]',
+      'textarea[name="allergies"]',
+    ];
+
+    for (const field of fieldNames) {
+      await expect(page.locator('#registerPatientModal form[action*="patients"] ' + field)).toBeVisible();
+    }
+  });
+
+  test('reference lookup response exposes DOB and sex to the registration form', async ({ page }) => {
+    const unique = Date.now();
+    const patient = {
+      firstName: 'Lookup',
+      lastName: `Ref${unique}`,
+      birthDate: '1994-04-14',
+      sex: 'Female',
+    };
+
+    await page.goto('/pre-register');
+    await page.locator('input[name="first_name"]').fill(patient.firstName);
+    await page.locator('input[name="last_name"]').fill(patient.lastName);
+    await page.locator('input[name="date_of_birth"]').fill(patient.birthDate);
+    await page.locator('select[name="sex"]').selectOption(patient.sex);
+    await page.getByRole('button', { name: /submit pre-registration/i }).click();
+
+    await expect(page.getByText(/PAC-\d{4}/).first()).toBeVisible();
+    const reference = (await page.getByText(/PAC-\d{4}/).first().textContent())?.trim();
+    expect(reference).toMatch(/^PAC-\d{4}$/);
+
+    await login(page, accounts.registration);
+    await page.goto('/patients');
+    await page.getByRole('button', { name: 'Register Patient' }).click();
+
+    const lookupPayload = await page.evaluate(async (ref) => {
+      const response = await fetch(`/patients/lookup?q=${encodeURIComponent(ref)}`, {
+        headers: { Accept: 'application/json' },
+      });
+      return response.json();
+    }, reference);
+
+    expect(lookupPayload.data?.[0]?.date_of_birth).toBe(patient.birthDate);
+    expect(lookupPayload.data?.[0]?.sex).toBe(patient.sex);
+
+    const dobField = page.locator('#registerPatientModal form[action*="patients"] input[name="date_of_birth"]');
+    const sexField = page.locator('#registerPatientModal form[action*="patients"] select[name="sex"]');
+    await expect(dobField).toBeVisible();
+    await expect(sexField).toBeVisible();
+  });
+
   test('new patient pre-registers publicly and staff confirms the same data', async ({ page }) => {
     const unique = Date.now();
     const patient = {
@@ -96,9 +198,6 @@ test.describe('public and authenticated pre-registration', () => {
       emergencyRelationship: 'Sibling',
       emergencyPhone: '09171234567',
       allergies: 'Latex',
-      visitReason: 'Browser verification consultation',
-      history: 'Asthma',
-      medications: 'Salbutamol',
     };
 
     await page.goto('/pre-register');
@@ -118,9 +217,7 @@ test.describe('public and authenticated pre-registration', () => {
     await page.locator('input[name="emergency_relationship"]').fill(patient.emergencyRelationship);
     await page.locator('input[name="emergency_phone"]').fill(patient.emergencyPhone);
     await page.locator('textarea[name="allergies"]').fill(patient.allergies);
-    await page.locator('textarea[name="visit_reason"]').fill(patient.visitReason);
-    await page.locator('textarea[name="medical_history"]').fill(patient.history);
-    await page.locator('textarea[name="current_medications"]').fill(patient.medications);
+    await page.locator('textarea[name="allergies"]').fill(patient.allergies);
     await page.getByRole('button', { name: /submit pre-registration/i }).click();
 
     await expect(page).toHaveURL(/pre-register/);
@@ -145,8 +242,6 @@ test.describe('public and authenticated pre-registration', () => {
     await expect(page.locator('body')).toContainText(patient.emergencyRelationship);
     await expect(page.locator('body')).toContainText(patient.emergencyPhone);
     await expect(page.locator('body')).toContainText(patient.allergies);
-    await expect(page.locator('body')).toContainText(patient.history);
-    await expect(page.locator('body')).toContainText(patient.medications);
 
     await page.getByRole('button', { name: 'Confirm Registration' }).click();
     await expect(page).toHaveURL(/patients\/\d+/);
@@ -161,7 +256,6 @@ test.describe('public and authenticated pre-registration', () => {
   test('existing authenticated patient can submit portal pre-registration', async ({ page }) => {
     await login(page, accounts.patient);
     await page.goto('/portal/pre-register');
-    await page.locator('textarea[name="visit_reason"]').fill('Playwright portal verification');
     await page.locator('input[name="first_name"]').fill('Maria');
     await page.locator('input[name="last_name"]').fill('Santos');
     await page.locator('input[name="date_of_birth"]').fill('1987-04-18');
@@ -210,7 +304,6 @@ test.describe('walk-in and ER conversion', () => {
     await registrationForm.locator('input[name="address_barangay"]').fill('Barangay Duplicate');
     await registrationForm.locator('input[name="emergency_name"]').fill('Duplicate Contact');
     await registrationForm.locator('input[name="emergency_phone"]').fill('09178889999');
-    await registrationForm.locator('summary', { hasText: 'Advanced Details' }).click();
     await registrationForm.locator('input[name="emergency_relationship"]').fill('Spouse');
     await registrationForm.getByRole('button', { name: 'Register Patient' }).click();
     await expect(page).toHaveURL(/\/patients\/\d+$/);
@@ -256,7 +349,6 @@ test.describe('walk-in and ER conversion', () => {
     await registrationForm.locator('input[name="address_barangay"]').fill('Barangay Walk');
     await registrationForm.locator('input[name="emergency_name"]').fill('Walk In Contact');
     await registrationForm.locator('input[name="emergency_phone"]').fill('09178888888');
-    await registrationForm.locator('summary', { hasText: 'Advanced Details' }).click();
     await registrationForm.locator('input[name="emergency_relationship"]').fill('Parent');
     await registrationForm.getByRole('button', { name: 'Register Patient' }).click();
     await expect(page).toHaveURL(/\/patients\/\d+$/);
