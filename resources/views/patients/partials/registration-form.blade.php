@@ -1,83 +1,90 @@
 <div class="space-y-6">
-    <div class="space-y-3" x-data="{
-        q: '',
-        results: [],
-        searchError: '',
-        async search() {
-            if (!this.q.trim()) {
-                this.results = [];
-                this.searchError = '';
-                return;
-            }
+    <script>
+        function patientLookupState() {
+            const lookupUrl = @json(route('patients.lookup'));
 
-            const url = '{{ route('patients.lookup') }}?q=' + encodeURIComponent(this.q);
-
-            try {
-                const res = await fetch(url, { headers: { Accept: 'application/json' } });
-
-                if (!res.ok) {
-                    this.results = [];
-                    this.searchError = res.status === 403
-                        ? 'You do not have permission to search patients.'
-                        : 'Unable to search right now. Please try again.';
-                    return;
-                }
-
-                const data = await res.json();
-                this.results = data.data || [];
-                this.searchError = '';
-            } catch (e) {
-                this.results = [];
-                this.searchError = 'Unable to search right now. Please try again.';
-            }
-        },
-        fill(item) {
-            const form = document.querySelector('#registerPatientModal form[action*=\'patients\']');
-            const map = {
-                first_name: item.first_name || '',
-                middle_name: item.middle_name || '',
-                last_name: item.last_name || '',
-                suffix: item.suffix || '',
-                date_of_birth: item.date_of_birth || '',
-                sex: item.sex || '',
-                civil_status: item.civil_status || '',
-                nationality: item.nationality || '',
-                phone: item.phone || '',
-                email: item.email || '',
-                allergies: item.allergies || '',
-                address_line1: item.address && item.address.line1 ? item.address.line1 : '',
-                address_city: item.address && item.address.city ? item.address.city : '',
-                address_barangay: item.address && item.address.barangay ? item.address.barangay : '',
-                address_province: item.address && item.address.province ? item.address.province : '',
-                address_postal: item.address && item.address.postal_code ? item.address.postal_code : '',
-                emergency_name: item.emergency_contact && item.emergency_contact.name ? item.emergency_contact.name : '',
-                emergency_relationship: item.emergency_contact && item.emergency_contact.relationship ? item.emergency_contact.relationship : '',
-                emergency_phone: item.emergency_contact && item.emergency_contact.phone ? item.emergency_contact.phone : '',
-            };
-
-            Object.entries(map).forEach(([name, value]) => {
-                const target = form || document;
-                const candidates = target.querySelectorAll('[name="' + name + '"]');
-
-                if (!candidates.length) {
-                    return;
-                }
-
-                candidates.forEach((el) => {
-                    if (el.tagName === 'SELECT') {
-                        const option = Array.from(el.options).find((opt) => opt.value === String(value));
-                        el.value = option ? String(value) : '';
+            return {
+                q: '',
+                results: [],
+                searchError: '',
+                async search() {
+                    if (!this.q.trim()) {
+                        this.results = [];
+                        this.searchError = '';
                         return;
                     }
 
-                    el.value = value || '';
-                });
-            });
+                    const url = lookupUrl + '?q=' + encodeURIComponent(this.q);
 
-            this.q = '';
-            this.results = [];
+                    try {
+                        const res = await fetch(url, { headers: { Accept: 'application/json' } });
+
+                        if (!res.ok) {
+                            this.results = [];
+                            this.searchError = res.status === 403
+                                ? 'You do not have permission to search patients.'
+                                : 'Unable to search right now. Please try again.';
+                            return;
+                        }
+
+                        const data = await res.json();
+                        this.results = data.data || [];
+                        this.searchError = '';
+                    } catch (e) {
+                        this.results = [];
+                        this.searchError = 'Unable to search right now. Please try again.';
+                    }
+                },
+                fill(item) {
+                    const form = document.querySelector('#registerPatientModal form[action*=\'patients\']');
+                    const map = {
+                        first_name: item.first_name || '',
+                        middle_name: item.middle_name || '',
+                        last_name: item.last_name || '',
+                        suffix: item.suffix || '',
+                        date_of_birth: item.date_of_birth || '',
+                        sex: item.sex || '',
+                        civil_status: item.civil_status || '',
+                        nationality: item.nationality || '',
+                        phone: item.phone || '',
+                        email: item.email || '',
+                        allergies: item.allergies || '',
+                        address_line1: item.address && item.address.line1 ? item.address.line1 : '',
+                        address_city: item.address && item.address.city ? item.address.city : '',
+                        address_barangay: item.address && item.address.barangay ? item.address.barangay : '',
+                        address_province: item.address && item.address.province ? item.address.province : '',
+                        address_postal: item.address && item.address.postal_code ? item.address.postal_code : '',
+                        emergency_name: item.emergency_contact && item.emergency_contact.name ? item.emergency_contact.name : '',
+                        emergency_relationship: item.emergency_contact && item.emergency_contact.relationship ? item.emergency_contact.relationship : '',
+                        emergency_phone: item.emergency_contact && item.emergency_contact.phone ? item.emergency_contact.phone : '',
+                    };
+
+                    Object.entries(map).forEach(([name, value]) => {
+                        const target = form || document;
+                        const candidates = target.querySelectorAll('[name="' + name + '"]');
+
+                        if (!candidates.length) {
+                            return;
+                        }
+
+                        candidates.forEach((el) => {
+                            if (el.tagName === 'SELECT') {
+                                const option = Array.from(el.options).find((opt) => opt.value === String(value));
+                                el.value = option ? String(value) : '';
+                                return;
+                            }
+
+                            el.value = value || '';
+                        });
+                    });
+
+                    this.q = '';
+                    this.results = [];
+                }
+            };
         }
-    }">
+    </script>
+    <div class="space-y-3" x-data="patientLookupState()">
         <div class="flex items-center justify-between gap-3 border-b border-slate-200 pb-2">
             <h2 class="text-lg font-semibold text-slate-800">Fast lookup: pre-registered patient</h2>
             <span class="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-700">pending arrival</span>
