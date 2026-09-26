@@ -43,7 +43,6 @@ class HimsSeeder extends Seeder
     {
         $roles = [
             'super-admin' => 'Super Admin',
-            'hospital-admin' => 'Hospital Admin',
             'registration' => 'Registration / Front Desk',
             'doctor' => 'Doctor',
             'nurse' => 'Nurse',
@@ -75,19 +74,6 @@ class HimsSeeder extends Seeder
 
         $rolePerms = [
             'super-admin' => $permissions,
-            'hospital-admin' => [
-                'manage-users', 'manage-roles',
-                'view-patients', 'create-patients', 'update-patients', 'delete-patients', 'verify-patients',
-                'view-appointments', 'create-appointments', 'update-appointments', 'cancel-appointments', 'delete-appointments',
-                'view-encounters', 'create-encounters', 'update-encounters', 'view-triage', 'create-triage', 'update-triage',
-                'view-er', 'create-er-visits', 'triage-patients',
-                'view-beds', 'manage-beds', 'view-wards', 'manage-wards',
-                'view-admissions', 'manage-admissions', 'create-admissions', 'transfer-patients', 'discharge-patients',
-                'view-reports', 'view-audit-logs',
-                'view-telehealth', 'start-telehealth', 'join-telehealth',
-                'view-own-medical-history', 'portal-dashboard',
-                'view-billing', 'manage-billing',
-            ],
             'registration' => [
                 'view-patients', 'create-patients', 'update-patients', 'verify-patients',
                 'view-appointments', 'create-appointments', 'update-appointments', 'cancel-appointments',
@@ -133,7 +119,6 @@ class HimsSeeder extends Seeder
     {
         $users = [
             'super-admin' => ['name' => 'Super Admin', 'email' => 'super-admin@coor.test'],
-            'hospital-admin' => ['name' => 'Hospital Admin', 'email' => 'hospital-admin@coor.test'],
             'registration' => ['name' => 'Registration Staff', 'email' => 'registration@coor.test'],
             'doctor' => ['name' => 'Dr. Elena Santos', 'email' => 'doctor@coor.test'],
             'nurse' => ['name' => 'Nurse Ana Reyes', 'email' => 'nurse@coor.test'],
@@ -162,19 +147,17 @@ class HimsSeeder extends Seeder
                     ]
                 );
                 $extraUser->roles()->syncWithoutDetaching([Role::where('name', 'super-admin')->value('id')]);
-            }
 
-            if ($role === 'hospital-admin') {
-                $extraUser = User::updateOrCreate(
+                $hospitalAdmin = User::updateOrCreate(
                     ['email' => 'hospital.admin@coor.test'],
                     [
-                        'name' => 'Hospital Admin',
+                        'name' => 'Hospital Administrator',
                         'password' => Hash::make('Password123!'),
                         'email_verified_at' => now(),
                         'last_activity_at' => now(),
                     ]
                 );
-                $extraUser->roles()->syncWithoutDetaching([Role::where('name', 'hospital-admin')->value('id')]);
+                $hospitalAdmin->roles()->syncWithoutDetaching([Role::where('name', 'super-admin')->value('id')]);
             }
 
             $user->roles()->syncWithoutDetaching([Role::where('name', $role)->value('id')]);
@@ -307,9 +290,7 @@ class HimsSeeder extends Seeder
         $apptType = AppointmentType::where('name', 'Outpatient')->first();
         $dept = Department::where('code', 'CAR')->first();
         $nurse = User::where('email', 'nurse@coor.test')->first();
-        $admission = User::where('email', 'admission@coor.test')->first()
-            ?? User::where('email', 'hospital-admin@coor.test')->first()
-            ?? $nurse;
+        $admission = User::where('email', 'admission@coor.test')->first() ?? $nurse;
 
         if (!$patient || !$provider || !$nurse) {
             return;

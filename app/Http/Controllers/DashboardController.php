@@ -113,7 +113,7 @@ class DashboardController extends Controller
                 ->count();
         }
 
-        if ($user->hasAnyRole(['super-admin', 'hospital-admin'])) {
+        if ($user->hasRole('super-admin')) {
             $data['systemAlerts'] = [
                 'Acuity board active',
                 'Bed assignments updated',
@@ -121,7 +121,7 @@ class DashboardController extends Controller
             ];
         }
 
-        if ($user->hasAnyRole(['super-admin', 'hospital-admin', 'nurse'])) {
+        if ($user->hasAnyRole(['super-admin', 'nurse'])) {
             $data['pendingAdmissions'] = Admission::with('patient')
                 ->whereIn('status', [Admission::STATUS_REQUESTED, Admission::STATUS_APPROVED])
                 ->limit(10)

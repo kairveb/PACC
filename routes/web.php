@@ -39,7 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('patients/profile', [PatientController::class, 'profile'])->name('patients.profile');
         Route::post('patients/profile', [PatientController::class, 'saveProfile'])->name('patients.profile.save');
     });
-    Route::middleware(['role:registration,super-admin,hospital-admin'])->group(function () {
+    Route::middleware(['role:registration,super-admin'])->group(function () {
         Route::get('patients/lookup', [PatientController::class, 'lookup'])->name('patients.lookup');
     });
 
@@ -53,14 +53,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Appointments
-    Route::middleware('can:view-appointments')->group(function () {
-        Route::resource('appointments', AppointmentController::class)->except(['edit', 'update', 'destroy']);
-        Route::get('appointments/slots/json', [AppointmentController::class, 'slots'])->name('appointments.slots');
-    });
     Route::middleware('can:create-appointments')->group(function () {
+        Route::get('appointments/create', [AppointmentController::class, 'create'])->name('appointments.create');
+        Route::post('appointments', [AppointmentController::class, 'store'])->name('appointments.store');
         Route::post('appointments/{appointment}/check-in', [AppointmentController::class, 'checkIn'])->name('appointments.check-in');
     });
-Route::middleware('can:cancel-appointments')->group(function () {
+    Route::middleware('can:view-appointments')->group(function () {
+        Route::get('appointments', [AppointmentController::class, 'index'])->name('appointments.index');
+        Route::get('appointments/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
+        Route::get('appointments/slots/json', [AppointmentController::class, 'slots'])->name('appointments.slots');
+    });
+    Route::middleware('can:cancel-appointments')->group(function () {
         Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
         Route::post('appointments/{appointment}/reschedule', [AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
         Route::post('appointments/{appointment}/no-show', [AppointmentController::class, 'markNoShow'])->name('appointments.no-show');
@@ -77,7 +80,7 @@ Route::middleware('can:cancel-appointments')->group(function () {
     });
 
     // Emergency / ER
-    Route::middleware(['can:view-er', 'role:nurse,doctor,super-admin,hospital-admin,registration'])->group(function () {
+    Route::middleware(['can:view-er', 'role:nurse,doctor,super-admin,registration'])->group(function () {
         Route::get('emergency', [EmergencyController::class, 'index'])->name('emergency.index');
         Route::get('emergency/create', [EmergencyController::class, 'create'])->name('emergency.create');
         Route::post('emergency', [EmergencyController::class, 'store'])->name('emergency.store');
@@ -86,24 +89,29 @@ Route::middleware('can:cancel-appointments')->group(function () {
         Route::post('emergency/queue/{queue}/status', [EmergencyController::class, 'queueStatus'])->name('emergency.queue-status');
         Route::get('emergency/check-in/reference', [\App\Http\Controllers\ArrivalCheckInController::class, 'lookupByReference'])->name('emergency.checkin.lookup');
         Route::get('emergency/check-in/{token}', [\App\Http\Controllers\ArrivalCheckInController::class, 'show'])->name('emergency.checkin.show');
-        Route::post('emergency/check-in', [\App\Http\Controllers\ArrivalCheckInController::class, 'store'])->name('emergency.checkin.store');
+        Route::post('emergency/check-in/confirm', [\App\Http\Controllers\ArrivalCheckInController::class, 'confirm'])->name('emergency.checkin.confirm');
     });
 
-    Route::middleware(['can:triage-patients', 'role:nurse,doctor,super-admin,hospital-admin'])->group(function () {
+    Route::middleware(['can:manage-beds', 'role:nurse,super-admin'])->group(function () {
+        Route::get('emergency/{visit}/admission/create', [InpatientController::class, 'createFromErVisit'])->name('emergency.admission.create');
+        Route::post('emergency/{visit}/admission', [InpatientController::class, 'storeFromErVisit'])->name('emergency.admission.store');
+    });
+
+    Route::middleware(['can:triage-patients', 'role:nurse,doctor,super-admin'])->group(function () {
         Route::get('triage', [TriageAssessmentController::class, 'create'])->name('triage.dashboard');
         Route::get('triage/create', [TriageAssessmentController::class, 'create'])->name('triage.create');
         Route::post('triage', [TriageAssessmentController::class, 'store'])->name('triage.store');
         Route::get('triage/{triageAssessment}/er-intake', [EmergencyController::class, 'createFromTriage'])->name('triage.er-intake');
     });
 
-    Route::middleware(['can:view-encounters', 'role:doctor,super-admin,hospital-admin'])->group(function () {
+    Route::middleware(['can:view-encounters', 'role:doctor,super-admin'])->group(function () {
         Route::get('doctors/queue', [DoctorQueueController::class, 'index'])->name('doctors.queue');
         Route::get('doctors/queue/{triageAssessment}', [DoctorQueueController::class, 'show'])->name('doctors.queue.show');
         Route::post('doctors/queue/{triageAssessment}/status', [DoctorQueueController::class, 'updateStatus'])->name('doctors.queue.status');
     });
 
     // Inpatient / Beds / Admissions
-    Route::middleware(['can:view-beds', 'role:nurse,super-admin,hospital-admin'])->group(function () {
+    Route::middleware(['can:view-beds', 'role:nurse,super-admin'])->group(function () {
         Route::get('inpatient', [InpatientController::class, 'overview'])->name('inpatient.index');
         Route::get('beds', [InpatientController::class, 'beds'])->name('beds.index');
         Route::get('admissions', [InpatientController::class, 'admissions'])->name('admissions.index');
@@ -111,7 +119,7 @@ Route::middleware('can:cancel-appointments')->group(function () {
         Route::post('admissions', [InpatientController::class, 'storeAdmission'])->name('admissions.store');
         Route::get('admissions/{admission}', [InpatientController::class, 'showAdmission'])->name('admissions.show');
     });
-    Route::middleware(['can:manage-beds', 'role:nurse,super-admin,hospital-admin'])->group(function () {
+    Route::middleware(['can:manage-beds', 'role:nurse,super-admin'])->group(function () {
         Route::post('beds/{bed}/status', [InpatientController::class, 'setBedStatus'])->name('beds.status');
         Route::post('admissions/{admission}/approve', [InpatientController::class, 'approveAdmission'])->name('admissions.approve');
         Route::post('admissions/{admission}/admit', [InpatientController::class, 'admit'])->name('admissions.admit');
@@ -121,7 +129,7 @@ Route::middleware('can:cancel-appointments')->group(function () {
     });
 
     // Telehealth
-    Route::middleware(['can:view-telehealth', 'role:doctor,nurse,super-admin,hospital-admin'])->group(function () {
+    Route::middleware(['can:view-telehealth', 'role:doctor,nurse,super-admin'])->group(function () {
         Route::get('telehealth', [TelehealthController::class, 'index'])->name('telehealth.index');
         Route::get('telehealth/{session}', [TelehealthController::class, 'show'])->name('telehealth.show');
     });
@@ -133,7 +141,7 @@ Route::middleware('can:cancel-appointments')->group(function () {
     });
 
     // Reports
-    Route::middleware(['can:view-reports', 'role:doctor,super-admin,hospital-admin'])->group(function () {
+    Route::middleware(['can:view-reports', 'role:doctor,super-admin'])->group(function () {
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/patients', [ReportController::class, 'patients'])->name('reports.patients');
         Route::get('reports/appointments', [ReportController::class, 'appointments'])->name('reports.appointments');
@@ -144,7 +152,7 @@ Route::middleware('can:cancel-appointments')->group(function () {
     });
 
     // Audit logs
-    Route::middleware(['can:view-audit-logs', 'role:super-admin,hospital-admin'])->group(function () {
+    Route::middleware(['can:view-audit-logs', 'role:super-admin'])->group(function () {
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit.index');
     });
 

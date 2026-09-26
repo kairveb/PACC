@@ -35,7 +35,7 @@
                     @endcan
 
                     @php
-                        $showBedsNavLink = auth()->user()->can('view-beds') && auth()->user()->hasAnyRole(['nurse', 'super-admin', 'hospital-admin']);
+                        $showBedsNavLink = auth()->user()->can('view-beds') && auth()->user()->hasAnyRole(['nurse', 'super-admin']);
                     @endphp
                     @if ($showBedsNavLink)
                         <x-nav-link :href="route('beds.index')" :active="request()->routeIs('beds.*', 'inpatient.*')">
@@ -43,7 +43,7 @@
                         </x-nav-link>
                     @endif
 
-                    @if (auth()->user()->can('view-reports') && auth()->user()->hasAnyRole(['doctor', 'super-admin', 'hospital-admin']))
+                    @if (auth()->user()->can('view-reports') && auth()->user()->hasAnyRole(['doctor', 'super-admin']))
                         <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                             {{ __('Reports') }}
                         </x-nav-link>
@@ -131,7 +131,7 @@
             @endcan
 
             @php
-                $showResponsiveBedsNavLink = auth()->user()->can('view-beds') && auth()->user()->hasAnyRole(['nurse', 'super-admin', 'hospital-admin']);
+                $showResponsiveBedsNavLink = auth()->user()->can('view-beds') && auth()->user()->hasAnyRole(['nurse', 'super-admin']);
             @endphp
             @if ($showResponsiveBedsNavLink)
                 <x-responsive-nav-link :href="route('beds.index')" :active="request()->routeIs('beds.*', 'inpatient.*')">

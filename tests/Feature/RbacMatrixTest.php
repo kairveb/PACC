@@ -18,7 +18,6 @@ class RbacMatrixTest extends TestCase
         $this->seed(HimsSeeder::class);
 
         $superAdmin = User::whereHas('roles', fn ($query) => $query->where('name', 'super-admin'))->firstOrFail();
-        $hospitalAdmin = User::whereHas('roles', fn ($query) => $query->where('name', 'hospital-admin'))->firstOrFail();
         $registration = User::whereHas('roles', fn ($query) => $query->where('name', 'registration'))->firstOrFail();
         $doctor = User::whereHas('roles', fn ($query) => $query->where('name', 'doctor'))->firstOrFail();
         $nurse = User::whereHas('roles', fn ($query) => $query->where('name', 'nurse'))->firstOrFail();
@@ -28,9 +27,9 @@ class RbacMatrixTest extends TestCase
         $this->actingAs($superAdmin, 'web')->get('/audit-logs')->assertOk();
         $this->actingAs($superAdmin, 'web')->get('/patients/profile')->assertOk();
 
-        $this->actingAs($hospitalAdmin, 'web')->get('/patients/lookup')->assertOk();
-        $this->actingAs($hospitalAdmin, 'web')->get('/audit-logs')->assertOk();
-        $this->actingAs($hospitalAdmin, 'web')->get('/patients/profile')->assertForbidden();
+        $this->actingAs($superAdmin, 'web')->get('/patients/lookup')->assertOk();
+        $this->actingAs($superAdmin, 'web')->get('/audit-logs')->assertOk();
+        $this->actingAs($superAdmin, 'web')->get('/patients/profile')->assertOk();
 
         $this->actingAs($registration, 'web')->get('/patients/lookup')->assertOk();
         $this->actingAs($registration, 'web')->get('/patients')->assertOk();
@@ -50,9 +49,9 @@ class RbacMatrixTest extends TestCase
         $this->actingAs($doctor, 'web')->get('/audit-logs')->assertForbidden();
         $this->actingAs($doctor, 'web')->get('/triage')->assertOk();
 
-        $this->actingAs($hospitalAdmin, 'web')->get('/reports')->assertOk();
-        $this->actingAs($hospitalAdmin, 'web')->get('/audit-logs')->assertOk();
-        $this->actingAs($hospitalAdmin, 'web')->get('/triage')->assertOk();
+        $this->actingAs($superAdmin, 'web')->get('/reports')->assertOk();
+        $this->actingAs($superAdmin, 'web')->get('/audit-logs')->assertOk();
+        $this->actingAs($superAdmin, 'web')->get('/triage')->assertOk();
 
         $this->actingAs($registration, 'web')->get('/reports')->assertForbidden();
         $this->actingAs($registration, 'web')->get('/audit-logs')->assertForbidden();
@@ -72,7 +71,6 @@ class RbacMatrixTest extends TestCase
 
         $roles = [
             'super-admin' => ['show' => ['Operations', 'Reports', 'Audit Logs'], 'hide' => []],
-            'hospital-admin' => ['show' => ['Operations', 'Reports', 'Audit Logs'], 'hide' => []],
             'doctor' => ['show' => ['Operations', 'Reports'], 'hide' => ['Audit Logs']],
             'nurse' => ['show' => [], 'hide' => ['Operations', 'Reports', 'Audit Logs']],
             'registration' => ['show' => [], 'hide' => ['Operations', 'Reports', 'Audit Logs']],
@@ -98,7 +96,7 @@ class RbacMatrixTest extends TestCase
     {
         $this->seed(HimsSeeder::class);
 
-        $admin = User::whereHas('roles', fn ($query) => $query->where('name', 'hospital-admin'))->firstOrFail();
+        $admin = User::whereHas('roles', fn ($query) => $query->where('name', 'super-admin'))->firstOrFail();
 
         \App\Models\AuditLog::create([
             'user_id' => $admin->id,
@@ -107,7 +105,7 @@ class RbacMatrixTest extends TestCase
             'resource_id' => $admin->id,
             'result' => 'success',
             'ip_address' => '127.0.0.1',
-            'metadata' => ['role' => 'hospital-admin'],
+            'metadata' => ['role' => 'super-admin'],
         ]);
         \App\Models\AuditLog::create([
             'user_id' => $admin->id,
@@ -116,7 +114,7 @@ class RbacMatrixTest extends TestCase
             'resource_id' => $admin->id,
             'result' => 'success',
             'ip_address' => '127.0.0.1',
-            'metadata' => ['role' => 'hospital-admin'],
+            'metadata' => ['role' => 'super-admin'],
         ]);
 
         $response = $this->actingAs($admin, 'web')->get('/audit-logs?action=login');
@@ -151,30 +149,36 @@ class RbacMatrixTest extends TestCase
         );
 
         $this->actingAs($patientUser, 'web')->get('/portal/pre-register')->assertOk();
-        $this->actingAs($patientUser, 'web')->post('/portal/pre-register', [
-            'visit_reason' => 'Follow-up consultation',
-            'initial_notes' => 'Routine review',
-            'medical_history' => 'No major concerns',
-            'current_medications' => 'None',
-            'allergies' => 'None',
-            'emergency_contact_name' => 'Jane Contact',
-            'emergency_contact_phone' => '09170000099',
-            'emergency_contact_relationship' => 'Spouse',
-            'address_line1' => '123 Sample Street',
-            'address_city' => 'Quezon City',
-            'address_province' => 'Metro Manila',
-            'address_postal_code' => '1100',
-            'contact_phone' => '09170000077',
-            'contact_email' => 'rbac.patient@example.test',
-        ])->assertRedirect(route('patients.portal'));
+        $this->withSession(['_token' => 'test-token'])
+            ->actingAs($patientUser, 'web')
+            ->post('/portal/pre-register', [
+                '_token' => 'test-token',
+                'visit_reason' => 'Follow-up consultation',
+                'initial_notes' => 'Routine review',
+                'medical_history' => 'No major concerns',
+                'current_medications' => 'None',
+                'allergies' => 'None',
+                'emergency_contact_name' => 'Jane Contact',
+                'emergency_contact_phone' => '09170000099',
+                'emergency_contact_relationship' => 'Spouse',
+                'address_line1' => '123 Sample Street',
+                'address_city' => 'Quezon City',
+                'address_province' => 'Metro Manila',
+                'address_postal_code' => '1100',
+                'contact_phone' => '09170000077',
+                'contact_email' => 'rbac.patient@example.test',
+            ])->assertRedirect(route('patients.portal'));
 
-        foreach (['registration', 'nurse', 'doctor', 'hospital-admin'] as $roleName) {
+        foreach (['registration', 'nurse', 'doctor'] as $roleName) {
             $user = User::whereHas('roles', fn ($query) => $query->where('name', $roleName))->firstOrFail();
 
             $this->actingAs($user, 'web')->get('/portal/pre-register')->assertForbidden();
-            $this->actingAs($user, 'web')->post('/portal/pre-register', [
-                'visit_reason' => 'Should not be allowed',
-            ])->assertForbidden();
+            $this->withSession(['_token' => 'test-token'])
+                ->actingAs($user, 'web')
+                ->post('/portal/pre-register', [
+                    '_token' => 'test-token',
+                    'visit_reason' => 'Should not be allowed',
+                ])->assertForbidden();
         }
 
         $superAdmin = User::whereHas('roles', fn ($query) => $query->where('name', 'super-admin'))->firstOrFail();
@@ -195,22 +199,25 @@ class RbacMatrixTest extends TestCase
         );
 
         $this->actingAs($superAdmin, 'web')->get('/portal/pre-register')->assertOk();
-        $this->actingAs($superAdmin, 'web')->post('/portal/pre-register', [
-            'visit_reason' => 'Super-admin pre-registration',
-            'initial_notes' => 'Bypass test',
-            'medical_history' => 'No issues',
-            'current_medications' => 'None',
-            'allergies' => 'None',
-            'emergency_contact_name' => 'Admin Contact',
-            'emergency_contact_phone' => '09170000098',
-            'emergency_contact_relationship' => 'Sibling',
-            'address_line1' => '5 Admin Street',
-            'address_city' => 'Manila',
-            'address_province' => 'Metro Manila',
-            'address_postal_code' => '1000',
-            'contact_phone' => '09170000088',
-            'contact_email' => 'rbac.superadmin@example.test',
-        ])->assertRedirect(route('patients.portal'));
+        $this->withSession(['_token' => 'test-token'])
+            ->actingAs($superAdmin, 'web')
+            ->post('/portal/pre-register', [
+                '_token' => 'test-token',
+                'visit_reason' => 'Super-admin pre-registration',
+                'initial_notes' => 'Bypass test',
+                'medical_history' => 'No issues',
+                'current_medications' => 'None',
+                'allergies' => 'None',
+                'emergency_contact_name' => 'Admin Contact',
+                'emergency_contact_phone' => '09170000098',
+                'emergency_contact_relationship' => 'Sibling',
+                'address_line1' => '5 Admin Street',
+                'address_city' => 'Manila',
+                'address_province' => 'Metro Manila',
+                'address_postal_code' => '1000',
+                'contact_phone' => '09170000088',
+                'contact_email' => 'rbac.superadmin@example.test',
+            ])->assertRedirect(route('patients.portal'));
     }
 
     public function test_the_expected_role_permission_matrix_is_seeded(): void
@@ -218,14 +225,12 @@ class RbacMatrixTest extends TestCase
         $this->seed(HimsSeeder::class);
 
         $superAdmin = Role::where('name', 'super-admin')->first();
-        $hospitalAdmin = Role::where('name', 'hospital-admin')->first();
         $registration = Role::where('name', 'registration')->first();
         $doctor = Role::where('name', 'doctor')->first();
         $nurse = Role::where('name', 'nurse')->first();
         $patient = Role::where('name', 'patient')->first();
 
         $this->assertNotNull($superAdmin);
-        $this->assertNotNull($hospitalAdmin);
         $this->assertNotNull($registration);
         $this->assertNotNull($doctor);
         $this->assertNotNull($nurse);
@@ -235,7 +240,7 @@ class RbacMatrixTest extends TestCase
         $this->assertSame('Super Admin', $superAdmin->label);
 
         $this->assertTrue($superAdmin->permissions()->where('name', 'manage-users')->exists());
-        $this->assertTrue($hospitalAdmin->permissions()->where('name', 'view-audit-logs')->exists());
+        $this->assertTrue($superAdmin->permissions()->where('name', 'view-audit-logs')->exists());
         $this->assertTrue($registration->permissions()->where('name', 'create-patients')->exists());
         $this->assertTrue($doctor->permissions()->where('name', 'view-triage')->exists());
         $this->assertTrue($nurse->permissions()->where('name', 'manage-beds')->exists());
@@ -291,7 +296,6 @@ class RbacMatrixTest extends TestCase
             'nurse' => ['show' => true, 'items' => ['Bed Board', 'Admissions']],
             'registration' => ['show' => false, 'items' => ['Bed Board', 'Admissions']],
             'patient' => ['show' => false, 'items' => ['Bed Board', 'Admissions']],
-            'hospital-admin' => ['show' => true, 'items' => ['Bed Board', 'Admissions']],
             'super-admin' => ['show' => true, 'items' => ['Bed Board', 'Admissions']],
         ];
 

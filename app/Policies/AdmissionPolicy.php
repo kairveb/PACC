@@ -9,7 +9,7 @@ class AdmissionPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['super-admin', 'hospital-admin', 'admission', 'nurse', 'doctor']);
+        return $user->hasAnyRole(['super-admin', 'nurse', 'doctor']);
     }
 
     public function view(User $user, Admission $admission): bool
@@ -19,17 +19,17 @@ class AdmissionPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['super-admin', 'hospital-admin', 'admission']);
+        return $user->hasAnyRole(['super-admin', 'nurse']);
     }
 
     public function update(User $user, Admission $admission): bool
     {
-        return $user->hasAnyRole(['super-admin', 'hospital-admin', 'admission']);
+        return $user->hasAnyRole(['super-admin', 'nurse']);
     }
 
     public function discharge(User $user, Admission $admission): bool
     {
-        return $user->hasAnyRole(['super-admin', 'hospital-admin', 'admission']);
+        return $user->hasAnyRole(['super-admin', 'nurse']);
     }
 
     public function delete(User $user, Admission $admission): bool

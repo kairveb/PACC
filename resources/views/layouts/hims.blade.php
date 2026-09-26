@@ -73,7 +73,7 @@
                         <li class="nav-accordion{{ request()->routeIs('patients.*') ? ' is-expanded is-active' : '' }}">
                             <button class="nav-link nav-link-button nav-accordion__toggle" type="button" aria-expanded="{{ request()->routeIs('patients.*') ? 'true' : 'false' }}" aria-controls="nav-patients" aria-label="Patient Management"><i class="ph-fill ph-users-three" aria-hidden="true"></i><span class="nav-label">Patients</span><i class="ph ph-caret-down nav-chevron" aria-hidden="true"></i></button>
                             <ul class="nav-submenu" id="nav-patients" @if(!request()->routeIs('patients.*')) hidden @endif>
-                                @if (auth()->user()->hasAnyRole(['registration','doctor','nurse','super-admin','hospital-admin']))
+                                @if (auth()->user()->hasAnyRole(['registration','doctor','nurse','super-admin']))
                                     <li><a href="{{ route('patients.index') }}" class="{{ request()->routeIs('patients.index', 'patients.show', 'patients.vitals') ? 'active' : '' }}">Patient List</a></li>
                                 @endif
                             </ul>
@@ -85,8 +85,8 @@
                             $careDeliveryVisibleLinks = [];
                             if (auth()->user()->can('view-appointments')) { $careDeliveryVisibleLinks[] = 'appointments'; }
                             if (auth()->user()->can('view-encounters')) { $careDeliveryVisibleLinks[] = 'encounters'; }
-                            if (auth()->user()->can('view-telehealth') && auth()->user()->hasAnyRole(['doctor','nurse','super-admin','hospital-admin'])) { $careDeliveryVisibleLinks[] = 'telehealth'; }
-                            if (auth()->user()->can('view-er') && auth()->user()->hasAnyRole(['nurse','doctor','super-admin','hospital-admin','registration'])) { $careDeliveryVisibleLinks[] = 'er'; }
+                            if (auth()->user()->can('view-telehealth') && auth()->user()->hasAnyRole(['doctor','nurse','super-admin'])) { $careDeliveryVisibleLinks[] = 'telehealth'; }
+                            if (auth()->user()->can('view-er') && auth()->user()->hasAnyRole(['nurse','doctor','super-admin','registration'])) { $careDeliveryVisibleLinks[] = 'er'; }
                         @endphp
                         @if (! $isPatientUser || ! empty($careDeliveryVisibleLinks))
                         <li class="nav-accordion{{ request()->routeIs('appointments.*', 'outpatient.*', 'encounters.*', 'telehealth.*', 'emergency.*', 'doctors.queue*') ? ' is-expanded is-active' : '' }}">
@@ -96,20 +96,20 @@
                                     <li><a href="{{ route('appointments.index') }}" class="{{ request()->routeIs('appointments.*') ? 'active' : '' }}">Appointments</a></li>
                                 @endcan
                                 @can('view-encounters')
-                                    @if (auth()->user()->hasAnyRole(['doctor','super-admin','hospital-admin','nurse']))
+                                    @if (auth()->user()->hasAnyRole(['doctor','super-admin','nurse']))
                                         <li><a href="{{ route('outpatient.index') }}" class="{{ request()->routeIs('outpatient.index', 'encounters.*') ? 'active' : '' }}">Outpatient</a></li>
                                     @endif
-                                    @if (auth()->user()->hasAnyRole(['doctor','super-admin','hospital-admin']))
+                                    @if (auth()->user()->hasAnyRole(['doctor','super-admin']))
                                         <li><a href="{{ route('doctors.queue') }}" class="{{ request()->routeIs('doctors.queue') ? 'active' : '' }}">Doctor Queue</a></li>
                                     @endif
                                 @endcan
                                 @can('view-telehealth')
-                                    @if (auth()->user()->hasAnyRole(['doctor','nurse','super-admin','hospital-admin']))
+                                    @if (auth()->user()->hasAnyRole(['doctor','nurse','super-admin']))
                                         <li><a href="{{ route('telehealth.index') }}" class="{{ request()->routeIs('telehealth.*') ? 'active' : '' }}">Telehealth</a></li>
                                     @endif
                                 @endcan
                                 @can('view-er')
-                                    @if (auth()->user()->hasAnyRole(['nurse','doctor','super-admin','hospital-admin','registration']))
+                                    @if (auth()->user()->hasAnyRole(['nurse','doctor','super-admin','registration']))
                                         <li><a href="{{ route('emergency.index') }}" class="{{ request()->routeIs('emergency.*') ? 'active' : '' }}">ER / Emergency</a></li>
                                     @endif
                                 @endcan
@@ -119,10 +119,10 @@
 
                         @php
                             $inpatientVisibleLinks = [];
-                            if ($user->can('view-beds') && $user->hasAnyRole(['nurse', 'super-admin', 'hospital-admin'])) {
+                            if ($user->can('view-beds') && $user->hasAnyRole(['nurse', 'super-admin'])) {
                                 $inpatientVisibleLinks[] = 'beds';
                             }
-                            if ($user->can('view-admissions') && $user->hasAnyRole(['nurse', 'super-admin', 'hospital-admin'])) {
+                            if ($user->can('view-admissions') && $user->hasAnyRole(['nurse', 'super-admin'])) {
                                 $inpatientVisibleLinks[] = 'admissions';
                             }
                         @endphp
@@ -141,8 +141,8 @@
                         @endif
 
                         @php
-                            $canViewReports = $user->can('view-reports') && $user->hasAnyRole(['doctor', 'super-admin', 'hospital-admin']);
-                            $canViewAuditLogs = $user->can('view-audit-logs') && $user->hasAnyRole(['super-admin', 'hospital-admin']);
+                            $canViewReports = $user->can('view-reports') && $user->hasAnyRole(['doctor', 'super-admin']);
+                            $canViewAuditLogs = $user->can('view-audit-logs') && $user->hasRole('super-admin');
                             $showOperationsMenu = $canViewReports || $canViewAuditLogs;
                         @endphp
                         @if ($showOperationsMenu)

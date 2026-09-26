@@ -14,7 +14,7 @@
     $isNurse = $user?->hasRole('nurse') ?? false;
     $isDoctor = $user?->hasRole('doctor') ?? false;
     $isPatient = $user?->hasRole('patient') ?? false;
-    $isAdmin = $user?->hasAnyRole(['super-admin', 'hospital-admin']) ?? false;
+    $isAdmin = $user?->hasRole('super-admin') ?? false;
     $primaryRole = $user?->roles()->first()?->name ?? 'guest';
     $userRole = $primaryRole;
 @endphp
@@ -166,7 +166,7 @@
         </div>
     @endif
 
-    @if (in_array($userRole, ['super-admin', 'hospital-admin']))
+    @if (in_array($userRole, ['super-admin']))
         <section class="panel-card p-6 lg:p-8">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
