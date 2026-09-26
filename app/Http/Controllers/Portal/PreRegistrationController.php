@@ -112,7 +112,7 @@ class PreRegistrationController extends Controller
             'nationality' => $preferredNationality,
             'phone' => $preferredPhone,
             'email' => $preferredEmail,
-            'visit_reason' => $data['visit_reason'],
+            'visit_reason' => $data['visit_reason'] ?? null,
             'initial_notes' => $data['initial_notes'] ?? null,
             'medical_history' => $data['medical_history'] ?? null,
             'current_medications' => $data['current_medications'] ?? null,
@@ -165,12 +165,10 @@ class PreRegistrationController extends Controller
             'emergency_name' => ['nullable', 'string', 'max:150'],
             'emergency_phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
             'emergency_relationship' => ['nullable', 'string', 'max:50'],
-            'visit_reason' => ['required', 'string', 'max:500'],
+            'visit_reason' => ['nullable', 'string', 'max:500'],
             'initial_notes' => ['nullable', 'string', 'max:2000'],
             'medical_history' => ['nullable', 'string', 'max:2000'],
             'current_medications' => ['nullable', 'string', 'max:1000'],
-            'phone' => ['nullable', 'string', 'max:30', new PhilippineMobilePhone],
-            'email' => ['nullable', 'email', 'max:255'],
         ]);
     }
 
@@ -190,7 +188,7 @@ class PreRegistrationController extends Controller
             'nationality' => $data['nationality'] ?? null,
             'phone' => $data['phone'] ?? null,
             'email' => $data['email'] ?? null,
-            'visit_reason' => $data['visit_reason'],
+            'visit_reason' => $data['visit_reason'] ?? null,
             'initial_notes' => $data['initial_notes'] ?? null,
             'medical_history' => $data['medical_history'] ?? null,
             'current_medications' => $data['current_medications'] ?? null,

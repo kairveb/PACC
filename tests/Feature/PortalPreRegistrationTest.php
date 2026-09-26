@@ -70,8 +70,6 @@ class PortalPreRegistrationTest extends TestCase
                 'address_city' => 'Quezon City',
                 'address_province' => 'Metro Manila',
                 'address_postal' => '1100',
-                'phone' => '09170000011',
-                'email' => 'jane.patient@example.test',
             ]);
 
         $profile = $patient->preArrivalProfiles()->latest()->first();
@@ -94,6 +92,51 @@ class PortalPreRegistrationTest extends TestCase
         $dashboardResponse->assertOk();
         $dashboardResponse->assertSee('Pre-arrival ticket');
         $dashboardResponse->assertSee($profile->reference_code);
+    }
+
+    public function test_patient_pre_registration_accepts_missing_visit_reason_for_dashboard_form(): void
+    {
+        $role = Role::where('name', 'patient')->firstOrFail();
+        $user = User::factory()->create();
+        $user->forceFill(['email_verified_at' => now()])->save();
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
+        $patient = Patient::create([
+            'user_id' => $user->id,
+            'mrn' => 'MRN-PRE-DASH-001',
+            'first_name' => 'Jane',
+            'last_name' => 'Patient',
+            'date_of_birth' => '1990-05-15',
+            'sex' => 'Female',
+            'phone' => '09170000011',
+            'email' => 'jane.patient@example.test',
+            'verified' => true,
+        ]);
+
+        $response = $this->withSession(['_token' => 'test-token'])
+            ->actingAs($user, 'web')
+            ->post('/portal/pre-register', [
+                '_token' => 'test-token',
+                'first_name' => 'Jane',
+                'last_name' => 'Patient',
+                'date_of_birth' => '1990-05-15',
+                'sex' => 'Female',
+                'phone' => '09170000011',
+                'email' => 'jane.patient@example.test',
+                'address_line1' => '123 Sample Street',
+                'address_city' => 'Quezon City',
+                'address_province' => 'Metro Manila',
+                'address_postal' => '1100',
+                'emergency_name' => 'John Patient',
+                'emergency_phone' => '09170000099',
+                'emergency_relationship' => 'Spouse',
+            ]);
+
+        $response->assertRedirect(route('patients.portal'));
+
+        $profile = $patient->preArrivalProfiles()->latest()->first();
+        $this->assertNotNull($profile);
+        $this->assertNull($profile->visit_reason);
     }
 
     public function test_patient_pre_registration_stores_the_same_demographic_and_contact_fields_as_walk_in_registration(): void
