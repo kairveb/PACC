@@ -198,89 +198,11 @@
                         This form is for your pre-arrival information only. Clinical or vital-sign fields are intentionally left blank and will be completed by staff during intake.
                     </div>
 
-                    <div class="grid gap-5 md:grid-cols-2">
-                        <div class="md:col-span-2">
-                            <h3 class="text-lg font-semibold text-slate-900">1. Essential Information</h3>
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">First Name *</label>
-                            <input type="text" name="first_name" value="{{ old('first_name', $patient->first_name) }}" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Last Name *</label>
-                            <input type="text" name="last_name" value="{{ old('last_name', $patient->last_name) }}" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Date of Birth *</label>
-                            <input type="date" name="date_of_birth" value="{{ old('date_of_birth', $patient->date_of_birth?->format('Y-m-d')) }}" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Sex *</label>
-                            <select name="sex" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
-                                <option value="">Select</option>
-                                <option value="Male" {{ old('sex', $patient->sex) === 'Male' ? 'selected' : '' }}>Male</option>
-                                <option value="Female" {{ old('sex', $patient->sex) === 'Female' ? 'selected' : '' }}>Female</option>
-                                <option value="Other" {{ old('sex', $patient->sex) === 'Other' ? 'selected' : '' }}>Other</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Contact Number</label>
-                            <input type="tel" name="phone" value="{{ old('phone', $patient->phone) }}" data-phone-input class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" inputmode="numeric" pattern="^(09\d{9}|\+639\d{9})$" placeholder="09XXXXXXXXX or +639XXXXXXXXX">
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Email</label>
-                            <input type="email" name="email" value="{{ old('email', $patient->email) }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <h3 class="text-lg font-semibold text-slate-900">2. Address</h3>
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Street Address</label>
-                            <input type="text" name="address_line1" value="{{ old('address_line1', $patient->addresses->first()?->line1 ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" placeholder="House number, street, subdivision">
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Province</label>
-                            <input type="text" name="address_province" value="{{ old('address_province', $patient->addresses->first()?->province ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">City / Municipality</label>
-                            <input type="text" name="address_city" value="{{ old('address_city', $patient->addresses->first()?->city ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Barangay</label>
-                            <input type="text" name="address_barangay" value="{{ old('address_barangay', $patient->addresses->first()?->barangay ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <h3 class="text-lg font-semibold text-slate-900">Emergency contact</h3>
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Contact name</label>
-                            <input type="text" name="emergency_name" value="{{ old('emergency_name', $patient->emergencyContacts->first()?->name ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
-                        </div>
-
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Relationship</label>
-                            <input type="text" name="emergency_relationship" value="{{ old('emergency_relationship', $patient->emergencyContacts->first()?->relationship ?? '') }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800">
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Emergency contact phone</label>
-                            <input type="tel" name="emergency_phone" value="{{ old('emergency_phone', $patient->emergencyContacts->first()?->phone ?? '') }}" data-phone-input class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800" inputmode="numeric" pattern="^(09\d{9}|\+639\d{9})$" placeholder="09XXXXXXXXX or +639XXXXXXXXX">
-                        </div>
-                    </div>
+                    @include('portal.partials.pre-registration-fields', [
+                        'patient' => $patient,
+                        'address' => $patient->addresses->first(),
+                        'contact' => $patient->emergencyContacts->first(),
+                    ])
 
                     <div class="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
                         <button type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" data-bs-dismiss="modal">Cancel</button>
